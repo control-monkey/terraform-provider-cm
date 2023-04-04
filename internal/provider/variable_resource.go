@@ -44,7 +44,6 @@ type VariableResourceModel struct {
 var vScopes = []string{
 	"organization",
 	"namespace",
-	"variableGroup",
 	"template",
 	"stack",
 	"stackRun",
@@ -61,17 +60,17 @@ func (r *VariableResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Variable can be either a Terraform variable or an Environment variable.\n Terraform variables, which are defined in the Terraform configuration files and have their values set by ControlMonkey when running IaC commands. \nEnvironment variables, which are set by ControlMonkey in the shell running IaC commands",
+		MarkdownDescription: "Creates, updates and destroys variables.\nVariable can be either a Terraform variable or an Environment variable.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the variable",
+				MarkdownDescription: "The unique ID of the variable.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Scope of the variable. Allowed values: %v", vScopes),
+				MarkdownDescription: fmt.Sprintf("Scope of the variable. Allowed values: %s.", helpers.EnumForDocs(vScopes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -81,26 +80,26 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"scope_id": schema.StringAttribute{
-				MarkdownDescription: "The id of the scope resource that the variable is attached to",
+				MarkdownDescription: "The id of the scope resource that the variable is attached to.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 			"key": schema.StringAttribute{
-				MarkdownDescription: "The key of the variable",
+				MarkdownDescription: "The key of the variable.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"value": schema.StringAttribute{
-				MarkdownDescription: "The value of the variable",
+				MarkdownDescription: "The value of the variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %v", vScopes),
+				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(vScopes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -110,14 +109,14 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"is_sensitive": schema.BoolAttribute{
-				MarkdownDescription: "Whether the variable value is sensitive and should be encrypted or not",
+				MarkdownDescription: "Whether the variable value is sensitive and should be encrypted or not.",
 				Required:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
 			},
 			"is_overridable": schema.BoolAttribute{
-				MarkdownDescription: "Either the value of the variable can be overridden by a another scope down in the hierarchy or the variable will be inherited without modifications",
+				MarkdownDescription: "Either the value of the variable can be overridden by a another scope down in the hierarchy or the variable will be inherited without modifications.",
 				Required:            true,
 			},
 			"is_required": schema.BoolAttribute{
@@ -125,7 +124,7 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Optional:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Description for the variable",
+				MarkdownDescription: "Description for the variable.",
 				Optional:            true,
 			},
 		},

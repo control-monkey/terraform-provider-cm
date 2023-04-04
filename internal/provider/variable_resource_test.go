@@ -96,6 +96,11 @@ func TestAccVariableResourceNamespace(t *testing.T) {
 					resource.TestCheckResourceAttrSet(variableResourceName(namespaceVariable), "id"),
 				),
 			},
+			{
+				ResourceName:      fmt.Sprintf("%s.%s", tfCmVariable, namespaceVariable),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

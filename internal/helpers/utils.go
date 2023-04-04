@@ -1,8 +1,10 @@
 package helpers
 
 import (
+	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
 )
 
 func BoolValueOrNull(v *bool) types.Bool {
@@ -27,4 +29,8 @@ func StringValueOrNull(v *string) types.String {
 	}
 
 	return r
+}
+
+func EnumForDocs(stringArray []string) string {
+	return fmt.Sprintf("[%s]", strings.Join(stringArray, ", "))
 }
