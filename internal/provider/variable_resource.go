@@ -46,7 +46,6 @@ var vScopes = []string{
 	"namespace",
 	"template",
 	"stack",
-	"stackRun",
 }
 
 var vTypes = []string{
@@ -99,7 +98,7 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Sensitive:           true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(vScopes)),
+				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(vTypes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

@@ -22,8 +22,8 @@ Variable can be either a Terraform variable or an Environment variable.
 - `is_overridable` (Boolean) Either the value of the variable can be overridden by a another scope down in the hierarchy or the variable will be inherited without modifications.
 - `is_sensitive` (Boolean) Whether the variable value is sensitive and should be encrypted or not.
 - `key` (String) The key of the variable.
-- `scope` (String) Scope of the variable. Allowed values: [organization, namespace, template, stack, stackRun].
-- `type` (String) Type of the variable. Allowed values: [organization, namespace, template, stack, stackRun].
+- `scope` (String) Scope of the variable. Allowed values: [organization, namespace, template, stack].
+- `type` (String) Type of the variable. Allowed values: [tfVar, envVar].
 
 ### Optional
 
