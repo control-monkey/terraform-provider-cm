@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/control-monkey-customer-z/terraform-provider-cm/internal/provider"
 	"log"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -26,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "github.com/control-monkey-customer-z/terraform-provider-cm",
+		Address: "github.com/control-monkey/terraform-provider-cm",
 		Debug:   debug,
 	}
 

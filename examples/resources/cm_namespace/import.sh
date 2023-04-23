@@ -1,0 +1,1 @@
+terraform import cm_namespace.namespace id
