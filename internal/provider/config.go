@@ -3,17 +3,18 @@ package provider
 import (
 	"errors"
 	"fmt"
-	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	stdlog "log"
 	"strings"
 
-	"github.com/control-monkey-customer-z/terraform-provider-cm/version"
+	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey/credentials"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey/featureflag"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey/log"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey/session"
-	"github.com/control-monkey/controlmonkey-sdk-go/service/stack"
-	"github.com/control-monkey/controlmonkey-sdk-go/service/variable"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/stack"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/variable"
+	"github.com/control-monkey/terraform-provider-cm/version"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
@@ -32,8 +33,9 @@ type Config struct {
 }
 
 type Client struct {
-	stack    stack.Service
-	variable variable.Service
+	stack     stack.Service
+	variable  variable.Service
+	namespace namespace.Service
 }
 
 // Client configures and returns a fully initialized ControlMonkey client.
@@ -48,8 +50,9 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 
 	// Create a new client.
 	client := &Client{
-		stack:    stack.New(sess),
-		variable: variable.New(sess),
+		stack:     stack.New(sess),
+		variable:  variable.New(sess),
+		namespace: namespace.New(sess),
 	}
 
 	stdlog.Println("[INFO] ControlMonkey client configured")

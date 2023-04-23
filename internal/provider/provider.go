@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"github.com/control-monkey-customer-z/terraform-provider-cm/version"
+	"github.com/control-monkey/terraform-provider-cm/version"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -109,6 +109,8 @@ func (p *ControlMonkeyProvider) Configure(ctx context.Context, req provider.Conf
 func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewVariableResource,
+		NewStackResource,
+		NewNamespaceResource,
 	}
 }
 

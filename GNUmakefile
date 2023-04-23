@@ -58,3 +58,33 @@ release:
 	@git commit -a -m "chore(release): $(RELEASE)" -m "CI_JOB_NUMBER: $(CI_JOB_NUMBER)"
 	@git tag -f -m    "chore(release): $(RELEASE)" $(RELEASE)
 	@git push --follow-tags
+
+# uncomment for local development
+
+#OS ?= darwin
+#ARCH ?= arm64
+#OS_ARCH := $(OS)_$(ARCH)
+#
+#
+## Builds the go binary
+#.PHONY: binary
+#binary:
+#	go fmt ./...
+#	echo "Building Go binary"
+#	go build -o terraform-provider-cm_v1.2.0
+#
+## Sets up your local workstation to "accept" this local provider binary
+#.PHONY: init
+#init: binary
+#	echo "Initializing..."
+#	echo "Setting up for local provider..."
+#	rm -f ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)/terraform-provider-cm_v1.2.0
+#	mkdir -p ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)
+#	ln -s $(CURDIR)/terraform-provider-cm_v1.2.0 ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)/terraform-provider-cm_v1.2.0
+#
+## Builds the go binary, and cleans up Terraform lock file just in case
+#.PHONY: build_local
+#build: binary
+#	if [ -f "sandbox/.terraform.lock.hcl" ]; then \
+#	  rm sandbox/.terraform.lock.hcl; \
+#	fi

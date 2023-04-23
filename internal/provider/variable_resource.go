@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/control-monkey-customer-z/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	"github.com/control-monkey/controlmonkey-sdk-go/service/variable"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/variable"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -257,7 +257,6 @@ func (r *VariableResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	// NOTE: no need to update ID and ProjectID
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
