@@ -65,22 +65,25 @@ release:
 #ARCH ?= arm64
 #OS_ARCH := $(OS)_$(ARCH)
 #
+#TF_PROVIDER_VERSION ?= 1.2.1
+#TF_PROVIDER := terraform-provider-cm_v$(TF_PROVIDER_VERSION)
+#
 #
 ## Builds the go binary
 #.PHONY: binary
 #binary:
 #	go fmt ./...
 #	echo "Building Go binary"
-#	go build -o terraform-provider-cm_v1.2.0
+#	go build -o $(TF_PROVIDER)
 #
 ## Sets up your local workstation to "accept" this local provider binary
 #.PHONY: init
 #init: binary
 #	echo "Initializing..."
 #	echo "Setting up for local provider..."
-#	rm -f ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)/terraform-provider-cm_v1.2.0
-#	mkdir -p ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)
-#	ln -s $(CURDIR)/terraform-provider-cm_v1.2.0 ~/.terraform.d/plugins/example.com/control-monkey/cm/1.2.0/$(OS_ARCH)/terraform-provider-cm_v1.2.0
+#	rm -f ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)/$(TF_PROVIDER)
+#	mkdir -p ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)
+#	ln -s $(CURDIR)/$(TF_PROVIDER) ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)/$(TF_PROVIDER)
 #
 ## Builds the go binary, and cleans up Terraform lock file just in case
 #.PHONY: build_local
@@ -88,3 +91,21 @@ release:
 #	if [ -f "sandbox/.terraform.lock.hcl" ]; then \
 #	  rm sandbox/.terraform.lock.hcl; \
 #	fi
+#
+## creates ControlMonkey provider for local usage
+#.PHONY: cm_provider
+#cm_provider:
+#	make binary && make init && make build
+#
+### example of usage
+#
+#terraform {
+#  required_providers {
+#    cm = {
+#      source = "example.com/control-monkey/cm"
+#      version = ">= 1.2"
+#    }
+#  }
+#}
+#
+#provider "cm" {} # you must have `export CONTROL_MONKEY_TOKEN=<TOKEN_HERE>`

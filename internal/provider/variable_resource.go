@@ -176,7 +176,13 @@ func (r *VariableResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.IsSensitive = helpers.BoolValueOrNull(respVariable.IsSensitive)
 	state.IsOverridable = helpers.BoolValueOrNull(respVariable.IsOverridable)
 	state.ScopeId = helpers.StringValueOrNull(respVariable.ScopeId)
-	state.Value = helpers.StringValueOrNull(respVariable.Value)
+
+	// if it's sensitive, we take the value from the state file because the api does not respond secret values.
+	// if it's not sensitive, we take the value from the response.
+	if state.IsSensitive.ValueBool() == false {
+		state.Value = helpers.StringValueOrNull(respVariable.Value)
+	}
+
 	state.IsRequired = helpers.BoolValueOrNull(respVariable.IsRequired)
 	state.Description = helpers.StringValueOrNull(respVariable.Description)
 
