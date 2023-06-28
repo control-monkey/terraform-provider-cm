@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"reflect"
 	"strings"
 )
 
@@ -42,14 +43,44 @@ func StringValueOrNull(v *string) types.String {
 	return r
 }
 
-func StringSlice(vs []*string) []types.String {
-	var arr []types.String
+func StringSliceOrNull(vs *[]*string) []types.String {
+	var retVal []types.String
 
-	for _, v := range vs {
-		arr = append(arr, StringValueOrNull(v))
+	if vs != nil {
+		retVal = make([]types.String, 0)
+
+		for _, v := range *vs {
+			retVal = append(retVal, StringValueOrNull(v))
+		}
 	}
 
-	return arr
+	return retVal
+}
+
+func StringPointerSliceOrNull(vs []types.String) []*string {
+	var retVal []*string
+
+	if vs != nil {
+		retVal = make([]*string, 0)
+
+		for _, pattern := range vs {
+			retVal = append(retVal, pattern.ValueStringPointer())
+		}
+	}
+
+	return retVal
+}
+
+func TfStringSliceConverter(plan []types.String, state []types.String) (*[]*string, bool) {
+	var retVal []*string
+	hasChanged := false
+
+	if reflect.DeepEqual(plan, state) == false {
+		retVal = StringPointerSliceOrNull(plan)
+		hasChanged = true
+	}
+
+	return &retVal, hasChanged
 }
 
 func EnumForDocs(stringArray []string) string {

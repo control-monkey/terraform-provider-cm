@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/stack"
+	sdkStack "github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
-
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -28,56 +29,6 @@ type StackResource struct {
 	client *ControlMonkeyAPIClient
 }
 
-type StackResourceModel struct {
-	ID                 types.String             `tfsdk:"id"`
-	IacType            types.String             `tfsdk:"iac_type"`
-	NamespaceId        types.String             `tfsdk:"namespace_id"`
-	Name               types.String             `tfsdk:"name"`
-	Description        types.String             `tfsdk:"description"`
-	DeploymentBehavior *deploymentBehaviorModel `tfsdk:"deployment_behavior"`
-	VcsInfo            *vcsInfoModel            `tfsdk:"vcs_info"`
-	RunTrigger         *runTriggerModel         `tfsdk:"run_trigger"`
-	IacConfig          *IacConfigModel          `tfsdk:"iac_config"`
-	Policy             *stackPolicyModel        `tfsdk:"policy"`
-}
-
-type deploymentBehaviorModel struct {
-	DeployOnPush    types.Bool `tfsdk:"deploy_on_push"`
-	WaitForApproval types.Bool `tfsdk:"wait_for_approval"`
-}
-
-type vcsInfoModel struct {
-	ProviderId types.String `tfsdk:"provider_id"`
-	RepoName   types.String `tfsdk:"repo_name"`
-	Path       types.String `tfsdk:"path"`
-	Branch     types.String `tfsdk:"branch"`
-}
-
-type runTriggerModel struct {
-	Patterns []types.String `tfsdk:"patterns"`
-}
-
-type IacConfigModel struct {
-	TerraformVersion  types.String `tfsdk:"terraform_version"`
-	TerragruntVersion types.String `tfsdk:"terragrunt_version"`
-}
-
-type stackPolicyModel struct {
-	TtlConfig *stackTtlConfigModel `tfsdk:"ttl_config"`
-}
-
-type stackTtlConfigModel struct {
-	Ttl *stackTtlDefinitionModel `tfsdk:"ttl"`
-}
-
-type stackTtlDefinitionModel struct {
-	Type  types.String `tfsdk:"type"`
-	Value types.Int64  `tfsdk:"value"`
-}
-
-var iacTypes = []string{"terraform", "terragrunt"}
-var stackTtlTypes = []string{"hours", "days"}
-
 func (r *StackResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_stack"
 }
@@ -94,13 +45,13 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"iac_type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("IaC type of the stack. Allowed values: %s.", helpers.EnumForDocs(iacTypes)),
+				MarkdownDescription: fmt.Sprintf("IaC type of the stack. Allowed values: %s.", helpers.EnumForDocs(stack.IacTypes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(iacTypes...),
+					stringvalidator.OneOf(stack.IacTypes...),
 				},
 			},
 			"namespace_id": schema.StringAttribute{
@@ -117,6 +68,9 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the stack.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.NoneOf(""),
+				},
 			},
 			"deployment_behavior": schema.SingleNestedAttribute{
 				MarkdownDescription: "The deployment behavior configuration.",
@@ -146,8 +100,8 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					"repo_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the version control repository.",
 						Required:            true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
+						Validators: []validator.String{
+							stringvalidator.NoneOf(""),
 						},
 					},
 					"path": schema.StringAttribute{
@@ -197,10 +151,10 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 								Required: true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(stackTtlTypes)),
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(stack.TtlTypes)),
 										Required:            true,
 										Validators: []validator.String{
-											stringvalidator.OneOf(stackTtlTypes...),
+											stringvalidator.OneOf(stack.TtlTypes...),
 										},
 									},
 									"value": schema.Int64Attribute{
@@ -241,7 +195,7 @@ func (r *StackResource) Configure(_ context.Context, req resource.ConfigureReque
 // Read refreshes the Terraform state with the latest data.
 func (r *StackResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	//Get current state
-	var state StackResourceModel
+	var state stack.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -255,63 +209,8 @@ func (r *StackResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	stack := res.Stack
+	stack.UpdateStateAfterRead(res, &state)
 
-	state.IacType = helpers.StringValueOrNull(stack.IacType)
-	state.NamespaceId = helpers.StringValueOrNull(stack.NamespaceId)
-	state.Name = helpers.StringValueOrNull(stack.Name)
-	state.Description = helpers.StringValueOrNull(stack.Description)
-
-	data := stack.Data
-	var dp deploymentBehaviorModel
-	dp.DeployOnPush = helpers.BoolValueOrNull(data.DeploymentBehavior.DeployOnPush)
-	dp.WaitForApproval = helpers.BoolValueOrNull(data.DeploymentBehavior.WaitForApproval)
-	state.DeploymentBehavior = &dp
-
-	var vcs vcsInfoModel
-	vcs.ProviderId = helpers.StringValueOrNull(data.VcsInfo.ProviderId)
-	vcs.RepoName = helpers.StringValueOrNull(data.VcsInfo.RepoName)
-	vcs.Path = helpers.StringValueOrNull(data.VcsInfo.Path)
-	vcs.Branch = helpers.StringValueOrNull(data.VcsInfo.Branch)
-	state.VcsInfo = &vcs
-
-	var rt runTriggerModel
-	if data.RunTrigger != nil {
-		if data.RunTrigger.Patterns != nil {
-			rt.Patterns = helpers.StringSlice(data.RunTrigger.Patterns)
-		} else {
-			rt.Patterns = nil
-		}
-		state.RunTrigger = &rt
-	} else {
-		state.RunTrigger = nil
-	}
-
-	var ic IacConfigModel
-	if data.IacConfig != nil {
-		ic.TerraformVersion = helpers.StringValueOrNull(data.IacConfig.TerraformVersion)
-		ic.TerragruntVersion = helpers.StringValueOrNull(data.IacConfig.TerragruntVersion)
-		state.IacConfig = &ic
-	} else {
-		state.IacConfig = nil
-	}
-
-	var policy stackPolicyModel
-	var ttlc stackTtlConfigModel
-	var ttl stackTtlDefinitionModel
-	if data.Policy != nil {
-		if data.Policy.TtlConfig != nil {
-			ttl.Type = helpers.StringValueOrNull(data.Policy.TtlConfig.Ttl.Type)
-			ttl.Value = helpers.Int64ValueOrNull(data.Policy.TtlConfig.Ttl.Value)
-			ttlc.Ttl = &ttl
-			policy.TtlConfig = &ttlc
-		} else {
-			policy.TtlConfig = nil
-		}
-		state.Policy = &policy
-	} else {
-		state.Policy = nil
-	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -323,16 +222,16 @@ func (r *StackResource) Read(ctx context.Context, req resource.ReadRequest, resp
 // Create creates the resource and sets the initial Terraform state.
 func (r *StackResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	//Retrieve values from plan
-	var plan StackResourceModel
+	var plan stack.ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	body := createCmStackFromPlanConverter(plan)
+	body, _ := stack.Converter(&plan, nil, commons.CreateConverter)
 
-	res, err := r.client.Client.stack.CreateStack(ctx, &stack.CreateStackInput{Stack: &body})
+	res, err := r.client.Client.stack.CreateStack(ctx, &sdkStack.CreateStackInput{Stack: body})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Stack creation failed",
@@ -351,157 +250,22 @@ func (r *StackResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 }
 
-func createCmStackFromPlanConverter(plan StackResourceModel) stack.Stack {
-	var body stack.Stack
-
-	body.SetIacType(plan.IacType.ValueStringPointer())
-	body.SetNamespaceId(plan.NamespaceId.ValueStringPointer())
-	body.SetName(plan.Name.ValueStringPointer())
-	body.SetDescription(plan.Description.ValueStringPointer())
-
-	var data stack.Data
-
-	var db stack.DeploymentBehavior
-	db.SetDeployOnPush(plan.DeploymentBehavior.DeployOnPush.ValueBoolPointer())
-	db.SetWaitForApproval(plan.DeploymentBehavior.WaitForApproval.ValueBoolPointer())
-	data.SetDeploymentBehavior(&db)
-
-	var vi stack.VcsInfo
-	vi.SetProviderId(plan.VcsInfo.ProviderId.ValueStringPointer())
-	vi.SetRepoName(plan.VcsInfo.RepoName.ValueStringPointer())
-	vi.SetPath(plan.VcsInfo.Path.ValueStringPointer())
-	vi.SetBranch(plan.VcsInfo.Branch.ValueStringPointer())
-	data.SetVcsInfo(&vi)
-
-	var rt stack.RunTrigger
-	runTrigger := plan.RunTrigger
-
-	if runTrigger != nil {
-		if runTrigger.Patterns != nil {
-			var patterns []*string
-			for _, pattern := range plan.RunTrigger.Patterns {
-				patterns = append(patterns, pattern.ValueStringPointer())
-			}
-			rt.SetPatterns(patterns)
-		} else {
-			rt.SetPatterns(nil)
-		}
-		data.SetRunTrigger(&rt)
-	} else {
-		data.SetRunTrigger(nil)
-	}
-
-	var ic stack.IacConfig
-	if plan.IacConfig != nil {
-		ic.SetTerraformVersion(plan.IacConfig.TerraformVersion.ValueStringPointer())
-		ic.SetTerragruntVersion(plan.IacConfig.TerragruntVersion.ValueStringPointer())
-		data.SetIacConfig(&ic)
-	} else {
-		data.SetIacConfig(nil)
-	}
-
-	var policy stack.Policy
-	var ttlConfig stack.TtlConfig
-	var ttl stack.TtlDefinition
-	if plan.Policy != nil {
-		if plan.Policy.TtlConfig != nil {
-			ttl.SetType(plan.Policy.TtlConfig.Ttl.Type.ValueStringPointer())
-			ttl.SetValue(controlmonkey.Int(int(plan.Policy.TtlConfig.Ttl.Value.ValueInt64())))
-			ttlConfig.SetTtl(&ttl)
-			policy.SetTtlConfig(&ttlConfig)
-		} else {
-			policy.SetTtlConfig(nil)
-		}
-		data.SetPolicy(&policy)
-	} else {
-		data.SetPolicy(nil)
-	}
-
-	body.SetData(&data)
-	return body
-}
-
-// do not copy it - would be better to have both create and update on the same function with a parameter to distinguish between them
-func updateCmStackFromPlanConverter(plan StackResourceModel) stack.Stack {
-	var body stack.Stack
-
-	body.SetName(plan.Name.ValueStringPointer())
-	body.SetDescription(plan.Description.ValueStringPointer())
-
-	var data stack.Data
-
-	var db stack.DeploymentBehavior
-	db.SetDeployOnPush(plan.DeploymentBehavior.DeployOnPush.ValueBoolPointer())
-	db.SetWaitForApproval(plan.DeploymentBehavior.WaitForApproval.ValueBoolPointer())
-	data.SetDeploymentBehavior(&db)
-
-	var vi stack.VcsInfo
-	vi.SetProviderId(plan.VcsInfo.ProviderId.ValueStringPointer())
-	vi.SetRepoName(plan.VcsInfo.RepoName.ValueStringPointer())
-	vi.SetPath(plan.VcsInfo.Path.ValueStringPointer())
-	vi.SetBranch(plan.VcsInfo.Branch.ValueStringPointer())
-	data.SetVcsInfo(&vi)
-
-	var rt stack.RunTrigger
-	if plan.RunTrigger != nil {
-		if plan.RunTrigger.Patterns != nil {
-			var patterns []*string
-			for _, pattern := range plan.RunTrigger.Patterns {
-				patterns = append(patterns, pattern.ValueStringPointer())
-			}
-			rt.SetPatterns(patterns)
-		} else {
-			rt.SetPatterns(nil)
-		}
-		data.SetRunTrigger(&rt)
-	} else {
-		data.SetRunTrigger(nil)
-	}
-
-	var ic stack.IacConfig
-	if plan.IacConfig != nil {
-		ic.SetTerraformVersion(plan.IacConfig.TerraformVersion.ValueStringPointer())
-		ic.SetTerragruntVersion(plan.IacConfig.TerragruntVersion.ValueStringPointer())
-		data.SetIacConfig(&ic)
-	} else {
-		data.SetIacConfig(nil)
-	}
-
-	var policy stack.Policy
-	var ttlConfig stack.TtlConfig
-	var ttl stack.TtlDefinition
-	if plan.Policy != nil {
-		if plan.Policy.TtlConfig != nil {
-			ttl.SetType(plan.Policy.TtlConfig.Ttl.Type.ValueStringPointer())
-			ttl.SetValue(controlmonkey.Int(int(plan.Policy.TtlConfig.Ttl.Value.ValueInt64())))
-			ttlConfig.SetTtl(&ttl)
-			policy.SetTtlConfig(&ttlConfig)
-		} else {
-			policy.SetTtlConfig(nil)
-		}
-		data.SetPolicy(&policy)
-	} else {
-		data.SetPolicy(nil)
-	}
-
-	body.SetData(&data)
-	return body
-}
-
 func (r *StackResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan StackResourceModel
+	var plan stack.ResourceModel
+	var state stack.ResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
+	req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	id := plan.ID.ValueString()
-	body := updateCmStackFromPlanConverter(plan)
+	body, _ := stack.Converter(&plan, &state, commons.UpdateConverter)
 
-	_, err := r.client.Client.stack.UpdateStack(ctx, id, &body)
+	_, err := r.client.Client.stack.UpdateStack(ctx, id, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Stack update failed",
@@ -520,7 +284,7 @@ func (r *StackResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 func (r *StackResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state StackResourceModel
+	var state stack.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
