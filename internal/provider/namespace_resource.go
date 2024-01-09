@@ -3,9 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace"
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -27,36 +30,6 @@ func NewNamespaceResource() resource.Resource {
 type NamespaceResource struct {
 	client *ControlMonkeyAPIClient
 }
-
-type NamespaceResourceModel struct {
-	ID                  types.String                 `tfsdk:"id"`
-	Name                types.String                 `tfsdk:"name"`
-	Description         types.String                 `tfsdk:"description"`
-	ExternalCredentials *[]*externalCredentialsModel `tfsdk:"external_credentials"`
-	Policy              *namespacePolicyModel        `tfsdk:"policy"`
-}
-
-type externalCredentialsModel struct {
-	Type                  types.String `tfsdk:"type"`
-	ExternalCredentialsId types.String `tfsdk:"external_credentials_id"`
-}
-
-type namespacePolicyModel struct {
-	TtlConfig *namespaceTtlConfigModel `tfsdk:"ttl_config"`
-}
-
-type namespaceTtlConfigModel struct {
-	MaxTtl     *namespaceTtlDefinitionModel `tfsdk:"max_ttl"`
-	DefaultTtl *namespaceTtlDefinitionModel `tfsdk:"default_ttl"`
-}
-
-type namespaceTtlDefinitionModel struct {
-	Type  types.String `tfsdk:"type"`
-	Value types.Int64  `tfsdk:"value"`
-}
-
-var externalCredentialTypes = []string{"awsAssumeRole", "gcpServiceAccount", "azureServicePrincipal"}
-var namespaceTtlTypes = []string{"hours", "days"}
 
 func (r *NamespaceResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_namespace"
@@ -87,18 +60,23 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
-							MarkdownDescription: fmt.Sprintf("The type of the credentials. Allowed values: %s.", helpers.EnumForDocs(externalCredentialTypes)),
+							MarkdownDescription: fmt.Sprintf("The type of the credentials. Allowed values: %s.", helpers.EnumForDocs(cmTypes.ExternalCredentialTypes)),
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.OneOf(externalCredentialTypes...),
+								stringvalidator.OneOf(cmTypes.ExternalCredentialTypes...),
 							},
 						},
 						"external_credentials_id": schema.StringAttribute{
-							MarkdownDescription: "The Control Monkey unique ID of the credentials.",
+							MarkdownDescription: "The ControlMonkey unique ID of the credentials.",
 							Required:            true,
+						},
+						"aws_profile_name": schema.StringAttribute{
+							MarkdownDescription: "Profile name for AWS credentials.",
+							Optional:            true,
 						},
 					},
 				},
+				Validators: []validator.List{listvalidator.SizeAtLeast(1)},
 			},
 			"policy": schema.SingleNestedAttribute{
 				MarkdownDescription: "The policy of the namespace.",
@@ -113,10 +91,10 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 								Required:            true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(namespaceTtlTypes)),
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
 										Required:            true,
 										Validators: []validator.String{
-											stringvalidator.OneOf(namespaceTtlTypes...),
+											stringvalidator.OneOf(cmTypes.TtlTypes...),
 										},
 									},
 									"value": schema.Int64Attribute{
@@ -130,10 +108,10 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 								Required:            true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(namespaceTtlTypes)),
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
 										Required:            true,
 										Validators: []validator.String{
-											stringvalidator.OneOf(namespaceTtlTypes...),
+											stringvalidator.OneOf(cmTypes.TtlTypes...),
 										},
 									},
 									"value": schema.Int64Attribute{
@@ -142,6 +120,74 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			"iac_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "IaC configuration of the namespace. If not overridden, this becomes the default for its stacks.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"terraform_version": schema.StringAttribute{
+						MarkdownDescription: "the Terraform version that will be used for terraform operations.",
+						Optional:            true,
+					},
+					"terragrunt_version": schema.StringAttribute{
+						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
+						Optional:            true,
+					},
+				},
+			},
+			"runner_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"mode": schema.StringAttribute{
+						MarkdownDescription: fmt.Sprintf("The runner mode. Allowed values: %s.", helpers.EnumForDocs(cmTypes.RunnerConfigModeTypes)),
+						Required:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf(cmTypes.RunnerConfigModeTypes...),
+						},
+					},
+					"groups": schema.ListAttribute{
+						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
+						ElementType:         types.StringType,
+						Optional:            true,
+						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
+					},
+					"is_overridable": schema.BoolAttribute{
+						MarkdownDescription: "Determine if stacks within the namespace can override the runner_config.",
+						Required:            true,
+					},
+				},
+			},
+			"deployment_approval_policy": schema.SingleNestedAttribute{
+				MarkdownDescription: "Set up requirements to approve a deployment",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"rules": schema.ListNestedAttribute{
+						MarkdownDescription: "Set up rules for approving deployment processes. At least one rule should be configured",
+						Required:            true,
+						Validators: []validator.List{
+							listvalidator.SizeAtLeast(1),
+						},
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"type": schema.StringAttribute{
+									MarkdownDescription: fmt.Sprintf("The type of the rule. Allowed values: %s.", helpers.EnumForDocs(cmTypes.DeploymentApprovalPolicyRuleTypes)),
+									Required:            true,
+									Validators: []validator.String{
+										stringvalidator.OneOf(cmTypes.DeploymentApprovalPolicyRuleTypes...),
+									},
+								},
+							},
+						},
+					},
+					"override_behavior": schema.StringAttribute{
+						MarkdownDescription: fmt.Sprintf("Decide whether stacks can override this configuration. Allowed values: %s.", helpers.EnumForDocs(cmTypes.OverrideBehaviorTypes)),
+						Required:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf(cmTypes.OverrideBehaviorTypes...),
 						},
 					},
 				},
@@ -171,10 +217,70 @@ func (r *NamespaceResource) Configure(_ context.Context, req resource.ConfigureR
 	r.client = client
 }
 
+func (r *NamespaceResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data namespace.ResourceModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	externalCredentials := data.ExternalCredentials
+
+	if externalCredentials != nil {
+		for _, credentials := range externalCredentials {
+			credentialsType := credentials.Type
+			profileName := credentials.AwsProfileName
+
+			if credentialsType.IsNull() == false && credentialsType.ValueString() != cmTypes.AwsAssumeRole && profileName.IsNull() == false {
+				resp.Diagnostics.AddError(
+					"Validation Error",
+					fmt.Sprintf("external_credentials cannot have aws_profile_name configured for non AWS provider."),
+				)
+			}
+		}
+	}
+
+	runnerConfig := data.RunnerConfig
+
+	if runnerConfig != nil {
+		mode := runnerConfig.Mode
+
+		if !mode.IsNull() {
+			modeValue := mode.ValueString()
+
+			if modeValue == cmTypes.Managed && runnerConfig.Groups != nil {
+				resp.Diagnostics.AddError(
+					"Validation Error",
+					fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
+				)
+			} else if modeValue == cmTypes.SelfHosted {
+				if len(runnerConfig.Groups) == 0 {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
+					)
+				} else if helpers.DoesTfStringSliceContainEmptyValue(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						"Found empty string in runner_config.groups",
+					)
+				} else if !helpers.IsTfStringSliceUnique(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						"Found duplicate in runner_config.groups",
+					)
+				}
+			}
+		}
+	}
+}
+
 // Read refreshes the Terraform state with the latest data.
 func (r *NamespaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	//Get current state
-	var state NamespaceResourceModel
+	var state namespace.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -188,47 +294,8 @@ func (r *NamespaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	namespace_ := res.Namespace
+	namespace.UpdateStateAfterRead(res, &state)
 
-	state.Name = helpers.StringValueOrNull(namespace_.Name)
-	state.Description = helpers.StringValueOrNull(namespace_.Description)
-
-	if namespace_.ExternalCredentials != nil {
-		var creds []*externalCredentialsModel
-
-		for _, v := range *namespace_.ExternalCredentials {
-			var ec externalCredentialsModel
-			ec.Type = helpers.StringValueOrNull(v.Type)
-			ec.ExternalCredentialsId = helpers.StringValueOrNull(v.ExternalCredentialsId)
-			creds = append(creds, &ec)
-		}
-		state.ExternalCredentials = &creds
-	} else {
-		state.ExternalCredentials = nil
-	}
-
-	var policy namespacePolicyModel
-	if namespace_.Policy != nil {
-		if namespace_.Policy.TtlConfig != nil {
-			var ttlc namespaceTtlConfigModel
-			var maxTtl namespaceTtlDefinitionModel
-			var defTtl namespaceTtlDefinitionModel
-
-			maxTtl.Type = helpers.StringValueOrNull(namespace_.Policy.TtlConfig.MaxTtl.Type)
-			maxTtl.Value = helpers.Int64ValueOrNull(namespace_.Policy.TtlConfig.MaxTtl.Value)
-			defTtl.Type = helpers.StringValueOrNull(namespace_.Policy.TtlConfig.DefaultTtl.Type)
-			defTtl.Value = helpers.Int64ValueOrNull(namespace_.Policy.TtlConfig.DefaultTtl.Value)
-
-			ttlc.MaxTtl = &maxTtl
-			ttlc.DefaultTtl = &defTtl
-			policy.TtlConfig = &ttlc
-		} else {
-			policy.TtlConfig = nil
-		}
-		state.Policy = &policy
-	} else {
-		state.Policy = nil
-	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -240,16 +307,16 @@ func (r *NamespaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 // Create creates the resource and sets the initial Terraform state.
 func (r *NamespaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	//Retrieve values from plan
-	var plan NamespaceResourceModel
+	var plan namespace.ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	body := cmNamespaceFromPlanConverter(plan)
+	body, _ := namespace.Converter(&plan, nil, commons.CreateConverter)
 
-	res, err := r.client.Client.namespace.CreateNamespace(ctx, &body)
+	res, err := r.client.Client.namespace.CreateNamespace(ctx, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Namespace creation failed",
@@ -270,18 +337,22 @@ func (r *NamespaceResource) Create(ctx context.Context, req resource.CreateReque
 
 func (r *NamespaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan NamespaceResourceModel
+	var plan namespace.ResourceModel
+	var state namespace.ResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	id := plan.ID.ValueString()
-	body := cmNamespaceFromPlanConverter(plan)
+	body, _ := namespace.Converter(&plan, &state, commons.UpdateConverter)
 
-	_, err := r.client.Client.namespace.UpdateNamespace(ctx, id, &body)
+	_, err := r.client.Client.namespace.UpdateNamespace(ctx, id, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Namespace update failed",
@@ -300,7 +371,7 @@ func (r *NamespaceResource) Update(ctx context.Context, req resource.UpdateReque
 
 func (r *NamespaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state NamespaceResourceModel
+	var state namespace.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -326,51 +397,5 @@ func (r *NamespaceResource) ImportState(ctx context.Context, req resource.Import
 }
 
 //region Private
-
-func cmNamespaceFromPlanConverter(plan NamespaceResourceModel) namespace.Namespace {
-	var body namespace.Namespace
-
-	body.SetName(plan.Name.ValueStringPointer())
-	body.SetDescription(plan.Description.ValueStringPointer())
-
-	if plan.ExternalCredentials != nil {
-		var creds []*namespace.ExternalCredentials
-
-		for _, extCreds := range *plan.ExternalCredentials {
-			var ec namespace.ExternalCredentials
-			ec.Type = extCreds.Type.ValueStringPointer()
-			ec.ExternalCredentialsId = extCreds.ExternalCredentialsId.ValueStringPointer()
-			creds = append(creds, &ec)
-		}
-		body.ExternalCredentials = &creds
-	} else {
-		body.ExternalCredentials = nil
-	}
-
-	var policy namespace.Policy
-	if plan.Policy != nil {
-		if plan.Policy.TtlConfig != nil {
-			var ttlConfig namespace.TtlConfig
-			var maxTtl namespace.TtlDefinition
-			var defTtl namespace.TtlDefinition
-
-			maxTtl.SetType(plan.Policy.TtlConfig.MaxTtl.Type.ValueStringPointer())
-			maxTtl.SetValue(controlmonkey.Int(int(plan.Policy.TtlConfig.MaxTtl.Value.ValueInt64())))
-			defTtl.SetType(plan.Policy.TtlConfig.DefaultTtl.Type.ValueStringPointer())
-			defTtl.SetValue(controlmonkey.Int(int(plan.Policy.TtlConfig.DefaultTtl.Value.ValueInt64())))
-
-			ttlConfig.SetMaxTtl(&maxTtl)
-			ttlConfig.SetDefaultTtl(&defTtl)
-			policy.SetTtlConfig(&ttlConfig)
-		} else {
-			policy.SetTtlConfig(nil)
-		}
-		body.SetPolicy(&policy)
-	} else {
-		body.SetPolicy(nil)
-	}
-
-	return body
-}
 
 //endregion

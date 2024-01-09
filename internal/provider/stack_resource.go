@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	sdkStack "github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
+	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -45,17 +49,14 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"iac_type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("IaC type of the stack. Allowed values: %s.", helpers.EnumForDocs(stack.IacTypes)),
+				MarkdownDescription: fmt.Sprintf("IaC type of the stack. Allowed values: %s.", helpers.EnumForDocs(cmTypes.IacTypes)),
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(stack.IacTypes...),
+					stringvalidator.OneOf(cmTypes.IacTypes...),
 				},
 			},
 			"namespace_id": schema.StringAttribute{
-				MarkdownDescription: "The id of the namespace that contains the stack.",
+				MarkdownDescription: "The namespace ID where the stack is located.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -77,12 +78,41 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"deploy_on_push": schema.BoolAttribute{
-						MarkdownDescription: "Whether to start a deployment on a push event or not.",
+						MarkdownDescription: "Choose whether to initiate a deployment when a push event occurs or not.",
 						Required:            true,
 					},
 					"wait_for_approval": schema.BoolAttribute{
-						MarkdownDescription: "Whether to wait to a manual approval before deployment or not.",
+						MarkdownDescription: "Use `deployment_approval_policy`. Decide whether to wait for approval before proceeding with the deployment or not.",
+						Optional:            true,
+						DeprecationMessage:  "Attribute \"deployment_behavior.wait_for_approval\" is deprecated. Use \"deployment_approval_policy\" instead",
+						Validators: []validator.Bool{
+							boolvalidator.ConflictsWith(
+								path.MatchRoot("deployment_approval_policy")),
+						},
+					},
+				},
+			},
+			"deployment_approval_policy": schema.SingleNestedAttribute{
+				MarkdownDescription: "Set up requirements to approve a deployment",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"rules": schema.ListNestedAttribute{
+						MarkdownDescription: "Set up rules for approving deployment processes. At least one rule should be configured",
 						Required:            true,
+						Validators: []validator.List{
+							listvalidator.SizeAtLeast(1),
+						},
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"type": schema.StringAttribute{
+									MarkdownDescription: fmt.Sprintf("The type of the rule. Allowed values: %s.", helpers.EnumForDocs(cmTypes.DeploymentApprovalPolicyRuleTypes)),
+									Required:            true,
+									Validators: []validator.String{
+										stringvalidator.OneOf(cmTypes.DeploymentApprovalPolicyRuleTypes...),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -91,7 +121,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"provider_id": schema.StringAttribute{
-						MarkdownDescription: "The Control Monkey unique ID of the connected version control system.",
+						MarkdownDescription: "The ControlMonkey unique ID of the connected version control system.",
 						Required:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
@@ -100,9 +130,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					"repo_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the version control repository.",
 						Required:            true,
-						Validators: []validator.String{
-							stringvalidator.NoneOf(""),
-						},
+						Validators:          []validator.String{cm_stringvalidators.NotBlank()},
 					},
 					"path": schema.StringAttribute{
 						MarkdownDescription: "The path to a chosen directory from the root.",
@@ -122,6 +150,13 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 						MarkdownDescription: "Patterns that trigger a stack run.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
+					},
+					"exclude_patterns": schema.ListAttribute{
+						MarkdownDescription: "Patterns that will not trigger a stack run.",
+						ElementType:         types.StringType,
+						Optional:            true,
+						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
 					},
 				},
 			},
@@ -137,6 +172,16 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
 						Optional:            true,
 					},
+					"is_terragrunt_run_all": schema.BoolAttribute{
+						MarkdownDescription: "When using terragrunt, as long as this field is set to `True`, this field will execute \"run-all\" commands on multiple modules for init/plan/apply",
+						Optional:            true,
+					},
+					"var_files": schema.ListAttribute{
+						ElementType:         types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)",
+						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
+					},
 				},
 			},
 			"policy": schema.SingleNestedAttribute{
@@ -151,10 +196,10 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 								Required: true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(stack.TtlTypes)),
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
 										Required:            true,
 										Validators: []validator.String{
-											stringvalidator.OneOf(stack.TtlTypes...),
+											stringvalidator.OneOf(cmTypes.TtlTypes...),
 										},
 									},
 									"value": schema.Int64Attribute{
@@ -164,6 +209,35 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 								},
 							},
 						},
+					},
+				},
+			},
+			"runner_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"mode": schema.StringAttribute{
+						MarkdownDescription: fmt.Sprintf("The runner mode. Allowed values: %s.", helpers.EnumForDocs(cmTypes.RunnerConfigModeTypes)),
+						Required:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf(cmTypes.RunnerConfigModeTypes...),
+						},
+					},
+					"groups": schema.ListAttribute{
+						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
+						ElementType:         types.StringType,
+						Optional:            true,
+						// Validation in ValidateConfig
+					},
+				},
+			},
+			"auto_sync": schema.SingleNestedAttribute{
+				MarkdownDescription: "Set up auto sync configurations.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"deploy_when_drift_detected": schema.BoolAttribute{
+						MarkdownDescription: "If set to `true`, a deployment will start automatically upon detecting a drift or multiple drifts",
+						Optional:            true,
 					},
 				},
 			},
@@ -190,6 +264,51 @@ func (r *StackResource) Configure(_ context.Context, req resource.ConfigureReque
 	}
 
 	r.client = client
+}
+
+func (r *StackResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data stack.ResourceModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	runnerConfig := data.RunnerConfig
+
+	if runnerConfig != nil {
+		mode := runnerConfig.Mode
+
+		if !mode.IsNull() {
+			modeValue := mode.ValueString()
+
+			if modeValue == cmTypes.Managed && runnerConfig.Groups != nil {
+				resp.Diagnostics.AddError(
+					"Validation Error",
+					fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
+				)
+			} else if modeValue == cmTypes.SelfHosted {
+				if len(runnerConfig.Groups) == 0 {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
+					)
+				} else if helpers.DoesTfStringSliceContainEmptyValue(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						"Found empty string in runner_config.groups",
+					)
+				} else if !helpers.IsTfStringSliceUnique(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						"Found duplicate in runner_config.groups",
+					)
+				}
+
+			}
+		}
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -256,8 +375,10 @@ func (r *StackResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	var state stack.ResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
-	req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}

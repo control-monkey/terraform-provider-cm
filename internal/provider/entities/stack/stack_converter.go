@@ -5,6 +5,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*stack.Stack, bool) {
@@ -28,21 +29,30 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if plan.NamespaceId != state.NamespaceId {
 		retVal.SetNamespaceId(plan.NamespaceId.ValueStringPointer())
+		hasChanges = true
 	}
 	if plan.IacType != state.IacType {
 		retVal.SetIacType(plan.IacType.ValueStringPointer())
+		hasChanges = true
 	}
 	if plan.Name != state.Name {
 		retVal.SetName(plan.Name.ValueStringPointer())
+		hasChanges = true
 	}
 	if plan.Description != state.Description {
 		retVal.SetDescription(plan.Description.ValueStringPointer())
+		hasChanges = true
 	}
 
 	var data stack.Data
 
 	if deploymentBehavior, hasChanged := deploymentBehaviorConverter(plan.DeploymentBehavior, state.DeploymentBehavior, converterType); hasChanged {
 		data.SetDeploymentBehavior(deploymentBehavior)
+		hasChanges = true
+	}
+
+	if deploymentApprovalPolicy, hasChanged := deploymentApprovalPolicyConverter(plan.DeploymentApprovalPolicy, state.DeploymentApprovalPolicy, converterType); hasChanged {
+		data.SetDeploymentApprovalPolicy(deploymentApprovalPolicy)
 		hasChanges = true
 	}
 
@@ -63,6 +73,16 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if policy, hasChanged := policyConverter(plan.Policy, state.Policy, converterType); hasChanged {
 		data.SetPolicy(policy)
+		hasChanges = true
+	}
+
+	if runnerConfig, hasChanged := runnerConfigConverter(plan.RunnerConfig, state.RunnerConfig, converterType); hasChanged {
+		data.SetRunnerConfig(runnerConfig)
+		hasChanges = true
+	}
+
+	if autoSync, hasChanged := autoSyncConverter(plan.AutoSync, state.AutoSync, converterType); hasChanged {
+		data.SetAutoSync(autoSync)
 		hasChanges = true
 	}
 
@@ -96,6 +116,33 @@ func deploymentBehaviorConverter(plan *DeploymentBehaviorModel, state *Deploymen
 	}
 	if plan.WaitForApproval != state.WaitForApproval {
 		retVal.SetWaitForApproval(plan.WaitForApproval.ValueBoolPointer())
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func deploymentApprovalPolicyConverter(plan *DeploymentApprovalPolicyModel, state *DeploymentApprovalPolicyModel, converterType commons.ConverterType) (*stack.DeploymentApprovalPolicy, bool) {
+	var retVal *stack.DeploymentApprovalPolicy
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(stack.DeploymentApprovalPolicy)
+	hasChanges := false
+
+	if state == nil {
+		state = new(DeploymentApprovalPolicyModel) // dummy initialization
+		hasChanges = true                          // must have changes because before is null and after is not
+	}
+
+	if innerProperty, hasInnerChanges := cross_models.DeploymentApprovalPolicyRulesConverter(plan.Rules, state.Rules, converterType); hasInnerChanges {
+		retVal.SetRules(innerProperty)
 		hasChanges = true
 	}
 
@@ -165,6 +212,11 @@ func runTriggerConverter(plan *RunTriggerModel, state *RunTriggerModel, converte
 		hasChanges = true
 	}
 
+	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.ExcludePatterns, state.ExcludePatterns); hasInnerChanges {
+		retVal.SetExcludePatterns(innerProperty)
+		hasChanges = true
+	}
+
 	return retVal, hasChanges
 }
 
@@ -193,6 +245,14 @@ func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterTy
 	}
 	if plan.TerragruntVersion != state.TerragruntVersion {
 		retVal.SetTerragruntVersion(plan.TerragruntVersion.ValueStringPointer())
+		hasChanges = true
+	}
+	if plan.IsTerragruntRunAll != state.IsTerragruntRunAll {
+		retVal.SetIsTerragruntRunAll(plan.IsTerragruntRunAll.ValueBoolPointer())
+		hasChanges = true
+	}
+	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.VarFiles, state.VarFiles); hasInnerChanges {
+		retVal.SetVarFiles(innerProperty)
 		hasChanges = true
 	}
 
@@ -276,6 +336,65 @@ func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionM
 	}
 	if plan.Value != state.Value {
 		retVal.SetValue(controlmonkey.Int(int(plan.Value.ValueInt64())))
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func runnerConfigConverter(plan *RunnerConfigModel, state *RunnerConfigModel, converterType commons.ConverterType) (*stack.RunnerConfig, bool) {
+	var retVal *stack.RunnerConfig
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(stack.RunnerConfig)
+	hasChanges := false
+
+	if state == nil {
+		state = new(RunnerConfigModel) // dummy initialization
+		hasChanges = true              // must have changes because before is null and after is not
+	}
+
+	if plan.Mode != state.Mode {
+		retVal.SetMode(plan.Mode.ValueStringPointer())
+		hasChanges = true
+	}
+
+	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.Groups, state.Groups); hasInnerChanges {
+		retVal.SetGroups(innerProperty)
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func autoSyncConverter(plan *AutoSyncModel, state *AutoSyncModel, converterType commons.ConverterType) (*stack.AutoSync, bool) {
+	var retVal *stack.AutoSync
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(stack.AutoSync)
+	hasChanges := false
+
+	if state == nil {
+		state = new(AutoSyncModel) // dummy initialization
+		hasChanges = true          // must have changes because before is null and after is not
+	}
+
+	if plan.DeployWhenDriftDetected != state.DeployWhenDriftDetected {
+		retVal.SetDeployWhenDriftDetected(plan.DeployWhenDriftDetected.ValueBoolPointer())
 		hasChanges = true
 	}
 

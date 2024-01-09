@@ -1,0 +1,35 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Simple stack
+{{tffile "examples/resources/cm_stack/resource.tf"}}
+
+### Stack that requires two different users to approve a deployment. Also, when a new drift is detected, a deployment will be starting automatically and will also wait for 2 approvals.
+{{tffile "examples/resources/cm_stack/resource2.tf"}}
+
+### Stack that is configured to use a specific terraform version. Also configured with a TTL to run only 3 hours.
+{{tffile "examples/resources/cm_stack/resource3.tf"}}
+
+### Stack for which any plan/deployment would also trigger its all sub-directories. This stack's plan/deployment runs are configured to run in a self-hosted runner under the runner-group "dev-runner"
+{{tffile "examples/resources/cm_stack/resource4.tf"}}
+
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_stack` can be imported using the ID of the Stack, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

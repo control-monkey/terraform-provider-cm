@@ -1,0 +1,37 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Organization variable that will be inherited by all namespaces, templates, stacks.
+{{tffile "examples/resources/cm_variable/resource.tf"}}
+
+### Template variable that requires a value from every ephemeral stack launched based on it.
+{{tffile "examples/resources/cm_variable/resource2.tf"}}
+
+### This template variable sets a default volume size value of 8 GB for all stacks launched based on it. While a new ephemeral stack can override the volume size, it must not exceed 50GB.
+{{tffile "examples/resources/cm_variable/resource3.tf"}}
+
+### This is the default value of the environment variable for TF_LOG, set to ERROR.
+{{tffile "examples/resources/cm_variable/resource4.tf"}}
+
+### When launching an ephemeral stack from a template, the value should be an instance type from the set of allowed instance types.
+{{tffile "examples/resources/cm_variable/resource5.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_variable` can be imported using the ID of the Variable, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}
