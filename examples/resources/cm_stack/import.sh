@@ -1,1 +1,1 @@
-terraform import cm_stack.stack id
+terraform import cm_stack.stack stk-123

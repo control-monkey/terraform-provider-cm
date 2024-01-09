@@ -8,4 +8,17 @@ resource "cm_namespace" "dev_namespace" {
       external_credentials_id = "ext-aws-dev"
     }
   ]
+
+  policy = {
+    ttl_config = {
+      max_ttl = {
+        type  = "days"
+        value = "2"
+      }
+      default_ttl = {
+        type  = "hours"
+        value = "3"
+      }
+    }
+  }
 }

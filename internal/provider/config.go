@@ -96,7 +96,7 @@ func (c *Config) getUserAgent() string {
 		{Product: "HashiCorp", Version: "1.0"},
 		{Product: "Terraform", Version: c.terraformVersion, Comment: []string{"+https://www.terraform.io"}},
 		{Product: "Terraform Plugin SDK", Version: meta.SDKVersionString()},
-		{Product: "Terraform Provider ControlMonkey", Version: "v2-" + version.String()},
+		{Product: "Terraform Provider ControlMonkey", Version: "v" + version.String()},
 	}
 
 	var ua string

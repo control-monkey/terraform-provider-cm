@@ -1,19 +1,9 @@
-resource "cm_variable" "var_namespace" {
-  scope          = "namespace"
-  scope_id       = "ns-123"
-  key            = "TfProvider"
-  type           = "tfVar"
-  value          = "Value2"
-  is_sensitive   = false
-  is_overridable = false
-}
-
-resource "cm_variable" "var_org" {
+resource "cm_variable" "organization_mandatory_variable" {
   scope          = "organization"
-  key            = "orgKey"
+  key            = "ORG_BU_IDENTIFIER"
   type           = "envVar"
-  value          = "Value4"
+  value          = "162"
+  description    = "Environment variable across all business units"
   is_sensitive   = false
   is_overridable = false
-  is_required    = false
 }

@@ -1,6 +1,6 @@
 TEST?=./...
 PKGNAME?=./internal/provider
-VERSION?=$(shell grep -oP '(?<=Version = ).+' version/version.go | xargs)
+VERSION?=$(shell grep -o 'Version = \".*\"' version/version.go | grep -o \[0-9.]\\+)
 RELEASE?=v$(VERSION)
 
 default: build
@@ -60,42 +60,42 @@ release:
 	@git push --follow-tags
 
 
-## The section below is used only for local development.
-## In order to build a ControlMonkey terraform provider, enter the terminal and enter 'make cm_provider'.
-## Then, enter sandbox directory (using `cd sandbox`) and after `terraform init` command, you are ready to go and use
-## ControlMonkey local terraform provider.
-#OS ?= darwin
-#ARCH ?= arm64
-#OS_ARCH := $(OS)_$(ARCH)
-#
-#TF_PROVIDER_VERSION ?= 1.4.0
-#TF_PROVIDER := terraform-provider-cm_v$(TF_PROVIDER_VERSION)
-#
-#
-## Builds the go binary
-#.PHONY: binary
-#binary:
-#	go fmt ./...
-#	echo "Building Go binary"
-#	go build -o $(TF_PROVIDER)
-#
-## Sets up your local workstation to "accept" this local provider binary
-#.PHONY: init
-#init: binary
-#	echo "Initializing..."
-#	echo "Setting up for local provider..."
-#	rm -f ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)/$(TF_PROVIDER)
-#	mkdir -p ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)
-#	ln -s $(CURDIR)/$(TF_PROVIDER) ~/.terraform.d/plugins/example.com/control-monkey/cm/$(TF_PROVIDER_VERSION)/$(OS_ARCH)/$(TF_PROVIDER)
-#
-## Builds the go binary, and cleans up Terraform lock file just in case
-#.PHONY: build_local
-#build: binary
-#	if [ -f "sandbox/.terraform.lock.hcl" ]; then \
-#	  rm sandbox/.terraform.lock.hcl; \
-#	fi
-#
-## Creates ControlMonkey provider for local usage
-#.PHONY: cm_provider
-#cm_provider:
-#	make binary && make init && make build
+# The section below is used only for local development.
+# In order to build a ControlMonkey terraform provider, enter the terminal and enter 'make cm_provider'.
+# Then, enter sandbox directory (using `cd sandbox`) and after `terraform init` command, you are ready to go and use
+# ControlMonkey local terraform provider.
+OS ?= darwin
+ARCH ?= arm64
+OS_ARCH := $(OS)_$(ARCH)
+
+CM_TF_PROVIDER := terraform-provider-cm_$(RELEASE)
+
+
+# Builds the go binary
+.PHONY: binary
+binary:
+	go fmt ./...
+	echo "Building Go binary"
+	go build -o $(CM_TF_PROVIDER)
+
+# Sets up your local workstation to "accept" this local provider binary
+.PHONY: init
+init: binary
+	echo $(VERSION)
+	echo "Initializing..."
+	echo "Setting up for local provider..."
+	rm -f ~/.terraform.d/plugins/example.com/control-monkey/cm/$(VERSION)/$(OS_ARCH)/$(CM_TF_PROVIDER)
+	mkdir -p ~/.terraform.d/plugins/example.com/control-monkey/cm/$(VERSION)/$(OS_ARCH)
+	ln -s $(CURDIR)/$(CM_TF_PROVIDER) ~/.terraform.d/plugins/example.com/control-monkey/cm/$(VERSION)/$(OS_ARCH)/$(CM_TF_PROVIDER)
+
+# Builds the go binary, and cleans up Terraform lock file just in case
+.PHONY: build_local
+build: binary
+	if [ -f "sandbox/.terraform.lock.hcl" ]; then \
+	  rm sandbox/.terraform.lock.hcl; \
+	fi
+
+# Creates ControlMonkey provider for local usage
+.PHONY: cm_provider
+cm_provider:
+	make binary && make init && make build

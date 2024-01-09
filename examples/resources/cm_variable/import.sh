@@ -1,1 +1,1 @@
-terraform import cm_variable.variable id
+terraform import cm_variable.variable var-123

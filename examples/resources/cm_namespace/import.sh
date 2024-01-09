@@ -1,1 +1,1 @@
-terraform import cm_namespace.namespace id
+terraform import cm_namespace.namespace ns-123

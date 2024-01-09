@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/variable"
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	sdkVariable "github.com/control-monkey/controlmonkey-sdk-go/services/variable"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/variable"
+	cm_listvalidator "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/list"
+	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -28,31 +33,6 @@ type VariableResource struct {
 	client *ControlMonkeyAPIClient
 }
 
-type VariableResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Scope         types.String `tfsdk:"scope"`
-	ScopeId       types.String `tfsdk:"scope_id"`
-	Key           types.String `tfsdk:"key"`
-	Type          types.String `tfsdk:"type"`
-	Value         types.String `tfsdk:"value"`
-	IsSensitive   types.Bool   `tfsdk:"is_sensitive"`
-	IsOverridable types.Bool   `tfsdk:"is_overridable"`
-	IsRequired    types.Bool   `tfsdk:"is_required"`
-	Description   types.String `tfsdk:"description"`
-}
-
-var vScopes = []string{
-	"organization",
-	"namespace",
-	"template",
-	"stack",
-}
-
-var vTypes = []string{
-	"tfVar",
-	"envVar",
-}
-
 func (r *VariableResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_variable"
 }
@@ -69,17 +49,17 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Scope of the variable. Allowed values: %s.", helpers.EnumForDocs(vScopes)),
+				MarkdownDescription: fmt.Sprintf("Scope of the variable. Allowed values: %s.", helpers.EnumForDocs(cmTypes.VariableScopeTypes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(vScopes...),
+					stringvalidator.OneOf(cmTypes.VariableScopeTypes...),
 				},
 			},
 			"scope_id": schema.StringAttribute{
-				MarkdownDescription: "The id of the scope resource that the variable is attached to.",
+				MarkdownDescription: "The ID of the resource to which the variable is attached.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
@@ -98,33 +78,62 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Sensitive:           true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(vTypes)),
+				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(cmTypes.VariableTypes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(vTypes...),
+					stringvalidator.OneOf(cmTypes.VariableTypes...),
 				},
 			},
 			"is_sensitive": schema.BoolAttribute{
-				MarkdownDescription: "Whether the variable value is sensitive and should be encrypted or not.",
+				MarkdownDescription: "Indicates if the variable value is sensitive and requires encryption.",
 				Required:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
 			},
 			"is_overridable": schema.BoolAttribute{
-				MarkdownDescription: "Either the value of the variable can be overridden by a another scope down in the hierarchy or the variable will be inherited without modifications.",
+				MarkdownDescription: "Indicates if the variable can be overridden by a lower-level scope.",
 				Required:            true,
 			},
 			"is_required": schema.BoolAttribute{
-				MarkdownDescription: "This setting is used for template variables that do not have a value specified. Stacks created from the template must assign a value to this variable.",
+				MarkdownDescription: "This setting applies to template variables without a specified value. Stacks created from the template need to provide a value for this variable.",
 				Optional:            true,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description for the variable.",
 				Optional:            true,
+			},
+			"value_conditions": schema.ListNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Specify conditions for the variable value using an operator and another value. Typically used for stacks launched from templates. For more information: [ControlMonkey Docs] (https://docs.controlmonkey.io/main-concepts/variables/variable-conditions)",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"operator": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: fmt.Sprintf("Logical operators. Allowed values: %s.", helpers.EnumForDocs(cmTypes.VariableConditionOperatorTypes)),
+							Validators: []validator.String{
+								stringvalidator.OneOf(cmTypes.VariableConditionOperatorTypes...),
+							},
+						},
+						"value": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: fmt.Sprintf("The value associated with the operator. Input a number or string depending on the chosen operator. Use `values` field for operator of type `%s`", cmTypes.In),
+							Validators:          []validator.String{cm_stringvalidators.NotBlank(), stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("values"))},
+						},
+						"values": schema.ListAttribute{
+							ElementType:         types.StringType,
+							Optional:            true,
+							MarkdownDescription: fmt.Sprintf("A list of strings when using operator type `%s`. For other operators use `value`", cmTypes.In),
+							Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
+						},
+					},
+				},
+				Validators: []validator.List{
+					cm_listvalidator.SizeExactly(1),
+				},
 			},
 		},
 	}
@@ -151,10 +160,52 @@ func (r *VariableResource) Configure(_ context.Context, req resource.ConfigureRe
 	r.client = client
 }
 
+func (r *VariableResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data variable.ResourceModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	valueConditions := data.ValueConditions
+
+	if valueConditions != nil {
+		for i, condition := range valueConditions {
+			var errMsg string
+
+			switch op := condition.Operator.ValueString(); op {
+			case cmTypes.Ne:
+				if condition.Value.ValueStringPointer() == nil {
+					errMsg = fmt.Sprintf("value_conditions[%d].value must be set", i)
+				}
+			case cmTypes.Gt, cmTypes.Gte, cmTypes.Lt, cmTypes.Lte:
+				isNumeric, _ := helpers.CheckAndGetIfNumericString(condition.Value.ValueString())
+				if !isNumeric {
+					errMsg = fmt.Sprintf("value_conditions[%d].value must be a number when using value_conditions.operator '%s'", i, op)
+				}
+			case cmTypes.In:
+				if condition.Values == nil {
+					errMsg = fmt.Sprintf("value_conditions[%d].values must be set", i)
+				}
+			case cmTypes.StartsWith, cmTypes.Contains:
+				if condition.Value.ValueStringPointer() == nil {
+					errMsg = fmt.Sprintf("value_conditions[%d].value must be set", i)
+				}
+			}
+
+			if errMsg != "" {
+				resp.Diagnostics.AddError("Validation Error", errMsg)
+			}
+		}
+	}
+}
+
 // Read refreshes the Terraform state with the latest data.
 func (r *VariableResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state VariableResourceModel
+	var state variable.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -162,29 +213,13 @@ func (r *VariableResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	id := state.ID.ValueString()
-	res, err := r.client.Client.variable.ReadVariable(ctx, &variable.ReadVariableInput{VariableId: controlmonkey.String(id)})
+	res, err := r.client.Client.variable.ReadVariable(ctx, &sdkVariable.ReadVariableInput{VariableId: controlmonkey.String(id)})
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read variable %s", id), fmt.Sprintf("%s", err))
 		return
 	}
 
-	respVariable := res.Variable
-
-	state.Scope = helpers.StringValueOrNull(respVariable.Scope)
-	state.Key = helpers.StringValueOrNull(respVariable.Key)
-	state.Type = helpers.StringValueOrNull(respVariable.Type)
-	state.IsSensitive = helpers.BoolValueOrNull(respVariable.IsSensitive)
-	state.IsOverridable = helpers.BoolValueOrNull(respVariable.IsOverridable)
-	state.ScopeId = helpers.StringValueOrNull(respVariable.ScopeId)
-
-	// if it's sensitive, we take the value from the state file because the api does not respond secret values.
-	// if it's not sensitive, we take the value from the response.
-	if state.IsSensitive.ValueBool() == false {
-		state.Value = helpers.StringValueOrNull(respVariable.Value)
-	}
-
-	state.IsRequired = helpers.BoolValueOrNull(respVariable.IsRequired)
-	state.Description = helpers.StringValueOrNull(respVariable.Description)
+	variable.UpdateStateAfterRead(res, &state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -197,26 +232,16 @@ func (r *VariableResource) Read(ctx context.Context, req resource.ReadRequest, r
 // Create creates the resource and sets the initial Terraform state.
 func (r *VariableResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	//Retrieve values from plan
-	var plan VariableResourceModel
+	var plan variable.ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var body variable.Variable
+	body, _ := variable.Converter(&plan, nil, commons.CreateConverter)
 
-	body.SetScope(plan.Scope.ValueStringPointer())
-	body.SetScopeId(plan.ScopeId.ValueStringPointer())
-	body.SetKey(plan.Key.ValueStringPointer())
-	body.SetValue(plan.Value.ValueStringPointer())
-	body.SetType(plan.Type.ValueStringPointer())
-	body.SetIsSensitive(plan.IsSensitive.ValueBoolPointer())
-	body.SetIsOverridable(plan.IsOverridable.ValueBoolPointer())
-	body.SetIsRequired(plan.IsRequired.ValueBoolPointer())
-	body.SetDescription(plan.Description.ValueStringPointer())
-
-	res, err := r.client.Client.variable.CreateVariable(ctx, &body)
+	res, err := r.client.Client.variable.CreateVariable(ctx, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Variable creation failed",
@@ -237,24 +262,23 @@ func (r *VariableResource) Create(ctx context.Context, req resource.CreateReques
 
 func (r *VariableResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan VariableResourceModel
+	var plan variable.ResourceModel
+	var state variable.ResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	id := plan.ID.ValueStringPointer()
 
-	var body variable.Variable
+	body, _ := variable.Converter(&plan, &state, commons.UpdateConverter)
 
-	body.SetValue(plan.Value.ValueStringPointer())
-	body.SetIsOverridable(plan.IsOverridable.ValueBoolPointer())
-	body.SetIsRequired(plan.IsRequired.ValueBoolPointer())
-	body.SetDescription(plan.Description.ValueStringPointer())
-
-	_, err := r.client.Client.variable.UpdateVariable(ctx, id, &body)
+	_, err := r.client.Client.variable.UpdateVariable(ctx, id, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Variable update failed",
@@ -273,7 +297,7 @@ func (r *VariableResource) Update(ctx context.Context, req resource.UpdateReques
 
 func (r *VariableResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state VariableResourceModel
+	var state variable.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -282,7 +306,7 @@ func (r *VariableResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	id := state.ID.ValueStringPointer()
 
-	_, err := r.client.Client.variable.DeleteVariable(ctx, &variable.DeleteVariableInput{
+	_, err := r.client.Client.variable.DeleteVariable(ctx, &sdkVariable.DeleteVariableInput{
 		VariableId: id,
 	})
 
