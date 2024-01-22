@@ -247,6 +247,10 @@ func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterTy
 		retVal.SetTerragruntVersion(plan.TerragruntVersion.ValueStringPointer())
 		hasChanges = true
 	}
+	if plan.OpentofuVersion != state.OpentofuVersion {
+		retVal.SetOpentofuVersion(plan.OpentofuVersion.ValueStringPointer())
+		hasChanges = true
+	}
 	if plan.IsTerragruntRunAll != state.IsTerragruntRunAll {
 		retVal.SetIsTerragruntRunAll(plan.IsTerragruntRunAll.ValueBoolPointer())
 		hasChanges = true

@@ -9,8 +9,8 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
-    path        = "dev/auto-scaling-group" # path is optional. Default path is root directory
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
+    path        = "dev/auto-scaling-group"
   }
 }

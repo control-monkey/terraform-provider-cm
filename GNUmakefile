@@ -17,9 +17,9 @@ test: fmtcheck
 testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 $(TESTARGS) -timeout 120m
 
-.PHONY: testcompile
+.PHONY: testcompile # https://stackoverflow.com/questions/72721580/how-to-compile-all-tests-across-a-repo-without-executing-them
 testcompile:
-	go test -c $(TEST) $(TESTARGS)
+	go test -run=SHOULD_NEVER_MATCH $(TEST) $(TESTARGS)
 
 .PHONY: vet
 vet:
@@ -99,3 +99,8 @@ build: binary
 .PHONY: cm_provider
 cm_provider:
 	make binary && make init && make build
+
+# Creates ControlMonkey provider for local usage
+.PHONY: pre_build
+pre_build: fmt depscheck docscheck vet testcompile testacc
+

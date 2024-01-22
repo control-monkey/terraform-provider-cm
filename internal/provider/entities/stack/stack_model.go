@@ -45,6 +45,7 @@ type RunTriggerModel struct {
 type IacConfigModel struct {
 	TerraformVersion   types.String   `tfsdk:"terraform_version"`
 	TerragruntVersion  types.String   `tfsdk:"terragrunt_version"`
+	OpentofuVersion    types.String   `tfsdk:"opentofu_version"`
 	IsTerragruntRunAll types.Bool     `tfsdk:"is_terragrunt_run_all"`
 	VarFiles           []types.String `tfsdk:"var_files"`
 }

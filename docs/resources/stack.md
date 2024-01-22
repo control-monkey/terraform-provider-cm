@@ -24,9 +24,9 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
-    path        = "dev/auto-scaling-group" # path is optional. Default path is root directory
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
+    path        = "dev/auto-scaling-group"
   }
 }
 ```
@@ -44,8 +44,8 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
   }
 
   deployment_approval_policy = {
@@ -75,8 +75,8 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
   }
 
   iac_config = {
@@ -107,8 +107,8 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
     path        = "dev/auto-scaling-group"
   }
 
@@ -132,7 +132,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 ### Required
 
 - `deployment_behavior` (Attributes) The deployment behavior configuration. (see [below for nested schema](#nestedatt--deployment_behavior))
-- `iac_type` (String) IaC type of the stack. Allowed values: [terraform, terragrunt].
+- `iac_type` (String) IaC type of the stack. Allowed values: [terraform, terragrunt, opentofu].
 - `name` (String) The name of the stack.
 - `namespace_id` (String) The namespace ID where the stack is located.
 - `vcs_info` (Attributes) The configuration of the version control to which the stack is attached. (see [below for nested schema](#nestedatt--vcs_info))
@@ -174,7 +174,7 @@ Required:
 Optional:
 
 - `branch` (String) The branch that should trigger plan/deployment for the stack. When no branch is given, the default branch of the repository is chosen.
-- `path` (String) The path to a chosen directory from the root.
+- `path` (String) The path to a chosen directory from the root. Default path is root directory
 
 
 <a id="nestedatt--auto_sync"></a>
@@ -207,6 +207,7 @@ Required:
 Optional:
 
 - `is_terragrunt_run_all` (Boolean) When using terragrunt, as long as this field is set to `True`, this field will execute "run-all" commands on multiple modules for init/plan/apply
+- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 - `var_files` (List of String) Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)

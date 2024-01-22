@@ -136,6 +136,10 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
 						Optional:            true,
 					},
+					"opentofu_version": schema.StringAttribute{
+						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
+						Optional:            true,
+					},
 				},
 			},
 			"runner_config": schema.SingleNestedAttribute{
