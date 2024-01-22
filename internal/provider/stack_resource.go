@@ -133,7 +133,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 						Validators:          []validator.String{cm_stringvalidators.NotBlank()},
 					},
 					"path": schema.StringAttribute{
-						MarkdownDescription: "The path to a chosen directory from the root.",
+						MarkdownDescription: "The path to a chosen directory from the root. Default path is root directory",
 						Optional:            true,
 					},
 					"branch": schema.StringAttribute{
@@ -170,6 +170,10 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 					"terragrunt_version": schema.StringAttribute{
 						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
+						Optional:            true,
+					},
+					"opentofu_version": schema.StringAttribute{
+						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
 						Optional:            true,
 					},
 					"is_terragrunt_run_all": schema.BoolAttribute{

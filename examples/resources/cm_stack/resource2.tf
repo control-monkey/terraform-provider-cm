@@ -9,8 +9,8 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = 'vcsp-github'
-    repo_name   = 'terraform'
+    provider_id = "vcsp-github"
+    repo_name   = "terraform"
   }
 
   deployment_approval_policy = {

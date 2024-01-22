@@ -120,6 +120,7 @@ func updateStateAfterReadIacConfig(iacConfig *sdkStack.IacConfig) IacConfigModel
 
 	retVal.TerraformVersion = helpers.StringValueOrNull(iacConfig.TerraformVersion)
 	retVal.TerragruntVersion = helpers.StringValueOrNull(iacConfig.TerragruntVersion)
+	retVal.OpentofuVersion = helpers.StringValueOrNull(iacConfig.OpentofuVersion)
 	retVal.IsTerragruntRunAll = helpers.BoolValueOrNull(iacConfig.IsTerragruntRunAll)
 	retVal.VarFiles = helpers.StringSliceOrNull(iacConfig.VarFiles)
 
