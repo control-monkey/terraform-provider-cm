@@ -3,6 +3,10 @@ PKGNAME?=./internal/provider
 VERSION?=$(shell grep -o 'Version = \".*\"' version/version.go | grep -o \[0-9.]\\+)
 RELEASE?=v$(VERSION)
 
+V := 0
+Q := $(if $(filter 1,$(V)),,@)
+GO := GO111MODULE=on go
+
 default: build
 
 .PHONY: build
@@ -100,7 +104,11 @@ build: binary
 cm_provider:
 	make binary && make init && make build
 
-# Creates ControlMonkey provider for local usage
+# Mimicking build - run before push to vcs
 .PHONY: pre_build
-pre_build: fmt depscheck docscheck vet testcompile testacc
+pre_build: fmt docscheck vet testcompile testacc
 
+# Optimize imports
+.PHONY: imports
+imports:
+	$(Q) goimports -w $$($(GO) list -f {{.Dir}} ./... | grep -v /vendor/)

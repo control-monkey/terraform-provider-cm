@@ -111,6 +111,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewVariableResource,
 		NewStackResource,
 		NewNamespaceResource,
+		NewTemplateResource,
 	}
 }
 

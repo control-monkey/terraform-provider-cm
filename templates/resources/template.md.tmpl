@@ -1,0 +1,31 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Basic template for an ephemeral stack that provides self-service capabilities for developers.
+{{tffile "examples/resources/cm_template/resource.tf"}}
+
+### Template for provisioning an ephemeral demo environment stack with default TTL and maximum TTL limit.
+{{tffile "examples/resources/cm_template/resource2.tf"}}
+
+### Template for provisioning an ephemeral RDS stack with TTL, including the required variables that must be provided by the provisioner of the ephemeral stack.
+{{tffile "examples/resources/cm_template/resource3.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_template` can be imported using the ID of the Template for ephemeral stack, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}
