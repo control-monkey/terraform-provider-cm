@@ -129,10 +129,9 @@ func updateStateAfterReadIacConfig(iacConfig *sdkNamespace.IacConfig) IacConfigM
 func updateStateAfterReadRunnerConfig(rc *sdkNamespace.RunnerConfig) RunnerConfigModel {
 	var retVal RunnerConfigModel
 
-	if rc != nil {
-		retVal.Mode = helpers.StringValueOrNull(rc.Mode)
-		retVal.Groups = helpers.StringSliceOrNull(rc.Groups)
-	}
+	retVal.Mode = helpers.StringValueOrNull(rc.Mode)
+	retVal.Groups = helpers.StringPointerSliceToTfList(rc.Groups)
+	retVal.IsOverridable = helpers.BoolValueOrNull(rc.IsOverridable)
 
 	return retVal
 }

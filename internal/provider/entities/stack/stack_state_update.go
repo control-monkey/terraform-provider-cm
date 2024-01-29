@@ -109,8 +109,8 @@ func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
 func updateStateAfterReadRunTrigger(runTrigger *sdkStack.RunTrigger) RunTriggerModel {
 	var retVal RunTriggerModel
 
-	retVal.Patterns = helpers.StringSliceOrNull(runTrigger.Patterns)
-	retVal.ExcludePatterns = helpers.StringSliceOrNull(runTrigger.ExcludePatterns)
+	retVal.Patterns = helpers.StringPointerSliceToTfList(runTrigger.Patterns)
+	retVal.ExcludePatterns = helpers.StringPointerSliceToTfList(runTrigger.ExcludePatterns)
 
 	return retVal
 }
@@ -122,7 +122,7 @@ func updateStateAfterReadIacConfig(iacConfig *sdkStack.IacConfig) IacConfigModel
 	retVal.TerragruntVersion = helpers.StringValueOrNull(iacConfig.TerragruntVersion)
 	retVal.OpentofuVersion = helpers.StringValueOrNull(iacConfig.OpentofuVersion)
 	retVal.IsTerragruntRunAll = helpers.BoolValueOrNull(iacConfig.IsTerragruntRunAll)
-	retVal.VarFiles = helpers.StringSliceOrNull(iacConfig.VarFiles)
+	retVal.VarFiles = helpers.StringPointerSliceToTfList(iacConfig.VarFiles)
 
 	return retVal
 }
@@ -167,7 +167,7 @@ func updateStateAfterReadRunnerConfig(rc *sdkStack.RunnerConfig) RunnerConfigMod
 
 	if rc != nil {
 		retVal.Mode = helpers.StringValueOrNull(rc.Mode)
-		retVal.Groups = helpers.StringSliceOrNull(rc.Groups)
+		retVal.Groups = helpers.StringPointerSliceToTfList(rc.Groups)
 	}
 
 	return retVal

@@ -108,7 +108,7 @@ func conditionConverter(plan *ConditionModel) *variable.Condition {
 		intVal = num
 		retVal.SetValue(&intVal)
 	case cmTypes.In:
-		var sliceVal any = helpers.StringPointerSliceOrNull(plan.Values)
+		var sliceVal any = helpers.TfListToStringPointerSlice(plan.Values)
 		retVal.SetValue(&sliceVal)
 	case cmTypes.StartsWith, cmTypes.Contains:
 		var strVal any = planValue.ValueString()

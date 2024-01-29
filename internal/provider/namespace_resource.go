@@ -254,18 +254,18 @@ func (r *NamespaceResource) ValidateConfig(ctx context.Context, req resource.Val
 		if !mode.IsNull() {
 			modeValue := mode.ValueString()
 
-			if modeValue == cmTypes.Managed && runnerConfig.Groups != nil {
+			if modeValue == cmTypes.Managed && runnerConfig.Groups.IsNull() == false {
 				resp.Diagnostics.AddError(
 					"Validation Error",
 					fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
 				)
 			} else if modeValue == cmTypes.SelfHosted {
-				if len(runnerConfig.Groups) == 0 {
+				if len(runnerConfig.Groups.Elements()) == 0 {
 					resp.Diagnostics.AddError(
 						"Validation Error",
 						fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
 					)
-				} else if helpers.DoesTfStringSliceContainEmptyValue(runnerConfig.Groups) {
+				} else if helpers.DoesTfListContainsEmptyValue(runnerConfig.Groups) {
 					resp.Diagnostics.AddError(
 						"Validation Error",
 						"Found empty string in runner_config.groups",

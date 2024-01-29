@@ -239,8 +239,13 @@ func runnerConfigConverter(plan *RunnerConfigModel, state *RunnerConfigModel, co
 		hasChanges = true
 	}
 
-	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.Groups, state.Groups); hasInnerChanges {
+	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Groups, state.Groups); hasInnerChanges {
 		retVal.SetGroups(innerProperty)
+		hasChanges = true
+	}
+
+	if plan.IsOverridable != state.IsOverridable {
+		retVal.SetIsOverridable(plan.IsOverridable.ValueBoolPointer())
 		hasChanges = true
 	}
 

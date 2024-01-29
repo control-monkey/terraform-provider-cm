@@ -17,7 +17,7 @@ type ResourceModel struct {
 }
 
 type ConditionModel struct {
-	Operator types.String   `tfsdk:"operator"`
-	Value    types.String   `tfsdk:"value"`
-	Values   []types.String `tfsdk:"values"`
+	Operator types.String `tfsdk:"operator"`
+	Value    types.String `tfsdk:"value"`
+	Values   types.List   `tfsdk:"values"`
 }

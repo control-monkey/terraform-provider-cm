@@ -186,7 +186,7 @@ func (r *VariableResource) ValidateConfig(ctx context.Context, req resource.Vali
 					errMsg = fmt.Sprintf("value_conditions[%d].value must be a number when using value_conditions.operator '%s'", i, op)
 				}
 			case cmTypes.In:
-				if condition.Values == nil {
+				if condition.Values.IsNull() {
 					errMsg = fmt.Sprintf("value_conditions[%d].values must be set", i)
 				}
 			case cmTypes.StartsWith, cmTypes.Contains:

@@ -43,9 +43,9 @@ type IacConfigModel struct {
 }
 
 type RunnerConfigModel struct {
-	Mode          types.String   `tfsdk:"mode"`
-	Groups        []types.String `tfsdk:"groups"`
-	IsOverridable types.Bool     `tfsdk:"is_overridable"`
+	Mode          types.String `tfsdk:"mode"`
+	Groups        types.List   `tfsdk:"groups"`
+	IsOverridable types.Bool   `tfsdk:"is_overridable"`
 }
 
 type DeploymentApprovalPolicyModel struct {

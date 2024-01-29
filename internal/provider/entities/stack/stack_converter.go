@@ -207,12 +207,12 @@ func runTriggerConverter(plan *RunTriggerModel, state *RunTriggerModel, converte
 		hasChanges = true            // must have changes because before is null and after is not
 	}
 
-	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.Patterns, state.Patterns); hasInnerChanges {
+	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Patterns, state.Patterns); hasInnerChanges {
 		retVal.SetPatterns(innerProperty)
 		hasChanges = true
 	}
 
-	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.ExcludePatterns, state.ExcludePatterns); hasInnerChanges {
+	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.ExcludePatterns, state.ExcludePatterns); hasInnerChanges {
 		retVal.SetExcludePatterns(innerProperty)
 		hasChanges = true
 	}
@@ -255,7 +255,7 @@ func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterTy
 		retVal.SetIsTerragruntRunAll(plan.IsTerragruntRunAll.ValueBoolPointer())
 		hasChanges = true
 	}
-	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.VarFiles, state.VarFiles); hasInnerChanges {
+	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.VarFiles, state.VarFiles); hasInnerChanges {
 		retVal.SetVarFiles(innerProperty)
 		hasChanges = true
 	}
@@ -370,7 +370,7 @@ func runnerConfigConverter(plan *RunnerConfigModel, state *RunnerConfigModel, co
 		hasChanges = true
 	}
 
-	if innerProperty, hasInnerChanges := helpers.TfStringSliceConverter(plan.Groups, state.Groups); hasInnerChanges {
+	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Groups, state.Groups); hasInnerChanges {
 		retVal.SetGroups(innerProperty)
 		hasChanges = true
 	}

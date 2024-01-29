@@ -16,8 +16,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/variable"
 	"github.com/control-monkey/terraform-provider-cm/version"
 	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var ErrNoValidCredentials = errors.New("\n\nNo valid credentials found " +
@@ -45,7 +44,9 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 	// Create a new session.
 	sess, err := c.getSession()
 	if err != nil {
-		return nil, diag.FromErr(err)
+		diags := new(diag.Diagnostics)
+		diags.AddError("Failed to configure ControlMonkey client", err.Error())
+		return nil, *diags
 	}
 
 	// Create a new client.
@@ -95,7 +96,6 @@ func (c *Config) getUserAgent() string {
 	}{
 		{Product: "HashiCorp", Version: "1.0"},
 		{Product: "Terraform", Version: c.terraformVersion, Comment: []string{"+https://www.terraform.io"}},
-		{Product: "Terraform Plugin SDK", Version: meta.SDKVersionString()},
 		{Product: "Terraform Provider ControlMonkey", Version: "v" + version.String()},
 	}
 

@@ -5,6 +5,7 @@ import (
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	sdkVariable "github.com/control-monkey/controlmonkey-sdk-go/services/variable"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func UpdateStateAfterRead(res *sdkVariable.ReadVariableOutput, state *ResourceModel) {
@@ -54,6 +55,7 @@ func updateStateAfterReadCondition(condition *sdkVariable.Condition) ConditionMo
 
 	operator := condition.Operator
 	retVal.Operator = helpers.StringValueOrNull(operator)
+	retVal.Values = types.ListNull(types.StringType) // set default null of type string. otherwise missing type error occurs.
 
 	switch op := *operator; op {
 	case cmTypes.Ne:
@@ -64,7 +66,7 @@ func updateStateAfterReadCondition(condition *sdkVariable.Condition) ConditionMo
 		strVal := fmt.Sprint(floatVal)
 		retVal.Value = helpers.StringValueOrNull(&strVal)
 	case cmTypes.In:
-		retVal.Values = helpers.StringSliceOrNull(condition.Values) //Note Values, not Value
+		retVal.Values = helpers.StringPointerSliceToTfList(condition.Values) //Note Values, not Value
 	case cmTypes.StartsWith, cmTypes.Contains:
 		var strValue = (*condition.Value).(string)
 		retVal.Value = helpers.StringValueOrNull(&strValue)

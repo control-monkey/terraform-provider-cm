@@ -38,16 +38,16 @@ type VcsInfoModel struct {
 }
 
 type RunTriggerModel struct {
-	Patterns        []types.String `tfsdk:"patterns"`
-	ExcludePatterns []types.String `tfsdk:"exclude_patterns"`
+	Patterns        types.List `tfsdk:"patterns"`
+	ExcludePatterns types.List `tfsdk:"exclude_patterns"`
 }
 
 type IacConfigModel struct {
-	TerraformVersion   types.String   `tfsdk:"terraform_version"`
-	TerragruntVersion  types.String   `tfsdk:"terragrunt_version"`
-	OpentofuVersion    types.String   `tfsdk:"opentofu_version"`
-	IsTerragruntRunAll types.Bool     `tfsdk:"is_terragrunt_run_all"`
-	VarFiles           []types.String `tfsdk:"var_files"`
+	TerraformVersion   types.String `tfsdk:"terraform_version"`
+	TerragruntVersion  types.String `tfsdk:"terragrunt_version"`
+	OpentofuVersion    types.String `tfsdk:"opentofu_version"`
+	IsTerragruntRunAll types.Bool   `tfsdk:"is_terragrunt_run_all"`
+	VarFiles           types.List   `tfsdk:"var_files"`
 }
 
 type PolicyModel struct {
@@ -64,8 +64,8 @@ type TtlDefinitionModel struct {
 }
 
 type RunnerConfigModel struct {
-	Mode   types.String   `tfsdk:"mode"`
-	Groups []types.String `tfsdk:"groups"`
+	Mode   types.String `tfsdk:"mode"`
+	Groups types.List   `tfsdk:"groups"`
 }
 
 type AutoSyncModel struct {
