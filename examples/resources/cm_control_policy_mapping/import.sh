@@ -1,0 +1,1 @@
+terraform import cm_control_policy_mapping.mapping pol-123/ns-123/namespace
