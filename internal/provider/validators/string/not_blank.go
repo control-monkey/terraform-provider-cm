@@ -2,9 +2,9 @@ package cm_stringvalidator
 
 import (
 	"context"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"strings"
 )
 
 var _ validator.String = notBlankValidator{}
@@ -28,7 +28,7 @@ func (v notBlankValidator) ValidateString(ctx context.Context, request validator
 
 	value := request.ConfigValue
 
-	if value.IsNull() || strings.TrimSpace(value.ValueString()) == "" {
+	if value.IsNull() || helpers.IsBlank(value.ValueString()) {
 		response.Diagnostics.Append(validatordiag.InvalidAttributeValueMatchDiagnostic(
 			request.Path,
 			v.Description(ctx),

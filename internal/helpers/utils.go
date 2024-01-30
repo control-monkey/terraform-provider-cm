@@ -111,7 +111,7 @@ func DoesTfListContainsEmptyValue(tfValues types.List) bool {
 	elements := divideTfListToTfElements(tfValues)
 
 	for _, v := range elements {
-		if v.IsNull() || strings.TrimSpace(v.ValueString()) == "" {
+		if v.IsNull() || IsBlank(v.ValueString()) {
 			retVal = true
 			break
 		}

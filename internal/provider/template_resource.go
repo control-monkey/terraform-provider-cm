@@ -172,6 +172,11 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	id := state.ID.ValueString()
 	res, err := r.client.Client.template.ReadTemplate(ctx, id)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read template %s", id), fmt.Sprintf("%s", err))
 		return
 	}
@@ -236,9 +241,14 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 
 	_, err := r.client.Client.template.UpdateTemplate(ctx, id, body)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Template update failed",
-			fmt.Sprintf("failed to update template %s, error: %s", id, err.Error()),
+			fmt.Sprintf("failed to update template %s, error: %s", id, err),
 		)
 		return
 	}
@@ -265,10 +275,14 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	_, err := r.client.Client.template.DeleteTemplate(ctx, id)
 
 	if err != nil {
-		errMsg := err.Error()
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Template deletion failed",
-			fmt.Sprintf("Failed to delete template %s, error: %s", id, errMsg),
+			fmt.Sprintf("Failed to delete template %s, error: %s", id, err),
 		)
 		return
 	}

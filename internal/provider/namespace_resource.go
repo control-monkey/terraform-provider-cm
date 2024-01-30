@@ -294,6 +294,11 @@ func (r *NamespaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	id := state.ID.ValueString()
 	res, err := r.client.Client.namespace.ReadNamespace(ctx, id)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read namespace %s", id), fmt.Sprintf("%s", err))
 		return
 	}
@@ -358,9 +363,14 @@ func (r *NamespaceResource) Update(ctx context.Context, req resource.UpdateReque
 
 	_, err := r.client.Client.namespace.UpdateNamespace(ctx, id, body)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Namespace update failed",
-			fmt.Sprintf("failed to update namespace %s, error: %s", id, err.Error()),
+			fmt.Sprintf("failed to update namespace %s, error: %s", id, err),
 		)
 		return
 	}
@@ -387,10 +397,14 @@ func (r *NamespaceResource) Delete(ctx context.Context, req resource.DeleteReque
 	_, err := r.client.Client.namespace.DeleteNamespace(ctx, id)
 
 	if err != nil {
-		errMsg := err.Error()
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Namespace deletion failed",
-			fmt.Sprintf("Failed to delete namespace %s, error: %s", id, errMsg),
+			fmt.Sprintf("Failed to delete namespace %s, error: %s", id, err),
 		)
 		return
 	}

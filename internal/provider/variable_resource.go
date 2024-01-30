@@ -215,6 +215,11 @@ func (r *VariableResource) Read(ctx context.Context, req resource.ReadRequest, r
 	id := state.ID.ValueString()
 	res, err := r.client.Client.variable.ReadVariable(ctx, &sdkVariable.ReadVariableInput{VariableId: controlmonkey.String(id)})
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read variable %s", id), fmt.Sprintf("%s", err))
 		return
 	}
@@ -280,9 +285,14 @@ func (r *VariableResource) Update(ctx context.Context, req resource.UpdateReques
 
 	_, err := r.client.Client.variable.UpdateVariable(ctx, id, body)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Variable update failed",
-			fmt.Sprintf("failed to update variable %s, error: %s", *id, err.Error()),
+			fmt.Sprintf("failed to update variable %s, error: %s", *id, err),
 		)
 		return
 	}
@@ -309,12 +319,15 @@ func (r *VariableResource) Delete(ctx context.Context, req resource.DeleteReques
 	_, err := r.client.Client.variable.DeleteVariable(ctx, &sdkVariable.DeleteVariableInput{
 		VariableId: id,
 	})
-
 	if err != nil {
-		errMsg := err.Error()
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Variable deletion failed",
-			fmt.Sprintf("Failed to delete variable %s, error: %s", *id, errMsg),
+			fmt.Sprintf("Failed to delete variable %s, error: %s", *id, err),
 		)
 		return
 	}

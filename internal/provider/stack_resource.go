@@ -328,6 +328,11 @@ func (r *StackResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	id := state.ID.ValueString()
 	res, err := r.client.Client.stack.ReadStack(ctx, id)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read stack %s", id), fmt.Sprintf("%s", err))
 		return
 	}
@@ -392,9 +397,14 @@ func (r *StackResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	_, err := r.client.Client.stack.UpdateStack(ctx, id, body)
 	if err != nil {
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Stack update failed",
-			fmt.Sprintf("failed to update stack %s, error: %s", id, err.Error()),
+			fmt.Sprintf("failed to update stack %s, error: %s", id, err),
 		)
 		return
 	}
@@ -421,10 +431,14 @@ func (r *StackResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	_, err := r.client.Client.stack.DeleteStack(ctx, id)
 
 	if err != nil {
-		errMsg := err.Error()
+		if commons.IsNotFoundResponseError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Stack deletion failed",
-			fmt.Sprintf("Failed to delete stack %s, error: %s", id, errMsg),
+			fmt.Sprintf("Failed to delete stack %s, error: %s", id, err),
 		)
 		return
 	}
