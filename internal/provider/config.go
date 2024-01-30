@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 	stdlog "log"
 	"strings"
 
@@ -40,6 +41,7 @@ type Client struct {
 	namespace            namespace.Service
 	template             template.Service
 	controlPolicyMapping control_policy.Service
+	team                 team.Service
 }
 
 // Client configures and returns a fully initialized ControlMonkey client.
@@ -61,6 +63,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		namespace:            namespace.New(sess),
 		template:             template.New(sess),
 		controlPolicyMapping: control_policy.New(sess),
+		team:                 team.New(sess),
 	}
 
 	stdlog.Println("[INFO] ControlMonkey client configured")
