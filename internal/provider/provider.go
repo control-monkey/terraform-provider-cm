@@ -115,6 +115,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewControlPolicyMappingResource,
 		NewTeamResource,
 		NewTeamUsersResource,
+		NewNamespacePermissionsResource,
 	}
 }
 

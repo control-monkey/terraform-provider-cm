@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 	stdlog "log"
 	"strings"
@@ -39,6 +40,7 @@ type Client struct {
 	stack                stack.Service
 	variable             variable.Service
 	namespace            namespace.Service
+	namespacePermissions namespace_permissions.Service
 	template             template.Service
 	controlPolicyMapping control_policy.Service
 	team                 team.Service
@@ -61,6 +63,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		stack:                stack.New(sess),
 		variable:             variable.New(sess),
 		namespace:            namespace.New(sess),
+		namespacePermissions: namespace_permissions.New(sess),
 		template:             template.New(sess),
 		controlPolicyMapping: control_policy.New(sess),
 		team:                 team.New(sess),

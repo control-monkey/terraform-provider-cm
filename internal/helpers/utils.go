@@ -4,11 +4,29 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mpvl/unique"
 	"reflect"
 	"strconv"
 	"strings"
 )
+
+func IsSet(value attr.Value) bool {
+	return value.IsNull() == false
+}
+
+func Xor(values ...attr.Value) bool {
+	retVal := false
+
+	for _, value := range values {
+		if retVal && value.IsNull() == false {
+			retVal = false
+			break
+		} else if value.IsNull() == false {
+			retVal = true
+		}
+	}
+
+	return retVal
+}
 
 func BoolValueOrNull(v *bool) types.Bool {
 	var r types.Bool
@@ -124,7 +142,7 @@ func IsTfStringSliceUnique(tfList types.List) bool {
 	var retVal bool
 
 	elements := divideTfListToTfElements(tfList)
-	retVal = unique.StringsAreUnique(stringValuesSliceFromTfSlice(elements))
+	retVal = IsUnique(stringValuesSliceFromTfSlice(elements))
 
 	return retVal
 }

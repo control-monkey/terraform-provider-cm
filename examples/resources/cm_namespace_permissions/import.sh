@@ -1,0 +1,1 @@
+terraform import cm_namespace_permissions.namespace_permissions ns-123
