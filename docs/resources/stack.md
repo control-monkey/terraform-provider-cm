@@ -16,7 +16,7 @@ Creates, updates and destroys stacks.
 resource "cm_stack" "auto_scaling_group_dev" {
   name         = "dev/auto-scaling-group"
   description  = "Auto Scaling Group Stack"
-  namespace_id = "ns-dev"
+  namespace_id = cm_namespace.dev_namespace.id
   iac_type     = "terraform"
 
   deployment_behavior = {
@@ -24,7 +24,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = "vcsp-github"
+    provider_id = "vcsp-123"
     repo_name   = "terraform"
     path        = "dev/auto-scaling-group"
   }
@@ -36,7 +36,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 resource "cm_stack" "auto_scaling_group_dev" {
   name         = "dev/auto-scaling-group"
   description  = "Auto Scaling Group Stack"
-  namespace_id = "ns-dev"
+  namespace_id = cm_namespace.dev_namespace.id
   iac_type     = "terraform"
 
   deployment_behavior = {
@@ -44,7 +44,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = "vcsp-github"
+    provider_id = "vcsp-123"
     repo_name   = "terraform"
   }
 
@@ -67,7 +67,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 resource "cm_stack" "auto_scaling_group_dev" {
   name         = "dev/auto-scaling-group"
   description  = "Auto Scaling Group Stack"
-  namespace_id = "ns-dev"
+  namespace_id = cm_namespace.dev_namespace.id
   iac_type     = "terraform"
 
   deployment_behavior = {
@@ -75,7 +75,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = "vcsp-github"
+    provider_id = "vcsp-123"
     repo_name   = "terraform"
   }
 
@@ -99,7 +99,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 resource "cm_stack" "auto_scaling_group_dev" {
   name         = "dev/auto-scaling-group"
   description  = "Auto Scaling Group Stack"
-  namespace_id = "ns-dev"
+  namespace_id = cm_namespace.dev_namespace.id
   iac_type     = "terraform"
 
   deployment_behavior = {
@@ -107,7 +107,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   }
 
   vcs_info = {
-    provider_id = "vcsp-github"
+    provider_id = "vcsp-123"
     repo_name   = "terraform"
     path        = "dev/auto-scaling-group"
   }

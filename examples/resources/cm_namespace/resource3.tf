@@ -5,7 +5,7 @@ resource "cm_namespace" "dev_namespace" {
   external_credentials = [
     {
       type                    = "awsAssumeRole"
-      external_credentials_id = "ext-aws-dev"
+      external_credentials_id = "ext-123"
     }
   ]
 

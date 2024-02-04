@@ -1,6 +1,6 @@
 resource "cm_variable" "stage_ephemeral_stacks_default_volume_size" {
   scope            = "template"
-  scope_id         = "tmpl-volume"
+  scope_id         = cm_template.template.id
   key              = "volume_size"
   type             = "tfVar"
   value            = 8

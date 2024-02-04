@@ -4,16 +4,16 @@ resource "cm_namespace" "dev_cross_account_namespace" {
 
   external_credentials = [
     {
-      external_credentials_id = "ext-aws-dev-main" # default credentials
+      external_credentials_id = "ext-123" # default credentials
       type                    = "awsAssumeRole"
     },
     {
-      external_credentials_id = "ext-aws-dev-infra"
+      external_credentials_id = "ext-456"
       type                    = "awsAssumeRole"
       aws_profile_name        = "dev-infra"
     },
     {
-      external_credentials_id = "ext-aws-dev-monitoring"
+      external_credentials_id = "ext-789"
       type                    = "awsAssumeRole"
       aws_profile_name        = "dev-monitoring"
     }

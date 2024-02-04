@@ -1,6 +1,6 @@
 resource "cm_variable" "ephemeral_stack_instance_types" {
   scope           = "template"
-  scope_id        = "tmpl-instances"
+  scope_id        = cm_template.template.id
   key             = "instance_type"
   type            = "tfVar"
   description     = "This tfVar is injected as the instance type of the EC2 instance"

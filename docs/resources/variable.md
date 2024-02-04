@@ -30,7 +30,7 @@ resource "cm_variable" "organization_mandatory_variable" {
 ```terraform
 resource "cm_variable" "dev_basic_app_mandatory_owner" {
   scope          = "template"
-  scope_id       = "tmpl-basicapp"
+  scope_id       = cm_template.template.id
   key            = "Owner"
   type           = "tfVar"
   description    = "Provide your name. It will be used as the tag value of the the same key"
@@ -44,7 +44,7 @@ resource "cm_variable" "dev_basic_app_mandatory_owner" {
 ```terraform
 resource "cm_variable" "stage_ephemeral_stacks_default_volume_size" {
   scope            = "template"
-  scope_id         = "tmpl-volume"
+  scope_id         = cm_template.template.id
   key              = "volume_size"
   type             = "tfVar"
   value            = 8
@@ -64,7 +64,7 @@ resource "cm_variable" "stage_ephemeral_stacks_default_volume_size" {
 ```terraform
 resource "cm_variable" "default_log" {
   scope           = "namespace"
-  scope_id        = "ns-stage"
+  scope_id        = cm_namespace.namespace.id
   key             = "TF_LOG"
   type            = "envVar"
   value           = "ERROR"
@@ -77,7 +77,7 @@ resource "cm_variable" "default_log" {
 ```terraform
 resource "cm_variable" "ephemeral_stack_instance_types" {
   scope           = "template"
-  scope_id        = "tmpl-instances"
+  scope_id        = cm_template.template.id
   key             = "instance_type"
   type            = "tfVar"
   description     = "This tfVar is injected as the instance type of the EC2 instance"
