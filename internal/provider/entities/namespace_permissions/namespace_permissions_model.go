@@ -3,6 +3,7 @@ package namespace_permissions
 import (
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -51,13 +52,13 @@ func (e *PermissionsModel) Hash() string {
 func (e *PermissionsModel) GetBlockIdentifier() string {
 	retVal := ""
 
-	if e.UserEmail.IsNull() == false {
+	if helpers.IsKnown(e.UserEmail) {
 		retVal += fmt.Sprintf("UserEmail:%s:", e.UserEmail.ValueString())
 	}
-	if e.ProgrammaticUserName.IsNull() == false {
+	if helpers.IsKnown(e.ProgrammaticUserName) {
 		retVal += fmt.Sprintf("ProgrammaticUserName:%s:", e.ProgrammaticUserName.ValueString())
 	}
-	if e.TeamId.IsNull() == false {
+	if helpers.IsKnown(e.TeamId) {
 		retVal += fmt.Sprintf("TeamId:%s:", e.TeamId.ValueString())
 	}
 

@@ -48,6 +48,11 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
+	if plan.SkipStateRefreshOnDestroy != state.SkipStateRefreshOnDestroy {
+		retVal.SetSkipStateRefreshOnDestroy(plan.SkipStateRefreshOnDestroy.ValueBoolPointer())
+		hasChanges = true
+	}
+
 	return retVal, hasChanges
 }
 

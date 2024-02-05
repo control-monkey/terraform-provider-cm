@@ -25,6 +25,8 @@ func UpdateStateAfterRead(res *sdkTemplate.Template, state *ResourceModel) {
 	} else {
 		state.Policy = nil
 	}
+
+	state.SkipStateRefreshOnDestroy = helpers.BoolValueOrNull(template.SkipStateRefreshOnDestroy)
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkTemplate.VcsInfo) VcsInfoModel {

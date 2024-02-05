@@ -121,10 +121,16 @@ func (r *TeamUsersResource) ValidateConfig(ctx context.Context, req resource.Val
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if len(data.Users) > 0 {
-		f := func(u *teamUsers.UserModel) string {
+		filterOutUnknowns := func(u *teamUsers.UserModel) bool {
+			return u.GetBlockIdentifier() != ""
+		}
+		knownUsers := helpers.Filter(data.Users, filterOutUnknowns)
+
+		mapToIdentifier := func(u *teamUsers.UserModel) string {
 			return u.GetBlockIdentifier()
 		}
-		identifiers := helpers.Map(data.Users, f)
+		identifiers := helpers.Map(knownUsers, mapToIdentifier)
+
 		if helpers.IsUnique(identifiers) == false {
 			duplicates := helpers.FindDuplicates(identifiers, true)
 			resp.Diagnostics.AddError("User appears more than once", fmt.Sprintf("User with email '%s' appears more than once", duplicates[0]))

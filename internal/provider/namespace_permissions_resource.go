@@ -157,20 +157,27 @@ func (r *NamespacePermissionsResource) ValidateConfig(ctx context.Context, req r
 		for _, permission := range data.Permissions { // XOR
 			xor := helpers.Xor(permission.UserEmail, permission.ProgrammaticUserName, permission.TeamId)
 			if xor == false {
-				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", beautyStringify(permission)), "Exactly one of [user_email, programmatic_username, team_id] must be provided")
+				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", stringifyError(permission)), "Exactly one of [user_email, programmatic_username, team_id] must be provided")
+				return
 			}
 
 			xor = helpers.Xor(permission.Role, permission.CustomRoleId)
 			if xor == false {
-				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", beautyStringify(permission)), "Exactly one of [role, custom_role_id] must be provided")
+				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", stringifyError(permission)), "Exactly one of [role, custom_role_id] must be provided")
+				return
 			}
 		}
 
-		f := func(u *tfNamespacePermissions.PermissionsModel) string {
+		filterOutUnknowns := func(u *tfNamespacePermissions.PermissionsModel) bool {
+			return u.GetBlockIdentifier() != ""
+		}
+		knownPermissions := helpers.Filter(data.Permissions, filterOutUnknowns)
+
+		mapToIdentifier := func(u *tfNamespacePermissions.PermissionsModel) string {
 			return u.GetBlockIdentifier()
 		}
+		identifiers := helpers.Map(knownPermissions, mapToIdentifier)
 
-		identifiers := helpers.Map(data.Permissions, f)
 		if helpers.IsUnique(identifiers) == false {
 			duplicates := helpers.FindDuplicates(identifiers, true)
 			resp.Diagnostics.AddError("Multiple permissions for the same entity", fmt.Sprintf("'%s' cannot be assigned to multiple permissions", clean(duplicates[0])))
@@ -368,25 +375,27 @@ func clean(s string) string {
 	return strings.Split(s, ":")[1]
 }
 
-func beautyStringify(e *tfNamespacePermissions.PermissionsModel) string {
+func stringifyError(e *tfNamespacePermissions.PermissionsModel) string {
+	retVal := ""
+	retVal += stringifyProperty(e.UserEmail, "user_email")
+	retVal += stringifyProperty(e.ProgrammaticUserName, "programmatic_username")
+	retVal += stringifyProperty(e.TeamId, "team_id")
+	retVal += stringifyProperty(e.Role, "role")
+	retVal += stringifyProperty(e.CustomRoleId, "custom_role_id")
+
+	return retVal
+}
+
+func stringifyProperty(e types.String, propertyName string) string {
 	retVal := ""
 
-	if e.UserEmail.IsNull() == false {
-		retVal += fmt.Sprintf("user_email: '%s'  ", e.UserEmail.ValueString())
+	if e.IsNull() == false {
+		if e.IsUnknown() {
+			retVal = "'known after apply'"
+		} else {
+			retVal += fmt.Sprintf("%s: '%s'  ", propertyName, e.ValueString())
+		}
 	}
-	if e.ProgrammaticUserName.IsNull() == false {
-		retVal += fmt.Sprintf("programmatic_username: '%s'  ", e.ProgrammaticUserName.ValueString())
-	}
-	if e.TeamId.IsNull() == false {
-		retVal += fmt.Sprintf("team_id: '%s'  ", e.TeamId.ValueString())
-	}
-	if e.Role.IsNull() == false {
-		retVal += fmt.Sprintf("role: '%s'  ", e.Role.ValueString())
-	}
-	if e.CustomRoleId.IsNull() == false {
-		retVal += fmt.Sprintf("custom_role_id: '%s'  ", e.CustomRoleId.ValueString())
-	}
-
 	return retVal
 }
 

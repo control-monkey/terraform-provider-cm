@@ -2,6 +2,7 @@ package team_users
 
 import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -25,5 +26,11 @@ func (e *UserModel) Hash() string {
 }
 
 func (e *UserModel) GetBlockIdentifier() string {
-	return e.Hash()
+	retVal := ""
+
+	if helpers.IsKnown(e.Email) {
+		retVal += e.Hash() // do not use e.Hash if another property is added to Model
+	}
+
+	return retVal
 }

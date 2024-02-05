@@ -134,6 +134,10 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					},
 				},
 			},
+			"skip_state_refresh_on_destroy": schema.BoolAttribute{
+				MarkdownDescription: "When enabled, the state will not get refreshed before planning the destroy operation.",
+				Optional:            true,
+			},
 		},
 	}
 }

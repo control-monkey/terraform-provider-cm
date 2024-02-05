@@ -5,12 +5,13 @@ import (
 )
 
 type ResourceModel struct {
-	ID          types.String  `tfsdk:"id"`
-	Name        types.String  `tfsdk:"name"`
-	IacType     types.String  `tfsdk:"iac_type"`
-	Description types.String  `tfsdk:"description"`
-	VcsInfo     *VcsInfoModel `tfsdk:"vcs_info"`
-	Policy      *PolicyModel  `tfsdk:"policy"`
+	ID                        types.String  `tfsdk:"id"`
+	Name                      types.String  `tfsdk:"name"`
+	IacType                   types.String  `tfsdk:"iac_type"`
+	Description               types.String  `tfsdk:"description"`
+	VcsInfo                   *VcsInfoModel `tfsdk:"vcs_info"`
+	Policy                    *PolicyModel  `tfsdk:"policy"`
+	SkipStateRefreshOnDestroy types.Bool    `tfsdk:"skip_state_refresh_on_destroy"`
 }
 
 type VcsInfoModel struct {

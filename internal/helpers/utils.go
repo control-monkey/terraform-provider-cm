@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-func IsSet(value attr.Value) bool {
-	return value.IsNull() == false
+func IsKnown(e attr.Value) bool {
+	return e.IsNull() == false && e.IsUnknown() == false
 }
 
 func Xor(values ...attr.Value) bool {

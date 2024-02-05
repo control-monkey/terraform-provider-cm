@@ -115,6 +115,7 @@ resource "cm_variable" "allowed_instances_variable" {
 
 - `description` (String) The description of the template.
 - `policy` (Attributes) The policy of the template. (see [below for nested schema](#nestedatt--policy))
+- `skip_state_refresh_on_destroy` (Boolean) When enabled, the state will not get refreshed before planning the destroy operation.
 
 ### Read-Only
 
