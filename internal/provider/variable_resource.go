@@ -173,30 +173,36 @@ func (r *VariableResource) ValidateConfig(ctx context.Context, req resource.Vali
 
 	if valueConditions != nil {
 		for i, condition := range valueConditions {
-			var errMsg string
+			operator := condition.Operator
+			value := condition.Value
+			values := condition.Values
 
-			switch op := condition.Operator.ValueString(); op {
-			case cmTypes.Ne:
-				if condition.Value.ValueStringPointer() == nil {
+			if helpers.IsKnown(operator) {
+				var errMsg string
+
+				if operator.ValueString() != cmTypes.In && value.IsNull() {
 					errMsg = fmt.Sprintf("value_conditions[%d].value must be set", i)
 				}
-			case cmTypes.Gt, cmTypes.Gte, cmTypes.Lt, cmTypes.Lte:
-				isNumeric, _ := helpers.CheckAndGetIfNumericString(condition.Value.ValueString())
-				if !isNumeric {
-					errMsg = fmt.Sprintf("value_conditions[%d].value must be a number when using value_conditions.operator '%s'", i, op)
-				}
-			case cmTypes.In:
-				if condition.Values.IsNull() {
-					errMsg = fmt.Sprintf("value_conditions[%d].values must be set", i)
-				}
-			case cmTypes.StartsWith, cmTypes.Contains:
-				if condition.Value.ValueStringPointer() == nil {
-					errMsg = fmt.Sprintf("value_conditions[%d].value must be set", i)
-				}
-			}
 
-			if errMsg != "" {
-				resp.Diagnostics.AddError("Validation Error", errMsg)
+				if helpers.IsKnown(values) || helpers.IsKnown(value) {
+					switch op := operator.ValueString(); op {
+					case cmTypes.Ne: // enforced in the former if statement
+					case cmTypes.Gt, cmTypes.Gte, cmTypes.Lt, cmTypes.Lte:
+						isNumeric, _ := helpers.CheckAndGetIfNumericString(value.ValueString())
+						if !isNumeric {
+							errMsg = fmt.Sprintf("value_conditions[%d].value must be a number when using value_conditions.operator '%s'", i, op)
+						}
+					case cmTypes.In:
+						if values.IsNull() {
+							errMsg = fmt.Sprintf("value_conditions[%d].values must be set", i)
+						}
+					case cmTypes.StartsWith, cmTypes.Contains: // enforced in the former if statement
+					}
+				}
+
+				if errMsg != "" {
+					resp.Diagnostics.AddError(validationError, errMsg)
+				}
 			}
 		}
 	}

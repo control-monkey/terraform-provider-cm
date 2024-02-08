@@ -2,9 +2,9 @@ package namespace_permissions
 
 import (
 	"fmt"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
 )
 
 type ResourceModel struct {
@@ -19,12 +19,6 @@ type PermissionsModel struct { //When new field is added consider Hash() functio
 	TeamId               types.String `tfsdk:"team_id"`
 	Role                 types.String `tfsdk:"role"`
 	CustomRoleId         types.String `tfsdk:"custom_role_id"`
-}
-
-type MergedEntities struct {
-	EntitiesToCreate []*namespace_permissions.NamespacePermission
-	EntitiesToUpdate []*namespace_permissions.NamespacePermission
-	EntitiesToDelete []*namespace_permissions.NamespacePermission
 }
 
 func (e *PermissionsModel) Hash() string {
@@ -63,4 +57,8 @@ func (e *PermissionsModel) GetBlockIdentifier() string {
 	}
 
 	return retVal
+}
+
+func CleanIdentifier(s string) string {
+	return strings.Split(s, ":")[1]
 }

@@ -237,10 +237,9 @@ func (r *NamespaceResource) ValidateConfig(ctx context.Context, req resource.Val
 			credentialsType := credentials.Type
 			profileName := credentials.AwsProfileName
 
-			if credentialsType.IsNull() == false && credentialsType.ValueString() != cmTypes.AwsAssumeRole && profileName.IsNull() == false {
+			if helpers.IsKnown(credentialsType) && credentialsType.ValueString() != cmTypes.AwsAssumeRole && profileName.IsNull() == false {
 				resp.Diagnostics.AddError(
-					"Validation Error",
-					fmt.Sprintf("external_credentials cannot have aws_profile_name configured for non AWS provider."),
+					validationError, fmt.Sprintf("external_credentials cannot have aws_profile_name configured for non AWS provider."),
 				)
 			}
 		}
@@ -251,29 +250,25 @@ func (r *NamespaceResource) ValidateConfig(ctx context.Context, req resource.Val
 	if runnerConfig != nil {
 		mode := runnerConfig.Mode
 
-		if !mode.IsNull() {
+		if helpers.IsKnown(mode) {
 			modeValue := mode.ValueString()
 
 			if modeValue == cmTypes.Managed && runnerConfig.Groups.IsNull() == false {
 				resp.Diagnostics.AddError(
-					"Validation Error",
-					fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
+					validationError, fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
 				)
-			} else if modeValue == cmTypes.SelfHosted {
+			} else if modeValue == cmTypes.SelfHosted && helpers.IsKnown(runnerConfig.Groups) {
 				if len(runnerConfig.Groups.Elements()) == 0 {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
+						validationError, fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
 					)
 				} else if helpers.DoesTfListContainsEmptyValue(runnerConfig.Groups) {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						"Found empty string in runner_config.groups",
+						validationError, "Found empty string in runner_config.groups",
 					)
 				} else if !helpers.IsTfStringSliceUnique(runnerConfig.Groups) {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						"Found duplicate in runner_config.groups",
+						validationError, "Found duplicate in runner_config.groups",
 					)
 				}
 			}

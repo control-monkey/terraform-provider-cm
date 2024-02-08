@@ -98,6 +98,7 @@ build: binary
 	if [ -f "sandbox/.terraform.lock.hcl" ]; then \
 	  rm sandbox/.terraform.lock.hcl; \
 	fi
+	terraform -chdir=sandbox init
 
 # Creates ControlMonkey provider for local usage
 .PHONY: cm_provider

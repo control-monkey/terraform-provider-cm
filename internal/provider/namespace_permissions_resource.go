@@ -7,6 +7,7 @@ import (
 	sdkNamespacePermissions "github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/interfaces"
 	tfNamespacePermissions "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace_permissions"
 	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -22,10 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"strings"
 )
-
-const namespaceNotFoundError = "Namespace not found"
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &NamespacePermissionsResource{}
@@ -157,32 +155,25 @@ func (r *NamespacePermissionsResource) ValidateConfig(ctx context.Context, req r
 		for _, permission := range data.Permissions { // XOR
 			xor := helpers.Xor(permission.UserEmail, permission.ProgrammaticUserName, permission.TeamId)
 			if xor == false {
-				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", stringifyError(permission)), "Exactly one of [user_email, programmatic_username, team_id] must be provided")
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("Invalid Permission at %s. Exactly one of [user_email, programmatic_username, team_id] must be provided", stringifyError(permission)))
 				return
 			}
 
 			xor = helpers.Xor(permission.Role, permission.CustomRoleId)
 			if xor == false {
-				resp.Diagnostics.AddError(fmt.Sprintf("Invalid Permission at %s", stringifyError(permission)), "Exactly one of [role, custom_role_id] must be provided")
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("Invalid Permission at %s. Exactly one of [role, custom_role_id] must be provided.", stringifyError(permission)))
 				return
 			}
 		}
 
-		filterOutUnknowns := func(u *tfNamespacePermissions.PermissionsModel) bool {
-			return u.GetBlockIdentifier() != ""
-		}
-		knownPermissions := helpers.Filter(data.Permissions, filterOutUnknowns)
-
-		mapToIdentifier := func(u *tfNamespacePermissions.PermissionsModel) string {
-			return u.GetBlockIdentifier()
-		}
-		identifiers := helpers.Map(knownPermissions, mapToIdentifier)
+		identifiers := interfaces.GetIdentifiers(data.Permissions)
 
 		if helpers.IsUnique(identifiers) == false {
-			duplicates := helpers.FindDuplicates(identifiers, true)
-			resp.Diagnostics.AddError("Multiple permissions for the same entity", fmt.Sprintf("'%s' cannot be assigned to multiple permissions", clean(duplicates[0])))
+			duplicates := helpers.FindDuplicates(identifiers, false)
+			for _, d := range duplicates {
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("'%s' cannot be assigned to multiple permissions", tfNamespacePermissions.CleanIdentifier(d)))
+			}
 		}
-
 	}
 }
 
@@ -200,11 +191,12 @@ func (r *NamespacePermissionsResource) Read(ctx context.Context, req resource.Re
 	res, err := r.client.Client.namespacePermissions.ListNamespacePermissions(ctx, id)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.Diagnostics.AddError("Namespace not found", fmt.Sprintf("Namespace '%s' not found", id))
+			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddWarning(namespaceNotFoundError, fmt.Sprintf("Namespace '%s' not found", id))
 			return
 		}
 
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read namespace permissions %s", id), fmt.Sprintf("%s", err))
+		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read namespace permissions for namespace '%s'", id), err.Error())
 		return
 	}
 
@@ -297,14 +289,8 @@ func (r *NamespacePermissionsResource) Delete(ctx context.Context, req resource.
 
 	mergeResult := tfNamespacePermissions.Merge(nil, &state, commons.DeleteMerger)
 
-	if diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, state.NamespaceId.ValueString()); diags != nil {
-		if diags.ErrorsCount() > 0 && diags[0].Detail() == namespaceNotFoundError {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		resp.Diagnostics.Append(diags...)
-	}
+	diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, state.NamespaceId.ValueString())
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *NamespacePermissionsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -322,17 +308,15 @@ func (r *NamespacePermissionsResource) createEntities(ctx context.Context, entit
 		_, err := r.client.Client.namespacePermissions.CreateNamespacePermission(ctx, e)
 
 		if err != nil {
-			if commons.DoesErrorContains(err, namespaceNotFoundError) {
+			if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						namespaceNotFoundError,
-						fmt.Sprintf("Namespace '%s' Not Found", *e.NamespaceId)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to add permission '%s' to namespace '%s'. Error: %s",
+						beautyStringifyApi(e), namespaceId, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Namespace permission creation failed",
-						fmt.Sprintf("failed to create permission for %serror: %s", beautyStringifyApi(e), err)),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to add permission '%s' to namespace '%s'", beautyStringifyApi(e), namespaceId),
+						err.Error()),
 				}
 			}
 		}
@@ -357,22 +341,20 @@ func (r *NamespacePermissionsResource) deleteEntities(ctx context.Context, entit
 
 		if err != nil {
 			if commons.IsNotFoundResponseError(err) {
-				if commons.DoesErrorContains(err, namespaceNotFoundError) {
-					return diag.Diagnostics{
-						diag.NewErrorDiagnostic("Namespace not found", fmt.Sprintf("Namespace '%s' not found", *e.NamespaceId)),
-					}
-				} else {
-					tflog.Info(ctx, fmt.Sprintf("%sdoes not exists. Removing them from namespace '%s'.", beautyStringifyApi(e), *e.NamespaceId))
+				return diag.Diagnostics{
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to remove permission '%s' from namespace '%s'. Error: %s",
+						beautyStringifyApi(e), namespaceId, err)),
+				}
+			} else {
+				return diag.Diagnostics{
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to remove permission '%s' from namespace '%s'", beautyStringifyApi(e), namespaceId),
+						err.Error()),
 				}
 			}
 		}
 	}
 
 	return retVal
-}
-
-func clean(s string) string {
-	return strings.Split(s, ":")[1]
 }
 
 func stringifyError(e *tfNamespacePermissions.PermissionsModel) string {
