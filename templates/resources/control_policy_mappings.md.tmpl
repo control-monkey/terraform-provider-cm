@@ -10,16 +10,14 @@ description: |-
 {{ .Description | trimspace }}
 
 ## Example Usage
-
-### Control Policy Mapping between a control policy and a namespace.
-{{tffile "examples/resources/cm_control_policy_mapping/resource.tf"}}
+{{tffile "examples/resources/cm_control_policy_mappings/resource.tf"}}
 
 {{ .SchemaMarkdown | trimspace }}
 
 {{ if .HasImport -}}
 ## Import
 
-`cm_control_policy_mapping` can be imported using the following format `control_policy_id/target_id/target_type`, e.g.
+`cm_control_policy_mappings` can be imported using the ID of the Control Policy, e.g.
 
 {{codefile "shell" .ImportFile}}
 {{- end }}

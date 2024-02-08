@@ -3,9 +3,16 @@ package team_users
 import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/interfaces"
 	"github.com/hashicorp/go-set/v2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+type MergedEntities struct {
+	EntitiesToCreate []*team.TeamUser
+	EntitiesToUpdate []*team.TeamUser
+	EntitiesToDelete []*team.TeamUser
+}
 
 func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) *MergedEntities {
 	retVal := new(MergedEntities)
@@ -25,19 +32,14 @@ func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.Conv
 		teamId = state.TeamId
 	}
 
-	planUsers := set.HashSetFrom[*UserModel, string](plan.Users)
-	stateUsers := set.HashSetFrom[*UserModel, string](state.Users)
-
-	usersToAdd := planUsers.Difference(stateUsers)
-	usersToDelete := stateUsers.Difference(planUsers)
-
-	retVal.EntitiesToCreate = buildEntities(usersToAdd, teamId)
-	retVal.EntitiesToDelete = buildEntities(usersToDelete, teamId)
+	mergeResult := interfaces.MergeEntities(plan.Users, state.Users)
+	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, teamId)
+	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, teamId)
 
 	return retVal
 }
 
-func buildEntities(entities set.Collection[*UserModel], teamId types.String) []*team.TeamUser {
+func convertEntities(entities set.Collection[*UserModel], teamId types.String) []*team.TeamUser {
 	retVal := make([]*team.TeamUser, entities.Size())
 
 	for i, u := range entities.Slice() {

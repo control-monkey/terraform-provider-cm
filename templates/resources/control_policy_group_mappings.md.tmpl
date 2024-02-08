@@ -1,0 +1,33 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+#### The example below defines a mapping from a control policy group to a namespace and a stack. The first block specifies an enforcement level of `bySeverity`, which is contingent upon the severity of the policy within the group. In contrast, the second block sets the enforcement level to `softMandatory`, requiring approval in case the policy check fails.
+{{tffile "examples/resources/cm_control_policy_group_mappings/resource.tf"}}
+
+### Override Enforcements
+#### The example below has the configuration as above, with the distinction that the enforcement level of one policy within the policy group is explicitly overridden. Instead of adhering to the default enforcement level of `bySeverity` as per the mapping, the specified policy will now have an enforcement level of `softMandatory`.
+{{tffile "examples/resources/cm_control_policy_group_mappings/resource2.tf"}}
+
+#### The example below establishes a mapping wherein all policy checks within the policy group have an enforcement level of `softMandatory`, except for one policy, which has its enforcement level explicitly overridden to `warning`. Additionally, a specific policy's enforcement level is explicitly set to `hardMandatory` for a particular stack. This implies that, upon a failed policy check, changes cannot be pushed.
+{{tffile "examples/resources/cm_control_policy_group_mappings/resource3.tf"}}
+
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_control_policy_group_mappings` can be imported using the ID of the Control Policy Group, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

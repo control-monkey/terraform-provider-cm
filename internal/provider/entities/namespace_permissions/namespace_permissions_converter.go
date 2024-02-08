@@ -3,9 +3,16 @@ package namespace_permissions
 import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/interfaces"
 	"github.com/hashicorp/go-set/v2"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+type MergedEntities struct {
+	EntitiesToCreate []*namespace_permissions.NamespacePermission
+	EntitiesToUpdate []*namespace_permissions.NamespacePermission
+	EntitiesToDelete []*namespace_permissions.NamespacePermission
+}
 
 func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) *MergedEntities {
 	retVal := new(MergedEntities)
@@ -25,39 +32,15 @@ func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.Conv
 		namespaceId = state.NamespaceId
 	}
 
-	planEntities := set.HashSetFrom[*PermissionsModel, string](plan.Permissions)
-	stateEntities := set.HashSetFrom[*PermissionsModel, string](state.Permissions)
-
-	permissionsToCreate := planEntities.Difference(stateEntities)
-	permissionsToDelete := stateEntities.Difference(planEntities)
-
-	idToModelToDelete := make(map[string]*PermissionsModel, 0)
-	permissionsToRemoveFromCreate := make([]*PermissionsModel, 0)
-	permissionsToRemoveFromDelete := make([]*PermissionsModel, 0)
-	permissionsToUpdate := set.NewHashSet[*PermissionsModel, string](0)
-
-	for _, p := range permissionsToDelete.Slice() {
-		idToModelToDelete[p.GetBlockIdentifier()] = p
-	}
-	for _, p := range permissionsToCreate.Slice() {
-		if permissionToDelete := idToModelToDelete[p.GetBlockIdentifier()]; permissionToDelete != nil { // id in both add & delete
-			permissionsToRemoveFromCreate = append(permissionsToRemoveFromCreate, p)
-			permissionsToRemoveFromDelete = append(permissionsToRemoveFromDelete, permissionToDelete)
-			permissionsToUpdate.Insert(p)
-		}
-	}
-
-	permissionsToCreate.RemoveSlice(permissionsToRemoveFromCreate)
-	permissionsToDelete.RemoveSlice(permissionsToRemoveFromDelete)
-
-	retVal.EntitiesToCreate = buildEntities(permissionsToCreate, namespaceId)
-	retVal.EntitiesToUpdate = buildEntities(permissionsToUpdate, namespaceId)
-	retVal.EntitiesToDelete = buildEntities(permissionsToDelete, namespaceId)
+	mergeResult := interfaces.MergeEntities(plan.Permissions, state.Permissions)
+	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, namespaceId)
+	retVal.EntitiesToUpdate = convertEntities(mergeResult.EntitiesToUpdate, namespaceId)
+	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, namespaceId)
 
 	return retVal
 }
 
-func buildEntities(entities set.Collection[*PermissionsModel], namespaceId types.String) []*namespace_permissions.NamespacePermission {
+func convertEntities(entities set.Collection[*PermissionsModel], namespaceId types.String) []*namespace_permissions.NamespacePermission {
 	retVal := make([]*namespace_permissions.NamespacePermission, entities.Size())
 
 	for i, e := range entities.Slice() {

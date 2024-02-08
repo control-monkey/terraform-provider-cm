@@ -17,7 +17,7 @@ terraform {
   required_providers {
     cm = {
       source  = "control-monkey/cm"
-      version = ">= 1.0"
+      version = "~> 1.0"
     }
   }
 }

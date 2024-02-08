@@ -1,0 +1,1 @@
+terraform import cm_template_namespace_mappings.mappings tmpl-123

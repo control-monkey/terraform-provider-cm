@@ -20,16 +20,3 @@ resource "cm_namespace_permissions" "stage_namespace_permissions" {
     },
   ]
 }
-
-resource "cm_namespace" "stage_namespace" {
-  name = "Stage"
-}
-
-resource "cm_team" "stage_team_developers" {
-  name = "Stage Team Developers"
-}
-
-resource "cm_team" "stage_team_it" {
-  name = "Stage Team IT"
-}
-

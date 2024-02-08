@@ -115,12 +115,20 @@ func TfListStringConverter(plan types.List, state types.List) ([]*string, bool) 
 	hasChanged := false
 
 	if reflect.DeepEqual(plan.Elements(), state.Elements()) == false {
-		elements := divideTfListToTfElements(plan)
-		retVal = stringPointerSliceOrNull(elements)
+		retVal = TfListToStringSlice(plan)
 		hasChanged = true
 	}
 
 	return retVal, hasChanged
+}
+
+func TfListToStringSlice(tfList types.List) []*string {
+	var retVal []*string
+
+	elements := divideTfListToTfElements(tfList)
+	retVal = stringPointerSliceOrNull(elements)
+
+	return retVal
 }
 
 func DoesTfListContainsEmptyValue(tfValues types.List) bool {

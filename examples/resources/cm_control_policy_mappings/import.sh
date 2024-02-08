@@ -1,0 +1,1 @@
+terraform import cm_control_policy_mappings.mappings pol-123

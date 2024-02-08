@@ -3,7 +3,9 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/blueprint"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 	stdlog "log"
@@ -37,13 +39,15 @@ type Config struct {
 }
 
 type Client struct {
-	stack                stack.Service
-	variable             variable.Service
+	blueprint            blueprint.Service
+	controlPolicy        control_policy.Service
+	controlPolicyGroup   control_policy_group.Service
 	namespace            namespace.Service
 	namespacePermissions namespace_permissions.Service
-	template             template.Service
-	controlPolicyMapping control_policy.Service
+	stack                stack.Service
 	team                 team.Service
+	template             template.Service
+	variable             variable.Service
 }
 
 // Client configures and returns a fully initialized ControlMonkey client.
@@ -60,13 +64,15 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 
 	// Create a new client.
 	client := &Client{
-		stack:                stack.New(sess),
-		variable:             variable.New(sess),
+		blueprint:            blueprint.New(sess),
+		controlPolicy:        control_policy.New(sess),
+		controlPolicyGroup:   control_policy_group.New(sess),
 		namespace:            namespace.New(sess),
 		namespacePermissions: namespace_permissions.New(sess),
-		template:             template.New(sess),
-		controlPolicyMapping: control_policy.New(sess),
+		stack:                stack.New(sess),
 		team:                 team.New(sess),
+		template:             template.New(sess),
+		variable:             variable.New(sess),
 	}
 
 	stdlog.Println("[INFO] ControlMonkey client configured")

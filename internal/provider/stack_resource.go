@@ -284,32 +284,27 @@ func (r *StackResource) ValidateConfig(ctx context.Context, req resource.Validat
 	if runnerConfig != nil {
 		mode := runnerConfig.Mode
 
-		if !mode.IsNull() {
+		if helpers.IsKnown(mode) {
 			modeValue := mode.ValueString()
 
 			if modeValue == cmTypes.Managed && runnerConfig.Groups.IsNull() == false {
 				resp.Diagnostics.AddError(
-					"Validation Error",
-					fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
+					validationError, fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
 				)
-			} else if modeValue == cmTypes.SelfHosted {
+			} else if modeValue == cmTypes.SelfHosted && helpers.IsKnown(runnerConfig.Groups) {
 				if len(runnerConfig.Groups.Elements()) == 0 {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
+						validationError, fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
 					)
 				} else if helpers.DoesTfListContainsEmptyValue(runnerConfig.Groups) {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						"Found empty string in runner_config.groups",
+						validationError, "Found empty string in runner_config.groups",
 					)
 				} else if !helpers.IsTfStringSliceUnique(runnerConfig.Groups) {
 					resp.Diagnostics.AddError(
-						"Validation Error",
-						"Found duplicate in runner_config.groups",
+						validationError, "Found duplicate in runner_config.groups",
 					)
 				}
-
 			}
 		}
 	}
