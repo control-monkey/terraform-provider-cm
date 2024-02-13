@@ -7,6 +7,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/notification"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 	stdlog "log"
 	"strings"
@@ -44,6 +45,7 @@ type Client struct {
 	controlPolicyGroup   control_policy_group.Service
 	namespace            namespace.Service
 	namespacePermissions namespace_permissions.Service
+	notification         notification.Service
 	stack                stack.Service
 	team                 team.Service
 	template             template.Service
@@ -69,6 +71,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		controlPolicyGroup:   control_policy_group.New(sess),
 		namespace:            namespace.New(sess),
 		namespacePermissions: namespace_permissions.New(sess),
+		notification:         notification.New(sess),
 		stack:                stack.New(sess),
 		team:                 team.New(sess),
 		template:             template.New(sess),

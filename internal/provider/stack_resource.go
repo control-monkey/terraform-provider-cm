@@ -393,12 +393,12 @@ func (r *StackResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	_, err := r.client.Client.stack.UpdateStack(ctx, id, body)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Stack '%s' not found", id))
 			return
 		}
 
 		resp.Diagnostics.AddError(
-			"Stack update failed",
+			resourceUpdateFailedError,
 			fmt.Sprintf("failed to update stack %s, error: %s", id, err),
 		)
 		return

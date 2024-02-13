@@ -1,0 +1,1 @@
+terraform import cm_notification_endpoint.notification_endpoint ne-123
