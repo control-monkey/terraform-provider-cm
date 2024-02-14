@@ -6,6 +6,14 @@ import (
 	"reflect"
 )
 
+type OperationType string
+
+const (
+	CreateOperation OperationType = "create"
+	UpdateOperation OperationType = "update"
+	DeleteOperation OperationType = "delete"
+)
+
 type MergedEntities[T MergeModel] struct {
 	EntitiesToCreate set.Collection[T]
 	EntitiesToUpdate set.Collection[T]

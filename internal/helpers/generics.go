@@ -1,5 +1,7 @@
 package helpers
 
+import "reflect"
+
 func Filter[T any](ss []T, filter func(T) bool) (retVal []T) {
 	for _, s := range ss {
 		if filter(s) {
@@ -70,4 +72,19 @@ func FindDuplicates[T int | string](es []T, stopAfterFirst bool) []T {
 	}
 
 	return retVal
+}
+
+func IsAllNilFields(x interface{}) bool {
+	rv := reflect.ValueOf(x)
+	rv = rv.Elem()
+
+	for i := 0; i < rv.NumField(); i++ {
+		f := rv.Field(i)
+
+		if f.IsValid() && !f.IsNil() {
+			return false
+		}
+	}
+
+	return true
 }

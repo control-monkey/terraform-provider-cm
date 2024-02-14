@@ -34,22 +34,14 @@ func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.Conv
 	}
 
 	mergeResult := interfaces.MergeEntities(plan.Targets, state.Targets)
-	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, controlPolicyGroupId, createOperation)
-	retVal.EntitiesToUpdate = convertEntities(mergeResult.EntitiesToUpdate, controlPolicyGroupId, updateOperation)
-	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, controlPolicyGroupId, deleteOperation)
+	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, controlPolicyGroupId, interfaces.CreateOperation)
+	retVal.EntitiesToUpdate = convertEntities(mergeResult.EntitiesToUpdate, controlPolicyGroupId, interfaces.UpdateOperation)
+	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, controlPolicyGroupId, interfaces.DeleteOperation)
 
 	return retVal
 }
 
-type operationType string
-
-const (
-	createOperation operationType = "create"
-	updateOperation operationType = "update"
-	deleteOperation operationType = "delete"
-)
-
-func convertEntities(entities set.Collection[*TargetModel], controlPolicyGroupId types.String, operation operationType) []*controlPolicyGroup.ControlPolicyGroupMapping {
+func convertEntities(entities set.Collection[*TargetModel], controlPolicyGroupId types.String, operation interfaces.OperationType) []*controlPolicyGroup.ControlPolicyGroupMapping {
 	retVal := make([]*controlPolicyGroup.ControlPolicyGroupMapping, entities.Size())
 
 	for i, e := range entities.Slice() {
@@ -58,7 +50,7 @@ func convertEntities(entities set.Collection[*TargetModel], controlPolicyGroupId
 		apiEntity.SetTargetId(e.TargetId.ValueStringPointer())
 		apiEntity.SetTargetType(e.TargetType.ValueStringPointer())
 
-		if operation != deleteOperation { // enforcement level cannot be sent on delete request
+		if operation != interfaces.DeleteOperation { // enforcement level cannot be sent on delete request
 			apiEntity.SetEnforcementLevel(e.EnforcementLevel.ValueStringPointer())
 
 			apiOverrideEnforcements := convertOverrideEnforcements(e.OverrideEnforcements)

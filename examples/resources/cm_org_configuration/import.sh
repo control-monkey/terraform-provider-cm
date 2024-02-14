@@ -1,0 +1,1 @@
+terraform import cm_org_configuration.org_configuration org-config

@@ -292,12 +292,12 @@ func (r *VariableResource) Update(ctx context.Context, req resource.UpdateReques
 	_, err := r.client.Client.variable.UpdateVariable(ctx, id, body)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Variable '%s' not found", *id))
 			return
 		}
 
 		resp.Diagnostics.AddError(
-			"Variable update failed",
+			resourceUpdateFailedError,
 			fmt.Sprintf("failed to update variable %s, error: %s", *id, err),
 		)
 		return

@@ -359,12 +359,11 @@ func (r *NamespaceResource) Update(ctx context.Context, req resource.UpdateReque
 	_, err := r.client.Client.namespace.UpdateNamespace(ctx, id, body)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Namespace '%s' not found", id))
 			return
 		}
-
 		resp.Diagnostics.AddError(
-			"Namespace update failed",
+			resourceUpdateFailedError,
 			fmt.Sprintf("failed to update namespace %s, error: %s", id, err),
 		)
 		return

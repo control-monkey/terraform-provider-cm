@@ -24,12 +24,15 @@ func DeploymentApprovalPolicyRulesConverter(plan []*DeploymentApprovalPolicyRule
 
 	if reflect.DeepEqual(plan, state) == false {
 		hasChanged = true
-		retVal = make([]*sdkCrossModels.DeploymentApprovalPolicyRule, 0)
 
-		for _, r := range plan {
-			if r != nil {
-				rule := deploymentApprovalPolicyRuleConverter(r)
-				retVal = append(retVal, rule)
+		if plan != nil {
+			retVal = make([]*sdkCrossModels.DeploymentApprovalPolicyRule, 0)
+
+			for _, r := range plan {
+				if r != nil {
+					rule := deploymentApprovalPolicyRuleConverter(r)
+					retVal = append(retVal, rule)
+				}
 			}
 		}
 	}

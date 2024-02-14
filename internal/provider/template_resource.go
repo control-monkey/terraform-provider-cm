@@ -246,12 +246,12 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 	_, err := r.client.Client.template.UpdateTemplate(ctx, id, body)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Template '%s' not found", id))
 			return
 		}
 
 		resp.Diagnostics.AddError(
-			"Template update failed",
+			resourceUpdateFailedError,
 			fmt.Sprintf("failed to update template %s, error: %s", id, err),
 		)
 		return

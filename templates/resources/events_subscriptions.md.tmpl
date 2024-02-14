@@ -1,0 +1,23 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+{{tffile "examples/resources/cm_events_subscriptions/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_events_subscriptions` can be imported using the following format `scope/scope_id` or only `scope` if scope_id does not exist, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

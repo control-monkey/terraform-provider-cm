@@ -3,11 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/team"
-
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	tfNotificationEndpoint "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/notification_endpoint"
 	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,41 +20,48 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &TeamResource{}
+var _ resource.Resource = &NotificationEndpointResource{}
 
-func NewTeamResource() resource.Resource {
-	return &TeamResource{}
+func NewNotificationEndpointResource() resource.Resource {
+	return &NotificationEndpointResource{}
 }
 
-type TeamResource struct {
+type NotificationEndpointResource struct {
 	client *ControlMonkeyAPIClient
 }
 
-func (r *TeamResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_team"
+func (r *NotificationEndpointResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_notification_endpoint"
 }
 
-func (r *TeamResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NotificationEndpointResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Creates, updates and destroys teams.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the team.",
+				MarkdownDescription: "The unique ID of the endpoint.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the team.",
+				MarkdownDescription: "The name of the endpoint.",
 				Required:            true,
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
 				},
 			},
-			"custom_idp_id": schema.StringAttribute{
-				MarkdownDescription: "Custom ID for identity provider (IdP)",
-				Optional:            true,
+			"protocol": schema.StringAttribute{
+				MarkdownDescription: fmt.Sprintf("The notifications vendor. Allowed values: %s.", helpers.EnumForDocs(cmTypes.EventSubscriptionProtocolTypes)),
+				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(cmTypes.EventSubscriptionProtocolTypes...),
+				},
+			},
+			"url": schema.StringAttribute{
+				MarkdownDescription: "The webhook url to which the notification will be sent.",
+				Required:            true,
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
 				},
@@ -62,7 +71,7 @@ func (r *TeamResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 }
 
 // Configure adds the provider configured client to the data source.
-func (r *TeamResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NotificationEndpointResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -83,9 +92,9 @@ func (r *TeamResource) Configure(_ context.Context, req resource.ConfigureReques
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *NotificationEndpointResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	//Get current state
-	var state team.ResourceModel
+	var state tfNotificationEndpoint.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -93,18 +102,18 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	id := state.ID.ValueString()
-	res, err := r.client.Client.team.ReadTeam(ctx, id)
+	res, err := r.client.Client.notification.ReadNotificationEndpoint(ctx, id)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read team %s", id), fmt.Sprintf("%s", err))
+		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read notification endpoint '%s'", id), err.Error())
 		return
 	}
 
-	team.UpdateStateAfterRead(res, &state)
+	tfNotificationEndpoint.UpdateStateAfterRead(res, &state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -115,22 +124,22 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *NotificationEndpointResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	//Retrieve values from plan
-	var plan team.ResourceModel
+	var plan tfNotificationEndpoint.ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	body, _ := team.Converter(&plan, nil, commons.CreateConverter)
+	body, _ := tfNotificationEndpoint.Converter(&plan, nil, commons.CreateConverter)
 
-	res, err := r.client.Client.team.CreateTeam(ctx, body)
+	res, err := r.client.Client.notification.CreateNotificationEndpoint(ctx, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Team creation failed",
-			fmt.Sprintf("failed to create team, error: %s", err.Error()),
+			resourceCreationFailedError,
+			fmt.Sprintf("failed to create notification endpoint, error: %s", err.Error()),
 		)
 		return
 	}
@@ -145,10 +154,10 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 }
 
-func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *NotificationEndpointResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan team.ResourceModel
-	var state team.ResourceModel
+	var plan tfNotificationEndpoint.ResourceModel
+	var state tfNotificationEndpoint.ResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -160,18 +169,17 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	id := plan.ID.ValueString()
-	body, _ := team.Converter(&plan, &state, commons.UpdateConverter)
+	body, _ := tfNotificationEndpoint.Converter(&plan, &state, commons.UpdateConverter)
 
-	_, err := r.client.Client.team.UpdateTeam(ctx, id, body)
+	_, err := r.client.Client.notification.UpdateNotificationEndpoint(ctx, id, body)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Team '%s' not found", id))
+			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Notification endpoint '%s' not found", id))
 			return
 		}
 
 		resp.Diagnostics.AddError(
-			resourceUpdateFailedError,
-			fmt.Sprintf("failed to update team %s, error: %s", id, err),
+			resourceUpdateFailedError, fmt.Sprintf("failed to update notification endpoint %s, error: %s", id, err.Error()),
 		)
 		return
 	}
@@ -184,9 +192,9 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 }
 
-func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *NotificationEndpointResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state team.ResourceModel
+	var state tfNotificationEndpoint.ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -194,7 +202,7 @@ func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	id := state.ID.ValueString()
-	_, err := r.client.Client.team.DeleteTeam(ctx, id)
+	_, err := r.client.Client.notification.DeleteNotificationEndpoint(ctx, id)
 
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
@@ -203,13 +211,13 @@ func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		}
 
 		resp.Diagnostics.AddError(
-			"Team deletion failed",
-			fmt.Sprintf("Failed to delete team %s, error: %s", id, err),
+			resourceDeletionFailedError,
+			fmt.Sprintf("Failed to delete notification endpoint %s, error: %s", id, err),
 		)
 		return
 	}
 }
 
-func (r *TeamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NotificationEndpointResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

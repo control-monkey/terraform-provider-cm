@@ -1,0 +1,2 @@
+terraform import cm_events_subscriptions.events_subscriptions namespace/ns-123
+terraform import cm_events_subscriptions.events_subscriptions organization

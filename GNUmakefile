@@ -54,7 +54,7 @@ docscheck: docs
 
 .PHONY: tools
 tools:
-	@go generate -tags tools tools.go
+	@go generate -tags tools tools/tools.go
 
 .PHONY: release
 release: CI_JOB_NUMBER=$(shell read -p "» Last successful CI job number: " n && [[ -z "$$n" ]] && n="unknown"; echo $$n)
