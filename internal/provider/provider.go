@@ -121,6 +121,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewBlueprintNamespaceMappingsResource,
 		NewNotificationEndpointResource,
 		NewEventsSubscriptionsResource,
+		NewOrgConfigurationResource,
 	}
 }
 

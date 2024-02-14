@@ -78,11 +78,14 @@ func valueConditionsConverter(plan []*ConditionModel, state []*ConditionModel, c
 
 	if reflect.DeepEqual(plan, state) == false {
 		hasChanged = true
-		retVal = make([]*variable.Condition, 0)
 
-		for _, r := range plan {
-			rule := conditionConverter(r)
-			retVal = append(retVal, rule)
+		if plan != nil {
+			retVal = make([]*variable.Condition, 0)
+
+			for _, r := range plan {
+				rule := conditionConverter(r)
+				retVal = append(retVal, rule)
+			}
 		}
 	}
 

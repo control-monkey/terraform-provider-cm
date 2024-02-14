@@ -9,3 +9,7 @@ import (
 func ValidateUniqueNotEmptyListWithNoBlankValues() []validator.List {
 	return []validator.List{listvalidator.SizeAtLeast(1), listvalidator.UniqueValues(), listvalidator.ValueStringsAre(cm_stringvalidators.NotBlank())}
 }
+
+func ValidateUniqueListWithNoBlankValues() []validator.List {
+	return []validator.List{listvalidator.UniqueValues(), listvalidator.ValueStringsAre(cm_stringvalidators.NotBlank())}
+}

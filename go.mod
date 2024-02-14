@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/bflad/tfproviderlint v0.29.0
 	github.com/client9/misspell v0.3.4
-	github.com/control-monkey/controlmonkey-sdk-go v1.7.0
+	github.com/control-monkey/controlmonkey-sdk-go v1.8.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-set/v2 v2.1.0
 	github.com/hashicorp/go-version v1.6.0
@@ -81,5 +81,3 @@ require (
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
-
-replace github.com/control-monkey/controlmonkey-sdk-go v1.6.0 => ../controlmonkey-sdk-go

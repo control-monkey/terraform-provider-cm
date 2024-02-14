@@ -71,11 +71,14 @@ func externalCredentialsConverter(plan []*ExternalCredentialsModel, state []*Ext
 
 	if reflect.DeepEqual(plan, state) == false {
 		hasChanged = true
-		retVal = make([]*namespace.ExternalCredentials, 0)
 
-		for _, r := range plan {
-			rule := credentialsConverter(r)
-			retVal = append(retVal, rule)
+		if plan != nil {
+			retVal = make([]*namespace.ExternalCredentials, 0)
+
+			for _, r := range plan {
+				rule := credentialsConverter(r)
+				retVal = append(retVal, rule)
+			}
 		}
 	}
 
