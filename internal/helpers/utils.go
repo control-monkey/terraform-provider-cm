@@ -64,6 +64,18 @@ func StringValueOrNull(v *string) types.String {
 	return r
 }
 
+func StringValueIfNotEqual(v *string, notEqualTo string) types.String {
+	var r types.String
+
+	if v != nil && *v != notEqualTo {
+		r = types.StringValue(*v)
+	} else {
+		r = types.StringNull()
+	}
+
+	return r
+}
+
 func StringPointerSliceToTfList(vs []*string) types.List {
 	var retVal types.List
 

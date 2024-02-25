@@ -53,6 +53,9 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the namespace.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.NoneOf(""),
+				},
 			},
 			"external_credentials": schema.ListNestedAttribute{
 				MarkdownDescription: "List of cloud credentials attached to the namespace.",

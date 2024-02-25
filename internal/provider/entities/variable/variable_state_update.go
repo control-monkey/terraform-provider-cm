@@ -25,7 +25,7 @@ func UpdateStateAfterRead(res *sdkVariable.ReadVariableOutput, state *ResourceMo
 	state.IsSensitive = helpers.BoolValueOrNull(variable.IsSensitive)
 	state.IsOverridable = helpers.BoolValueOrNull(variable.IsOverridable)
 	state.IsRequired = helpers.BoolValueOrNull(variable.IsRequired)
-	state.Description = helpers.StringValueOrNull(variable.Description)
+	state.Description = helpers.StringValueIfNotEqual(variable.Description, "")
 
 	if variable.ValueConditions != nil {
 		vc := updateStateAfterReadValueConditions(variable.ValueConditions)

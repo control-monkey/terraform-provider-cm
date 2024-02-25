@@ -105,6 +105,9 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description for the variable.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.NoneOf(""),
+				},
 			},
 			"value_conditions": schema.ListNestedAttribute{
 				Optional:            true,

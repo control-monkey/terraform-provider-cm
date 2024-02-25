@@ -10,7 +10,7 @@ func UpdateStateAfterRead(res *sdkTemplate.Template, state *ResourceModel) {
 
 	state.IacType = helpers.StringValueOrNull(template.IacType)
 	state.Name = helpers.StringValueOrNull(template.Name)
-	state.Description = helpers.StringValueOrNull(template.Description)
+	state.Description = helpers.StringValueIfNotEqual(template.Description, "")
 
 	if template.VcsInfo != nil {
 		vcs := updateStateAfterReadVcsInfo(template.VcsInfo)

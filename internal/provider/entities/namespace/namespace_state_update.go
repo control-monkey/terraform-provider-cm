@@ -10,7 +10,7 @@ func UpdateStateAfterRead(res *sdkNamespace.ReadNamespaceOutput, state *Resource
 	namespace := res.Namespace
 
 	state.Name = helpers.StringValueOrNull(namespace.Name)
-	state.Description = helpers.StringValueOrNull(namespace.Description)
+	state.Description = helpers.StringValueIfNotEqual(namespace.Description, "")
 
 	if namespace.ExternalCredentials != nil {
 		ec := updateStateAfterReadExternalCredentials(namespace.ExternalCredentials)

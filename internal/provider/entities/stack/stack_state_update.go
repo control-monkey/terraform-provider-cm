@@ -12,7 +12,7 @@ func UpdateStateAfterRead(res *sdkStack.ReadStackOutput, state *ResourceModel) {
 	state.IacType = helpers.StringValueOrNull(stack.IacType)
 	state.NamespaceId = helpers.StringValueOrNull(stack.NamespaceId)
 	state.Name = helpers.StringValueOrNull(stack.Name)
-	state.Description = helpers.StringValueOrNull(stack.Description)
+	state.Description = helpers.StringValueIfNotEqual(stack.Description, "")
 
 	data := stack.Data
 
