@@ -166,7 +166,9 @@ func (r *ControlPolicyGroupMappingResource) Configure(_ context.Context, req res
 func (r *ControlPolicyGroupMappingResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data controlPolicyGroupMapping.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Targets) > 0 {
 		identifiers := interfaces.GetIdentifiers(data.Targets)

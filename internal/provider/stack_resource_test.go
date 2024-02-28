@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -87,7 +88,16 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
+				ConfigVariables: config.Variables{
+					"trigger_patterns": config.ListVariable(config.StringVariable("a"), config.StringVariable("b")),
+				},
 				Config: providerConfig + fmt.Sprintf(`
+
+variable "trigger_patterns" {
+  type = list(string)
+  default = []
+}
+
 resource "%s" "%s" {
   iac_type = "%s"
   namespace_id = "%s"
@@ -103,7 +113,66 @@ resource "%s" "%s" {
   iac_config = {
  	terragrunt_version = "%s"
   }
+  run_trigger = length(var.trigger_patterns) == 0 ? null : {
+      patterns = var.trigger_patterns
+  }
+   policy = {
+     ttl_config = {
+ 	  ttl = {
+ 	    type = "%s"
+ 	    value = %s
+ 	  }
+ 	}
+   }
+ }
+`, cmStack, s1ResourceName, s1IacTypeAfterUpdate, s1NamespaceId, s1NameAfterUpdate, s1DeployOnPush, s1WaitForApproval,
+					s1ProviderId, s1RepoName, s1TerrgruntVersionAfterUpdate, s1PolicyTtlType, s1PolicyTtlValue),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacTypeAfterUpdate),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "namespace_id", s1NamespaceId),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1NameAfterUpdate),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.deploy_on_push", s1DeployOnPush),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.wait_for_approval", s1WaitForApproval),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "vcs_info.provider_id", s1ProviderId),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "vcs_info.repo_name", s1RepoName),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_config.terragrunt_version", s1TerrgruntVersionAfterUpdate),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "policy.ttl_config.ttl.type", s1PolicyTtlType),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "policy.ttl_config.ttl.value", s1PolicyTtlValue),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "run_trigger.patterns.0", "a"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "run_trigger.patterns.1", "b"),
 
+					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "description"),
+					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "iac_config.terraform_version"),
+				),
+			},
+			// Update and Read testing
+			{
+				Config: providerConfig + fmt.Sprintf(`
+
+variable "trigger_patterns" {
+  type = list(string)
+  default = []
+}
+
+resource "%s" "%s" {
+  iac_type = "%s"
+  namespace_id = "%s"
+  name = "%s"
+  deployment_behavior = {
+    deploy_on_push = %s
+    wait_for_approval = %s
+  }
+  vcs_info = {
+    provider_id = "%s"
+    repo_name = "%s"
+  }
+  iac_config = {
+ 	terragrunt_version = "%s"
+  }
+  run_trigger = length(var.trigger_patterns) == 0 ? null : {
+      patterns = var.trigger_patterns
+  }
    policy = {
      ttl_config = {
  	  ttl = {
@@ -128,9 +197,9 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "policy.ttl_config.ttl.type", s1PolicyTtlType),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "policy.ttl_config.ttl.value", s1PolicyTtlValue),
 
+					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "run_trigger"),
 					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "description"),
 					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "iac_config.terraform_version"),
-					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "run_trigger"),
 				),
 			},
 			{

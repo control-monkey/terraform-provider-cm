@@ -148,7 +148,9 @@ func (r *NamespacePermissionsResource) Configure(_ context.Context, req resource
 func (r *NamespacePermissionsResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data tfNamespacePermissions.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Permissions) > 0 {
 		//Validate constraints

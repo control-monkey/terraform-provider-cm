@@ -273,9 +273,7 @@ func (r *StackResource) Configure(_ context.Context, req resource.ConfigureReque
 func (r *StackResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data stack.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
 		return
 	}
 

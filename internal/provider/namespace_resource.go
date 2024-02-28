@@ -227,9 +227,7 @@ func (r *NamespaceResource) Configure(_ context.Context, req resource.ConfigureR
 func (r *NamespaceResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data namespace.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
 		return
 	}
 

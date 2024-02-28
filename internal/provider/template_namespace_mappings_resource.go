@@ -117,7 +117,9 @@ func (r *TemplateNamespaceMappingsResource) Configure(_ context.Context, req res
 func (r *TemplateNamespaceMappingsResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data templateNamespaces.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Namespaces) > 0 {
 		identifiers := interfaces.GetIdentifiers(data.Namespaces)

@@ -119,7 +119,9 @@ func (r *TeamUsersResource) Configure(_ context.Context, req resource.ConfigureR
 func (r *TeamUsersResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data teamUsers.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Users) > 0 {
 		identifiers := interfaces.GetIdentifiers(data.Users)

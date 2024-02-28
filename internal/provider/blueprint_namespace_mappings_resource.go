@@ -117,7 +117,9 @@ func (r *BlueprintNamespaceMappingsResource) Configure(_ context.Context, req re
 func (r *BlueprintNamespaceMappingsResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data blueprintNamespaces.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Namespaces) > 0 {
 		identifiers := interfaces.GetIdentifiers(data.Namespaces)

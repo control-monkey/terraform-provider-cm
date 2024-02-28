@@ -114,8 +114,10 @@ resource "cm_stack" "auto_scaling_group_dev" {
 
   run_trigger = {
     patterns = [
-      "${stack_path}/**/*" # matches all files in any sub-directory under the stack's directory.
-    ] # ControlMonkey will replace automatically ${stack_path} with "dev/auto-scaling-group"
+      # matches all files in any sub-directory under the stack's directory.
+      # ControlMonkey will replace automatically ${stack_path} with "dev/auto-scaling-group".
+      "$${stack_path}/**/*" # '$$' is used to escape the '$' character
+    ]
   }
 
   runner_config = {

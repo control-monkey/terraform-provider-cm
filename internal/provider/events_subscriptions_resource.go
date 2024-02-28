@@ -139,7 +139,9 @@ func (r *EventsSubscriptionsResource) Configure(_ context.Context, req resource.
 func (r *EventsSubscriptionsResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data tfEventsSubscriptions.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if helpers.IsKnown(data.Scope) {
 		if data.Scope.ValueString() != cmTypes.OrganizationScope {

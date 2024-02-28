@@ -135,7 +135,9 @@ func (r *ControlPolicyMappingResource) Configure(_ context.Context, req resource
 func (r *ControlPolicyMappingResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data controlPolicyMapping.ResourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
 
 	if len(data.Targets) > 0 {
 		identifiers := interfaces.GetIdentifiers(data.Targets)
