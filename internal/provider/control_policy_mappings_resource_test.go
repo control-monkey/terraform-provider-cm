@@ -12,7 +12,6 @@ const (
 	tfCmControlPolicyMapping = "cm_control_policy_mappings"
 
 	mappingResourceName = "mapping"
-	controlPolicyId     = "pol-868pl1qopp"
 	targetId            = "ns-x82yjdyahc"
 	targetType          = "namespace"
 	enforcementLevel    = "hardMandatory"

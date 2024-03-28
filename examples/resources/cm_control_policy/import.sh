@@ -1,0 +1,1 @@
+terraform import cm_control_policy.control_policy pol-123

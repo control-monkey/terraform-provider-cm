@@ -1,5 +1,5 @@
 resource "cm_control_policy_mappings" "no_public_bucket_prod" {
-  control_policy_id = "pol-123"
+  control_policy_id = cm_control_policy.control_policy.id
 
   targets = [
     {

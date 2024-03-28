@@ -34,8 +34,8 @@ github.com/client9/misspell v0.3.4 h1:ta993UF76GwbvJcIo3Y68y/M3WxlpEHPWIGDkJYwzJ
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
 github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUKZrLbUZFA=
-github.com/control-monkey/controlmonkey-sdk-go v1.8.0 h1:EbwfREKO7HLXAtFR7Sj81oq720s20K4UcPz8926tBy4=
-github.com/control-monkey/controlmonkey-sdk-go v1.8.0/go.mod h1:n7yv2CJeHau/Z1Ms2ZfGxkbYpPgWt82FN/w1aiOWDvM=
+github.com/control-monkey/controlmonkey-sdk-go v1.9.0 h1:RSK2RWqcTEKSjRKIHp+QR31ehrhThkrHlTtLjMY/4kM=
+github.com/control-monkey/controlmonkey-sdk-go v1.9.0/go.mod h1:n7yv2CJeHau/Z1Ms2ZfGxkbYpPgWt82FN/w1aiOWDvM=
 github.com/cyphar/filepath-securejoin v0.2.4 h1:Ugdm7cg7i6ZK6x3xDF1oEu1nfkyfH53EtKeQYTC3kyg=
 github.com/cyphar/filepath-securejoin v0.2.4/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxGGx79pTxQpKOJNYHHl4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -110,6 +110,8 @@ github.com/hashicorp/terraform-plugin-docs v0.15.0 h1:W5xYB5kCUBqO7lyjE2UMmUBh95
 github.com/hashicorp/terraform-plugin-docs v0.15.0/go.mod h1:K5Taof1Y7sL4dw6Ie0qMFyQnHN0W+RSVMD0iIyFDFJc=
 github.com/hashicorp/terraform-plugin-framework v1.5.0 h1:8kcvqJs/x6QyOFSdeAyEgsenVOUeC/IyKpi2ul4fjTg=
 github.com/hashicorp/terraform-plugin-framework v1.5.0/go.mod h1:6waavirukIlFpVpthbGd2PUNYaFedB0RwW3MDzJ/rtc=
+github.com/hashicorp/terraform-plugin-framework-jsontypes v0.1.0 h1:b8vZYB/SkXJT4YPbT3trzE6oJ7dPyMy68+9dEDKsJjE=
+github.com/hashicorp/terraform-plugin-framework-jsontypes v0.1.0/go.mod h1:tP9BC3icoXBz72evMS5UTFvi98CiKhPdXF6yLs1wS8A=
 github.com/hashicorp/terraform-plugin-framework-validators v0.10.0 h1:4L0tmy/8esP6OcvocVymw52lY0HyQ5OxB7VNl7k4bS0=
 github.com/hashicorp/terraform-plugin-framework-validators v0.10.0/go.mod h1:qdQJCdimB9JeX2YwOpItEu+IrfoJjWQ5PhLpAOMDQAE=
 github.com/hashicorp/terraform-plugin-go v0.21.0 h1:VSjdVQYNDKR0l2pi3vsFK1PdMQrw6vGOshJXMNFeVc0=

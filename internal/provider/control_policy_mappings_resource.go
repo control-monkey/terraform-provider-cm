@@ -42,7 +42,7 @@ func (r *ControlPolicyMappingResource) Metadata(_ context.Context, req resource.
 
 func (r *ControlPolicyMappingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys Control Policy Mappings.",
+		MarkdownDescription: "Creates, updates and destroys control policy mappings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of this resource.",
@@ -52,7 +52,7 @@ func (r *ControlPolicyMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"control_policy_id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the Control Policy.",
+				MarkdownDescription: "The unique ID of the control policy.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
