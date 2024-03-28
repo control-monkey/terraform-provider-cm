@@ -2,19 +2,19 @@
 page_title: "cm_control_policy_group_mappings Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys Control Policy Group Mappings.
+  Creates, updates and destroys control policy group mappings.
 ---
 
 # cm_control_policy_group_mappings (Resource)
 
-Creates, updates and destroys Control Policy Group Mappings.
+Creates, updates and destroys control policy group mappings.
 
 ## Example Usage
 
 #### The example below defines a mapping from a control policy group to a namespace and a stack. The first block specifies an enforcement level of `bySeverity`, which is contingent upon the severity of the policy within the group. In contrast, the second block sets the enforcement level to `softMandatory`, requiring approval in case the policy check fails.
 ```terraform
 resource "cm_control_policy_group_mappings" "policy_group" {
-  control_policy_group_id = "cmpg-123"
+  control_policy_group_id = cm_control_policy_group.policy_group.id
 
   targets = [
     {
@@ -31,20 +31,50 @@ resource "cm_control_policy_group_mappings" "policy_group" {
 }
 ```
 
-### Override Enforcements
-#### The example below has the configuration as above, with the distinction that the enforcement level of one policy within the policy group is explicitly overridden. Instead of adhering to the default enforcement level of `bySeverity` as per the mapping, the specified policy will now have an enforcement level of `softMandatory`.
+#### In the example below, we have a group of control policies with different levels of severity. These policies are linked to a namespace using an enforcementLevel `bySeverity`. When we say enforcement level is bySeverity, it means the severity of each policy decides how strictly it's enforced. So, the more severe a policy is, the stricter its enforcement will be.
 ```terraform
-resource "cm_control_policy_group_mappings" "policy_group" {
-  control_policy_group_id = "cmpg-123"
+resource "cm_control_policy_group" "policy_group" {
+  name             = "Mandatory policies"
+  description      = "These policies should be applied to all resources"
+  control_policies = [
+    {
+      control_policy_id = cm_control_policy.control_policy_1.id
+      severity          = "medium" // equals to enforcement level warning
+    },
+    {
+      control_policy_id = cm_control_policy.control_policy_2.id
+      severity          = "critical" // equals to enforcement level hardMandatory
+    },
+  ]
+}
+
+resource "cm_control_policy_group_mappings" "policy_group_mappings" {
+  control_policy_group_id = cm_control_policy_group.policy_group.id
 
   targets = [
     {
       target_id         = cm_namespace.namespace.id
       target_type       = "namespace"
       enforcement_level = "bySeverity"
+    },
+  ]
+}
+```
+
+### Override Enforcements
+#### The example below has the configuration as above, with the distinction that the enforcement level of one policy within the policy group is explicitly overridden. Instead of adhering to the default enforcement level of `bySeverity` as per the mapping, the specified policy will now have an enforcement level of `softMandatory`.
+```terraform
+resource "cm_control_policy_group_mappings" "policy_group" {
+  control_policy_group_id = cm_control_policy_group.policy_group.id
+
+  targets = [
+    {
+      target_id             = cm_namespace.namespace.id
+      target_type           = "namespace"
+      enforcement_level     = "bySeverity"
       override_enforcements = [
         {
-          control_policy_id = "cmp-123"
+          control_policy_id = cm_control_policy.control_policy.id
           enforcement_level = "softMandatory"
         },
       ]
@@ -56,22 +86,22 @@ resource "cm_control_policy_group_mappings" "policy_group" {
 #### The example below establishes a mapping wherein all policy checks within the policy group have an enforcement level of `softMandatory`, except for one policy, which has its enforcement level explicitly overridden to `warning`. Additionally, a specific policy's enforcement level is explicitly set to `hardMandatory` for a particular stack. This implies that, upon a failed policy check, changes cannot be pushed.
 ```terraform
 resource "cm_control_policy_group_mappings" "policy_group" {
-  control_policy_group_id = "cmpg-123"
+  control_policy_group_id = cm_control_policy_group.policy_group.id
 
   targets = [
     {
-      target_id         = cm_namespace.namespace.id
-      target_type       = "namespace"
-      enforcement_level = "softMandatory"
+      target_id             = cm_namespace.namespace.id
+      target_type           = "namespace"
+      enforcement_level     = "softMandatory"
       override_enforcements = [
         {
-          control_policy_id = "cmp-123"
+          control_policy_id = cm_control_policy.control_policy_1.id
           enforcement_level = "warning"
         },
         {
-          control_policy_id = "cmp-124"
+          control_policy_id = cm_control_policy.control_policy_2.id
           enforcement_level = "hardMandatory"
-          stack_ids = [cm_stack.stack2.id]
+          stack_ids         = [cm_stack.stack2.id]
         }
       ]
     },
@@ -85,7 +115,7 @@ resource "cm_control_policy_group_mappings" "policy_group" {
 
 ### Required
 
-- `control_policy_group_id` (String) The unique ID of the Control Policy Group.
+- `control_policy_group_id` (String) The unique ID of the control policy group.
 
 ### Optional
 
@@ -125,5 +155,5 @@ Optional:
 `cm_control_policy_group_mappings` can be imported using the ID of the Control Policy Group, e.g.
 
 ```shell
-terraform import cm_control_policy_group_mappings.mappings cmpg-123
+terraform import cm_control_policy_group_mappings.mappings polg-123
 ```

@@ -1,5 +1,5 @@
 resource "cm_control_policy_group_mappings" "policy_group" {
-  control_policy_group_id = "cmpg-123"
+  control_policy_group_id = cm_control_policy_group.policy_group.id
 
   targets = [
     {
