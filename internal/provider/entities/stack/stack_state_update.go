@@ -6,8 +6,8 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
-func UpdateStateAfterRead(res *sdkStack.ReadStackOutput, state *ResourceModel) {
-	stack := res.Stack
+func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
+	stack := res
 
 	state.IacType = helpers.StringValueOrNull(stack.IacType)
 	state.NamespaceId = helpers.StringValueOrNull(stack.NamespaceId)

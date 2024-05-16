@@ -128,5 +128,14 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 }
 
 func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewNamespaceDataSource,
+		NewBlueprintDataSource,
+		NewTemplateDataSource,
+		NewControlPolicyDataSource,
+		NewControlPolicyGroupDataSource,
+		NewTeamDataSource,
+		NewNotificationEndpointDataSource,
+		NewStackDataSource,
+	}
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
-func UpdateStateAfterRead(res *sdkNamespace.ReadNamespaceOutput, state *ResourceModel) {
-	namespace := res.Namespace
+func UpdateStateAfterRead(res *sdkNamespace.Namespace, state *ResourceModel) {
+	namespace := res
 
 	state.Name = helpers.StringValueOrNull(namespace.Name)
 	state.Description = helpers.StringValueIfNotEqual(namespace.Description, "")
@@ -17,13 +17,6 @@ func UpdateStateAfterRead(res *sdkNamespace.ReadNamespaceOutput, state *Resource
 		state.ExternalCredentials = ec
 	} else {
 		state.ExternalCredentials = nil
-	}
-
-	if namespace.Policy != nil {
-		policy := updateStateAfterReadPolicy(namespace.Policy)
-		state.Policy = &policy
-	} else {
-		state.Policy = nil
 	}
 
 	if namespace.IacConfig != nil {
@@ -70,48 +63,6 @@ func updateStateAfterReadCredentials(credentials *sdkNamespace.ExternalCredentia
 	retVal.ExternalCredentialsId = helpers.StringValueOrNull(credentials.ExternalCredentialsId)
 	retVal.Type = helpers.StringValueOrNull(credentials.Type)
 	retVal.AwsProfileName = helpers.StringValueOrNull(credentials.AwsProfileName)
-
-	return retVal
-}
-
-func updateStateAfterReadPolicy(policy *sdkNamespace.Policy) PolicyModel {
-	var retVal PolicyModel
-
-	if policy.TtlConfig != nil {
-		ttlConfig := updateStateAfterReadTtlConfig(policy.TtlConfig)
-		retVal.TtlConfig = &ttlConfig
-	} else {
-		retVal.TtlConfig = nil
-	}
-
-	return retVal
-}
-
-func updateStateAfterReadTtlConfig(ttlConfig *sdkNamespace.TtlConfig) TtlConfigModel {
-	var retVal TtlConfigModel
-
-	if ttlConfig.DefaultTtl != nil {
-		dTtl := updateStateAfterReadTtlDefinition(ttlConfig.DefaultTtl)
-		retVal.DefaultTtl = &dTtl
-	} else {
-		retVal.DefaultTtl = nil
-	}
-
-	if ttlConfig.MaxTtl != nil {
-		mTtl := updateStateAfterReadTtlDefinition(ttlConfig.MaxTtl)
-		retVal.MaxTtl = &mTtl
-	} else {
-		retVal.MaxTtl = nil
-	}
-
-	return retVal
-}
-
-func updateStateAfterReadTtlDefinition(ttl *sdkNamespace.TtlDefinition) TtlDefinitionModel {
-	var retVal TtlDefinitionModel
-
-	retVal.Type = helpers.StringValueOrNull(ttl.Type)
-	retVal.Value = helpers.Int64ValueOrNull(ttl.Value)
 
 	return retVal
 }

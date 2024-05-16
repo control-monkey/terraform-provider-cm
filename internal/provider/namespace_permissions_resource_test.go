@@ -14,7 +14,7 @@ const (
 	namespaceId                      = "ns-x82yjdyahc"
 	permissionUsername               = "Registry Acceptance Test"
 	permissionRoleViewer             = "viewer"
-	permissionRoleDeployer           = "deployer"
+	permissionRoleAdmin              = "admin"
 )
 
 func TestAccNamespacePermissionsResource(t *testing.T) {
@@ -51,16 +51,16 @@ resource "%s" "%s" {
   permissions = [
     {
       programmatic_username = "%s"
-	  role = "deployer"
+	  role = "%s"
     },
   ]
 }
-`, cmNamespacePermissions, namespacePermissionsResourceName, namespaceId, permissionUsername),
+`, cmNamespacePermissions, namespacePermissionsResourceName, namespaceId, permissionUsername, permissionRoleAdmin),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "id"),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id", namespaceId),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.programmatic_username", permissionUsername),
-					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleDeployer),
+					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleAdmin),
 				),
 			},
 			{
@@ -72,7 +72,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "id", namespaceId),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id", namespaceId),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.programmatic_username", permissionUsername),
-					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleDeployer),
+					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleAdmin),
 				),
 			},
 		},

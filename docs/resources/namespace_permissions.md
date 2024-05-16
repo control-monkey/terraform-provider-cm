@@ -21,7 +21,7 @@ resource "cm_namespace_permissions" "stage_namespace_permissions" {
     },
     {
       team_id = cm_team.stage_team_developers.id
-      role    = "deployer"
+      role    = "viewer"
     },
     {
       programmatic_username = "automation-user"
@@ -57,7 +57,7 @@ Optional:
 
 - `custom_role_id` (String) The unique ID of the custom role.
 - `programmatic_username` (String) Username of the programmatic user.
-- `role` (String) The role that is associated with this permission. Allowed values: [viewer, deployer, admin].
+- `role` (String) The role that is associated with this permission. Allowed values: [viewer, admin].
 - `team_id` (String) The unique ID of the team.
 - `user_email` (String) Email address of the user.
 
