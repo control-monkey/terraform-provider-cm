@@ -10,7 +10,6 @@ type ResourceModel struct {
 	Name                     types.String                   `tfsdk:"name"`
 	Description              types.String                   `tfsdk:"description"`
 	ExternalCredentials      []*ExternalCredentialsModel    `tfsdk:"external_credentials"`
-	Policy                   *PolicyModel                   `tfsdk:"policy"`
 	IacConfig                *IacConfigModel                `tfsdk:"iac_config"`
 	RunnerConfig             *RunnerConfigModel             `tfsdk:"runner_config"`
 	DeploymentApprovalPolicy *DeploymentApprovalPolicyModel `tfsdk:"deployment_approval_policy"`
@@ -20,20 +19,6 @@ type ExternalCredentialsModel struct {
 	Type                  types.String `tfsdk:"type"`
 	ExternalCredentialsId types.String `tfsdk:"external_credentials_id"`
 	AwsProfileName        types.String `tfsdk:"aws_profile_name"`
-}
-
-type PolicyModel struct {
-	TtlConfig *TtlConfigModel `tfsdk:"ttl_config"`
-}
-
-type TtlConfigModel struct {
-	MaxTtl     *TtlDefinitionModel `tfsdk:"max_ttl"`
-	DefaultTtl *TtlDefinitionModel `tfsdk:"default_ttl"`
-}
-
-type TtlDefinitionModel struct {
-	Type  types.String `tfsdk:"type"`
-	Value types.Int64  `tfsdk:"value"`
 }
 
 type IacConfigModel struct {

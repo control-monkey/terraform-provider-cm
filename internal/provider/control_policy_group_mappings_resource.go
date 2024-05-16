@@ -111,7 +111,7 @@ func (r *ControlPolicyGroupMappingResource) Schema(_ context.Context, _ resource
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"control_policy_id": schema.StringAttribute{
-										MarkdownDescription: "The unique ID of the Control Policy.",
+										MarkdownDescription: "The unique ID of the control policy.",
 										Required:            true,
 										Validators: []validator.String{
 											cmStringValidators.NotBlank(),

@@ -1,7 +1,6 @@
 package namespace
 
 import (
-	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
@@ -39,11 +38,6 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if ec, hasChanged := externalCredentialsConverter(plan.ExternalCredentials, state.ExternalCredentials, converterType); hasChanged {
 		retVal.SetExternalCredentials(ec)
-		hasChanges = true
-	}
-
-	if policy, hasChanged := policyConverter(plan.Policy, state.Policy, converterType); hasChanged {
-		retVal.SetPolicy(policy)
 		hasChanges = true
 	}
 
@@ -93,94 +87,6 @@ func credentialsConverter(plan *ExternalCredentialsModel) *namespace.ExternalCre
 	retVal.SetAwsProfileName(plan.AwsProfileName.ValueStringPointer())
 
 	return retVal
-}
-
-func policyConverter(plan *PolicyModel, state *PolicyModel, converterType commons.ConverterType) (*namespace.Policy, bool) {
-	var retVal *namespace.Policy
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(namespace.Policy)
-	hasChanges := false
-
-	if state == nil {
-		state = new(PolicyModel) // dummy initialization
-		hasChanges = true        // must have changes because before is null and after is not
-	}
-
-	if innerProperty, hasInnerChanges := ttlConfigConverter(plan.TtlConfig, state.TtlConfig, converterType); hasInnerChanges {
-		retVal.SetTtlConfig(innerProperty)
-		hasChanges = true
-	}
-	return retVal, hasChanges
-}
-
-func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterType commons.ConverterType) (*namespace.TtlConfig, bool) {
-	var retVal *namespace.TtlConfig
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(namespace.TtlConfig)
-	hasChanges := false
-
-	if state == nil {
-		state = new(TtlConfigModel) // dummy initialization
-		hasChanges = true           // must have changes because before is null and after is not
-	}
-
-	if defaultTtl, hasInnerChanges := ttlDefinitionModelConverter(plan.DefaultTtl, state.DefaultTtl, converterType); hasInnerChanges {
-		retVal.SetDefaultTtl(defaultTtl)
-		hasChanges = true
-	}
-
-	if maxTtl, hasInnerChanges := ttlDefinitionModelConverter(plan.MaxTtl, state.MaxTtl, converterType); hasInnerChanges {
-		retVal.SetMaxTtl(maxTtl)
-		hasChanges = true
-	}
-	return retVal, hasChanges
-}
-
-func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionModel, converterType commons.ConverterType) (*namespace.TtlDefinition, bool) {
-	var retVal *namespace.TtlDefinition
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(namespace.TtlDefinition)
-	hasChanges := false
-
-	if state == nil {
-		state = new(TtlDefinitionModel) // dummy initialization
-		hasChanges = true               // must have changes because before is null and after is not
-	}
-
-	if plan.Type != state.Type {
-		retVal.SetType(plan.Type.ValueStringPointer())
-		hasChanges = true
-	}
-	if plan.Value != state.Value {
-		retVal.SetValue(controlmonkey.Int(int(plan.Value.ValueInt64())))
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
 }
 
 func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterType commons.ConverterType) (*namespace.IacConfig, bool) {

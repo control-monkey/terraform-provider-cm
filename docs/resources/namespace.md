@@ -93,7 +93,6 @@ resource "cm_namespace" "dev_namespace" {
 - `description` (String) The description of the namespace.
 - `external_credentials` (Attributes List) List of cloud credentials attached to the namespace. (see [below for nested schema](#nestedatt--external_credentials))
 - `iac_config` (Attributes) IaC configuration of the namespace. If not overridden, this becomes the default for its stacks. (see [below for nested schema](#nestedatt--iac_config))
-- `policy` (Attributes) The policy of the namespace. (see [below for nested schema](#nestedatt--policy))
 - `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
 
 ### Read-Only
@@ -138,41 +137,6 @@ Optional:
 - `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
-
-
-<a id="nestedatt--policy"></a>
-### Nested Schema for `policy`
-
-Optional:
-
-- `ttl_config` (Attributes) The time to live config of the namespace policy regarding to its stacks. (see [below for nested schema](#nestedatt--policy--ttl_config))
-
-<a id="nestedatt--policy--ttl_config"></a>
-### Nested Schema for `policy.ttl_config`
-
-Required:
-
-- `default_ttl` (Attributes) The default time to live for new stacks in the namespace. (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
-- `max_ttl` (Attributes) The max time to live for new stacks in the namespace. (see [below for nested schema](#nestedatt--policy--ttl_config--max_ttl))
-
-<a id="nestedatt--policy--ttl_config--default_ttl"></a>
-### Nested Schema for `policy.ttl_config.default_ttl`
-
-Required:
-
-- `type` (String) The type of the ttl. Allowed values: [hours, days].
-- `value` (Number) The value that corresponds the type
-
-
-<a id="nestedatt--policy--ttl_config--max_ttl"></a>
-### Nested Schema for `policy.ttl_config.max_ttl`
-
-Required:
-
-- `type` (String) The type of the ttl. Allowed values: [hours, days].
-- `value` (Number) The value that corresponds the type
-
-
 
 
 <a id="nestedatt--runner_config"></a>

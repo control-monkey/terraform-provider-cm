@@ -143,7 +143,7 @@ Optional:
 
 Required:
 
-- `control_policy_id` (String) The unique ID of the Control Policy.
+- `control_policy_id` (String) The unique ID of the control policy.
 - `enforcement_level` (String) Specifies the level of enforcement for the control policy group on the target. Allowed values: [warning, softMandatory, hardMandatory]. When set to `softMandatory`, a policy failure triggers an approval requirement before applying changes. When set to `hardMandatory`, changes cannot be applied until the policy check is successful.
 
 Optional:

@@ -1,0 +1,19 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+### Map targets to control policy
+{{tffile "examples/data-sources/cm_control_policy/data-source.tf"}}
+
+### Construct a group of policies
+{{tffile "examples/data-sources/cm_control_policy/data-source2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

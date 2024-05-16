@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
-	sdkStack "github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
@@ -352,7 +351,7 @@ func (r *StackResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	body, _ := stack.Converter(&plan, nil, commons.CreateConverter)
 
-	res, err := r.client.Client.stack.CreateStack(ctx, &sdkStack.CreateStackInput{Stack: body})
+	res, err := r.client.Client.stack.CreateStack(ctx, body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Stack creation failed",
@@ -361,7 +360,7 @@ func (r *StackResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	plan.ID = types.StringValue(controlmonkey.StringValue(res.Stack.ID))
+	plan.ID = types.StringValue(controlmonkey.StringValue(res.ID))
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)

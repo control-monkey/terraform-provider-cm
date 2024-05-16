@@ -8,7 +8,7 @@ resource "cm_namespace_permissions" "stage_namespace_permissions" {
     },
     {
       team_id = cm_team.stage_team_developers.id
-      role    = "deployer"
+      role    = "viewer"
     },
     {
       programmatic_username = "automation-user"

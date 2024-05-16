@@ -81,52 +81,6 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				},
 				Validators: []validator.List{listvalidator.SizeAtLeast(1)},
 			},
-			"policy": schema.SingleNestedAttribute{
-				MarkdownDescription: "The policy of the namespace.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"ttl_config": schema.SingleNestedAttribute{
-						MarkdownDescription: "The time to live config of the namespace policy regarding to its stacks.",
-						Optional:            true,
-						Attributes: map[string]schema.Attribute{
-							"max_ttl": schema.SingleNestedAttribute{
-								MarkdownDescription: "The max time to live for new stacks in the namespace.",
-								Required:            true,
-								Attributes: map[string]schema.Attribute{
-									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
-										Required:            true,
-										Validators: []validator.String{
-											stringvalidator.OneOf(cmTypes.TtlTypes...),
-										},
-									},
-									"value": schema.Int64Attribute{
-										MarkdownDescription: "The value that corresponds the type",
-										Required:            true,
-									},
-								},
-							},
-							"default_ttl": schema.SingleNestedAttribute{
-								MarkdownDescription: "The default time to live for new stacks in the namespace.",
-								Required:            true,
-								Attributes: map[string]schema.Attribute{
-									"type": schema.StringAttribute{
-										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
-										Required:            true,
-										Validators: []validator.String{
-											stringvalidator.OneOf(cmTypes.TtlTypes...),
-										},
-									},
-									"value": schema.Int64Attribute{
-										MarkdownDescription: "The value that corresponds the type",
-										Required:            true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"iac_config": schema.SingleNestedAttribute{
 				MarkdownDescription: "IaC configuration of the namespace. If not overridden, this becomes the default for its stacks.",
 				Optional:            true,
@@ -330,7 +284,7 @@ func (r *NamespaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.ID = types.StringValue(controlmonkey.StringValue(res.Namespace.ID))
+	plan.ID = types.StringValue(controlmonkey.StringValue(res.ID))
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)

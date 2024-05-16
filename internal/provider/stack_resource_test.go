@@ -31,7 +31,7 @@ const (
 )
 
 // should return 400
-func TestAccStackResourceNamespace(t *testing.T) {
+func TestAccStackResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
