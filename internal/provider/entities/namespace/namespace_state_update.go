@@ -97,5 +97,7 @@ func updateStateAfterReadDeploymentApprovalPolicy(deploymentApprovalPolicy *sdkN
 		retVal.Rules = nil
 	}
 
+	retVal.OverrideBehavior = helpers.StringValueOrNull(deploymentApprovalPolicy.OverrideBehavior)
+
 	return retVal
 }

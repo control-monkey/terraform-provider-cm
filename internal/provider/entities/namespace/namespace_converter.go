@@ -185,5 +185,10 @@ func deploymentApprovalPolicyConverter(plan *DeploymentApprovalPolicyModel, stat
 		hasChanges = true
 	}
 
+	if plan.OverrideBehavior != state.OverrideBehavior {
+		retVal.SetOverrideBehavior(plan.OverrideBehavior.ValueStringPointer())
+		hasChanges = true
+	}
+
 	return retVal, hasChanges
 }
