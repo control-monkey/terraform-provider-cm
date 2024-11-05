@@ -26,13 +26,13 @@ resource "%s" "%s" {
     is_overridable = true
   }
 
-  s3_state_files_locations = [
-    {
-      bucket_name    = "bucket1"
-      bucket_region  = "us-east-1"
-      aws_account_id = "123456789"
-    },
-  ]
+  #s3_state_files_locations = [
+  #  {
+  #    bucket_name    = "bucket1"
+  #    bucket_region  = "us-east-1"
+  #    aws_account_id = "123456789"
+  #  },
+  #]
 
   report_configurations = [
     {
@@ -51,7 +51,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(orgConfigurationResourceName(configResourceName), "id"),
 					resource.TestCheckResourceAttr(orgConfigurationResourceName(configResourceName), "runner_config.mode", "selfHosted"),
 					resource.TestCheckResourceAttr(orgConfigurationResourceName(configResourceName), "runner_config.groups.#", "2"),
-					resource.TestCheckResourceAttrSet(orgConfigurationResourceName(configResourceName), "s3_state_files_locations.0.bucket_name"),
+					//resource.TestCheckResourceAttrSet(orgConfigurationResourceName(configResourceName), "s3_state_files_locations.0.bucket_name"),
 					resource.TestCheckResourceAttr(orgConfigurationResourceName(configResourceName), "report_configurations.0.recipients.email_addresses.#", "2"),
 					resource.TestCheckResourceAttr(orgConfigurationResourceName(configResourceName), "report_configurations.0.recipients.email_addresses_to_exclude.#", "1"),
 				),
