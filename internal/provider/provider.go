@@ -124,6 +124,8 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewNotificationEndpointResource,
 		NewEventsSubscriptionsResource,
 		NewOrgConfigurationResource,
+		NewCustomRoleResource,
+		NewCustomAbacConfigurationResource,
 	}
 }
 
@@ -137,5 +139,7 @@ func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() dataso
 		NewTeamDataSource,
 		NewNotificationEndpointDataSource,
 		NewStackDataSource,
+		NewCustomRoleDataSource,
+		NewCustomAbacConfigurationDataSource,
 	}
 }

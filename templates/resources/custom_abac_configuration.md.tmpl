@@ -1,0 +1,23 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+{{tffile "examples/resources/cm_custom_abac_configuration/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_custom_abac_configuration` can be imported using the ID of the Custom ABAC Configuration, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

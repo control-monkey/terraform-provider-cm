@@ -78,8 +78,8 @@ func (r *ControlPolicyGroupDataSource) Read(ctx context.Context, req datasource.
 
 	controlPolicyGroupId := state.ID.ValueStringPointer()
 	name := state.Name.ValueStringPointer()
-	isManaged := true
-	res, err := r.client.Client.controlPolicyGroup.ListControlPolicyGroups(ctx, controlPolicyGroupId, name, &isManaged)
+	includeManaged := true
+	res, err := r.client.Client.controlPolicyGroup.ListControlPolicyGroups(ctx, controlPolicyGroupId, name, &includeManaged)
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read control policy group"), fmt.Sprintf("%s", err))
