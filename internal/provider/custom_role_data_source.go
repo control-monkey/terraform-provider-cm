@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	tfControlPolicy "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/control_policy_data"
+	tfCustomRole "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/custom_role_data"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -12,25 +12,25 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &ControlPolicyDataSource{}
+var _ datasource.DataSource = &CustomRoleDataSource{}
 
-func NewControlPolicyDataSource() datasource.DataSource {
-	return &ControlPolicyDataSource{}
+func NewCustomRoleDataSource() datasource.DataSource {
+	return &CustomRoleDataSource{}
 }
 
-type ControlPolicyDataSource struct {
+type CustomRoleDataSource struct {
 	client *ControlMonkeyAPIClient
 }
 
-func (r *ControlPolicyDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_control_policy"
+func (r *CustomRoleDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_custom_role"
 }
 
-func (r *ControlPolicyDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *CustomRoleDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the control policy.",
+				MarkdownDescription: "The unique ID of the custom role.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.AtLeastOneOf(
@@ -38,7 +38,7 @@ func (r *ControlPolicyDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the control policy.",
+				MarkdownDescription: "The name of the role.",
 				Optional:            true,
 			},
 		},
@@ -46,7 +46,7 @@ func (r *ControlPolicyDataSource) Schema(_ context.Context, _ datasource.SchemaR
 }
 
 // Configure adds the provider configured client to the data source.
-func (r *ControlPolicyDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *CustomRoleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -67,32 +67,31 @@ func (r *ControlPolicyDataSource) Configure(_ context.Context, req datasource.Co
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *ControlPolicyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (r *CustomRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	//Get current state
-	var state tfControlPolicy.ResourceModel
+	var state tfCustomRole.ResourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	controlPolicyId := state.ID.ValueStringPointer()
+	customRoleId := state.ID.ValueStringPointer()
 	name := state.Name.ValueStringPointer()
-	includeManaged := true
-	res, err := r.client.Client.controlPolicy.ListControlPolicies(ctx, controlPolicyId, name, &includeManaged)
+	res, err := r.client.Client.customRole.ListCustomRoles(ctx, customRoleId, name)
 
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read control policy"), fmt.Sprintf("%s", err))
+		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read custom role"), fmt.Sprintf("%s", err))
 		return
 	} else if len(res) == 0 {
-		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(controlPolicyNotFoundError))
+		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(customRoleNotFoundError))
 		return
 	} else if len(res) > 1 {
-		resp.Diagnostics.AddError(fmt.Sprintf(multipleEntitiesError), fmt.Sprintf("Found multiple control policies with name '%s'; use additional constraints to reduce matches to a single match", *name))
+		resp.Diagnostics.AddError(fmt.Sprintf(multipleEntitiesError), fmt.Sprintf("Found multiple custom roles with name '%s'; use additional constraints to reduce matches to a single match", *name))
 		return
 	}
 
-	tfControlPolicy.UpdateStateAfterRead(res[0], &state, &resp.Diagnostics)
+	tfCustomRole.UpdateStateAfterRead(res[0], &state, &resp.Diagnostics)
 
 	// Set refreshed state
 	// Save data into Terraform state
