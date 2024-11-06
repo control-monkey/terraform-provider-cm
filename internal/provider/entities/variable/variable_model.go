@@ -9,6 +9,7 @@ type ResourceModel struct {
 	Key             types.String      `tfsdk:"key"`
 	Type            types.String      `tfsdk:"type"`
 	Value           types.String      `tfsdk:"value"`
+	DisplayName     types.String      `tfsdk:"display_name"`
 	IsSensitive     types.Bool        `tfsdk:"is_sensitive"`
 	IsOverridable   types.Bool        `tfsdk:"is_overridable"`
 	IsRequired      types.Bool        `tfsdk:"is_required"`

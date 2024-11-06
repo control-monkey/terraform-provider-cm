@@ -47,6 +47,10 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		retVal.SetValue(plan.Value.ValueStringPointer())
 		hasChanges = true
 	}
+	if plan.DisplayName != state.DisplayName {
+		retVal.SetDisplayName(plan.DisplayName.ValueStringPointer())
+		hasChanges = true
+	}
 	if plan.IsSensitive != state.IsSensitive {
 		retVal.SetIsSensitive(plan.IsSensitive.ValueBoolPointer())
 		hasChanges = true

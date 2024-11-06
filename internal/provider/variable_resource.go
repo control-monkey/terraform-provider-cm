@@ -77,6 +77,13 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Optional:            true,
 				Sensitive:           true,
 			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "Display name provides the flexibility to assign a descriptive name to the variable. This name will be shown in the UI. It can be useful especially for self service variables to make the variables more user-friendly.",
+				Optional:            true,
+				Validators: []validator.String{
+					cm_stringvalidators.NotBlank(),
+				},
+			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: fmt.Sprintf("Type of the variable. Allowed values: %s.", helpers.EnumForDocs(cmTypes.VariableTypes)),
 				Required:            true,

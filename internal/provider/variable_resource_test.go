@@ -12,10 +12,10 @@ const (
 
 	namespaceVariable              = "var_namespace"
 	namespaceVariableScope         = "namespace"
-	namespaceVariableScopeId       = "ns-x82yjdyahc"
 	namespaceVariableKey           = "namespaceVar"
 	namespaceVariableType          = "tfVar"
 	namespaceVariableValue         = "TfValue"
+	namespaceVariableDisplayName   = "Display Name"
 	namespaceVariableIsSensitive   = "false"
 	namespaceVariableIsOverridable = "true"
 	namespaceVariableIsRequired    = "false"
@@ -41,25 +41,31 @@ func TestAccVariableResourceNamespace(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: providerConfig + fmt.Sprintf(`
-						resource "%s" "%s" {
-						scope          = "%s"
-						scope_id       = "%s"
-						key            = "%s"
-						type           = "%s"
-						value          = "%s"
-						is_sensitive   = %s
-						is_overridable = %s
-						is_required    = %s
-					}
+resource "cm_namespace" "namespace" {
+  name = "variable test"
+}
+
+resource "%s" "%s" {
+	scope          = "%s"
+	scope_id       = cm_namespace.namespace.id
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	display_name   = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+	is_required    = %s
+}
 					`, tfCmVariable, namespaceVariable,
-					namespaceVariableScope, namespaceVariableScopeId, namespaceVariableKey, namespaceVariableType, namespaceVariableValue,
+					namespaceVariableScope, namespaceVariableKey, namespaceVariableType, namespaceVariableValue, namespaceVariableDisplayName,
 					namespaceVariableIsSensitive, namespaceVariableIsOverridable, namespaceVariableIsRequired),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope", namespaceVariableScope),
-					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope_id", namespaceVariableScopeId),
+					resource.TestCheckResourceAttrPair(variableResourceName(namespaceVariable), "scope_id", "cm_namespace.namespace", "id"),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "key", namespaceVariableKey),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "type", namespaceVariableType),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value", namespaceVariableValue),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "display_name", namespaceVariableDisplayName),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_sensitive", namespaceVariableIsSensitive),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_overridable", namespaceVariableIsOverridable),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_required", namespaceVariableIsRequired),
@@ -70,22 +76,26 @@ func TestAccVariableResourceNamespace(t *testing.T) {
 			// Update and Read testing
 			{
 				Config: providerConfig + fmt.Sprintf(`
-						resource "%s" "%s" {
-							scope          = "%s"
-							scope_id       = "%s"
-							key            = "%s"
-							type           = "%s"
-							value          = "%s"
-							is_sensitive   = %s
-							is_overridable = %s
-							is_required = %s
-						}
+resource "cm_namespace" "namespace" {
+  name = "variable test"
+}
+
+resource "%s" "%s" {
+	scope          = "%s"
+	scope_id       = cm_namespace.namespace.id
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+	is_required = %s
+}
 						`, tfCmVariable, namespaceVariable,
-					namespaceVariableScope, namespaceVariableScopeId, namespaceVariableKey, namespaceVariableType,
+					namespaceVariableScope, namespaceVariableKey, namespaceVariableType,
 					namespaceVariableValueAfterUpdate, namespaceVariableIsSensitive, namespaceVariableIsOverridable, namespaceVariableIsRequired),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope", namespaceVariableScope),
-					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope_id", namespaceVariableScopeId),
+					resource.TestCheckResourceAttrPair(variableResourceName(namespaceVariable), "scope_id", "cm_namespace.namespace", "id"),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "key", namespaceVariableKey),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "type", namespaceVariableType),
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value", namespaceVariableValueAfterUpdate),
@@ -94,6 +104,7 @@ func TestAccVariableResourceNamespace(t *testing.T) {
 					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_required", namespaceVariableIsRequired),
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(variableResourceName(namespaceVariable), "id"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "display_name"),
 				),
 			},
 			{
@@ -112,14 +123,14 @@ func TestAccVariableResourceOrganization(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: providerConfig + fmt.Sprintf(`
-						resource "%s" "%s" {
-						scope          = "%s"
-						key            = "%s"
-						type           = "%s"
-						value          = "%s"
-						is_sensitive   = %s
-						is_overridable = %s
-					}
+resource "%s" "%s" {
+	scope          = "%s"
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+}
 					`, tfCmVariable, orgVariable, orgVariableScope, orgVariableKey, orgVariableType, orgVariableValue,
 					orgVariableIsSensitive, orgVariableIsOverridable),
 				Check: resource.ComposeAggregateTestCheckFunc(

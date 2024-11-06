@@ -22,6 +22,7 @@ func UpdateStateAfterRead(res *sdkVariable.ReadVariableOutput, state *ResourceMo
 		state.Value = helpers.StringValueOrNull(variable.Value)
 	}
 
+	state.DisplayName = helpers.StringValueOrNull(variable.DisplayName)
 	state.IsSensitive = helpers.BoolValueOrNull(variable.IsSensitive)
 	state.IsOverridable = helpers.BoolValueOrNull(variable.IsOverridable)
 	state.IsRequired = helpers.BoolValueOrNull(variable.IsRequired)
