@@ -17,6 +17,9 @@ description: |-
 ### Namespace that utilizes multiple AWS profiles. A specific AWS profile will be used only when the profile name is specified in the AWS provider block. Otherwise, the default profile will be used.
 {{tffile "examples/resources/cm_namespace/resource2.tf"}}
 
+### A production namespace configured with a deployment approval policy that restricts deployment permissions to specific teams.
+{{tffile "examples/resources/cm_namespace/resource3.tf"}}
+
 
 {{ .SchemaMarkdown | trimspace }}
 

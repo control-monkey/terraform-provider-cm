@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
+	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -135,11 +136,16 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"type": schema.StringAttribute{
-									MarkdownDescription: fmt.Sprintf("The type of the rule. Allowed values: %s.", helpers.EnumForDocs(cmTypes.DeploymentApprovalPolicyRuleTypes)),
+									MarkdownDescription: "The type of the rule. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#deployment-approval-policy-rule-types)",
 									Required:            true,
 									Validators: []validator.String{
-										stringvalidator.OneOf(cmTypes.DeploymentApprovalPolicyRuleTypes...),
+										cmStringValidators.NotBlank(),
 									},
+								},
+								"parameters": schema.StringAttribute{
+									MarkdownDescription: fmt.Sprintf("JSON format of the rule parameters according to the `type`. Find supported parameters [here](https://docs.controlmonkey.io/controlmonkey-api/approval-policy-rules)"),
+									Optional:            true,
+									CustomType:          jsontypes.NormalizedType{},
 								},
 							},
 						},
