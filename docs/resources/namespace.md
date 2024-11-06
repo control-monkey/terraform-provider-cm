@@ -34,7 +34,7 @@ resource "cm_namespace" "dev_cross_account_namespace" {
 
   external_credentials = [
     {
-      external_credentials_id = "ext-123" # default credentials
+      external_credentials_id = "ext-123"
       type                    = "awsAssumeRole"
     },
     {
@@ -48,34 +48,6 @@ resource "cm_namespace" "dev_cross_account_namespace" {
       aws_profile_name        = "dev-monitoring"
     }
   ]
-}
-```
-
-### Namespace with default & max TTL configured. Stacks under this namespace will inherit this TTL configuration by default.
-```terraform
-resource "cm_namespace" "dev_namespace" {
-  name        = "Dev"
-  description = "AWS dev env"
-
-  external_credentials = [
-    {
-      type                    = "awsAssumeRole"
-      external_credentials_id = "ext-123"
-    }
-  ]
-
-  policy = {
-    ttl_config = {
-      max_ttl = {
-        type  = "days"
-        value = "2"
-      }
-      default_ttl = {
-        type  = "hours"
-        value = "3"
-      }
-    }
-  }
 }
 ```
 

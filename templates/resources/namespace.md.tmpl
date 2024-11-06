@@ -17,9 +17,6 @@ description: |-
 ### Namespace that utilizes multiple AWS profiles. A specific AWS profile will be used only when the profile name is specified in the AWS provider block. Otherwise, the default profile will be used.
 {{tffile "examples/resources/cm_namespace/resource2.tf"}}
 
-### Namespace with default & max TTL configured. Stacks under this namespace will inherit this TTL configuration by default.
-{{tffile "examples/resources/cm_namespace/resource3.tf"}}
-
 
 {{ .SchemaMarkdown | trimspace }}
 

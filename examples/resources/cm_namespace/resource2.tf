@@ -4,7 +4,7 @@ resource "cm_namespace" "dev_cross_account_namespace" {
 
   external_credentials = [
     {
-      external_credentials_id = "ext-123" # default credentials
+      external_credentials_id = "ext-123"
       type                    = "awsAssumeRole"
     },
     {
