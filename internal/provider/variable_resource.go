@@ -9,7 +9,6 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/variable"
-	cm_listvalidator "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/list"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -140,9 +139,6 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 							Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
 						},
 					},
-				},
-				Validators: []validator.List{
-					cm_listvalidator.SizeExactly(1),
 				},
 			},
 		},

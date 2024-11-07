@@ -2,6 +2,9 @@ package provider
 
 import (
 	"fmt"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,7 +23,9 @@ const (
 	namespaceVariableIsOverridable = "true"
 	namespaceVariableIsRequired    = "false"
 
-	namespaceVariableValueAfterUpdate = "TfValue2"
+	namespaceVariableValueAfterUpdate        = "TfValue2"
+	namespaceVariableNumericValue            = "5"
+	namespaceVariableNumericValueAfterUpdate = "10"
 
 	orgVariable              = "var_org"
 	orgVariableScope         = "organization"
@@ -108,9 +113,159 @@ resource "%s" "%s" {
 				),
 			},
 			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "cm_namespace" "namespace" {
+  name = "variable test"
+}
+
+resource "%s" "%s" {
+	scope          = "%s"
+	scope_id       = cm_namespace.namespace.id
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+	value_conditions = [
+	  {
+	    operator = "lt"
+	    value    = 50
+	  },
+	  {
+	    operator = "gt"
+	    value    = 5
+	  },
+  	]
+}
+						`, tfCmVariable, namespaceVariable,
+					namespaceVariableScope, namespaceVariableKey, namespaceVariableType,
+					namespaceVariableNumericValue, namespaceVariableIsSensitive, namespaceVariableIsOverridable),
+				ExpectError: regexp.MustCompile(commons.ErrorCodeValidationError),
+			},
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "cm_namespace" "namespace" {
+  name = "variable test"
+}
+
+resource "%s" "%s" {
+	scope          = "%s"
+	scope_id       = cm_namespace.namespace.id
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+	value_conditions = [
+	  {
+	    operator = "lt"
+	    value    = 50
+	  },
+	  {
+	    operator = "gt"
+	    value    = 5
+	  },
+  	]
+}
+						`, tfCmVariable, namespaceVariable,
+					namespaceVariableScope, namespaceVariableKey, namespaceVariableType,
+					namespaceVariableNumericValueAfterUpdate, namespaceVariableIsSensitive, namespaceVariableIsOverridable),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope", namespaceVariableScope),
+					resource.TestCheckResourceAttrPair(variableResourceName(namespaceVariable), "scope_id", "cm_namespace.namespace", "id"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "key", namespaceVariableKey),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "type", namespaceVariableType),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value", namespaceVariableNumericValueAfterUpdate),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_sensitive", namespaceVariableIsSensitive),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_overridable", namespaceVariableIsOverridable),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.#", "2"),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(variableResourceName(namespaceVariable), "id"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "display_name"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "is_required"),
+				),
+			},
+			{
+				ConfigVariables: config.Variables{
+					"lte_value": config.StringVariable("50"),
+					"gte_value": config.StringVariable("5"),
+				},
+				Config: providerConfig + fmt.Sprintf(`
+resource "cm_namespace" "namespace" {
+  name = "variable test"
+}
+
+variable "lte_value" {
+	type = string
+}
+
+variable "gte_value" {
+	type = string
+}
+
+resource "%s" "%s" {
+	scope          = "%s"
+	scope_id       = cm_namespace.namespace.id
+	key            = "%s"
+	type           = "%s"
+	value          = "%s"
+	is_sensitive   = %s
+	is_overridable = %s
+	value_conditions = [
+	  {
+	    operator = "lt"
+	    value    = var.lte_value
+	  },
+	  {
+	    operator = "gt"
+	    value    = var.gte_value
+	  },
+  	]
+}
+						`, tfCmVariable, namespaceVariable,
+					namespaceVariableScope, namespaceVariableKey, namespaceVariableType,
+					namespaceVariableNumericValueAfterUpdate, namespaceVariableIsSensitive, namespaceVariableIsOverridable),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope", namespaceVariableScope),
+					resource.TestCheckResourceAttrPair(variableResourceName(namespaceVariable), "scope_id", "cm_namespace.namespace", "id"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "key", namespaceVariableKey),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "type", namespaceVariableType),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value", namespaceVariableNumericValueAfterUpdate),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_sensitive", namespaceVariableIsSensitive),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_overridable", namespaceVariableIsOverridable),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.#", "2"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.0.value", "50"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.1.value", "5"),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(variableResourceName(namespaceVariable), "id"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "display_name"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "is_required"),
+				),
+			},
+			{
+				ConfigVariables: config.Variables{
+					"lte_value": config.StringVariable("50"),
+					"gte_value": config.StringVariable("5"),
+				},
 				ResourceName:      fmt.Sprintf("%s.%s", tfCmVariable, namespaceVariable),
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "scope", namespaceVariableScope),
+					resource.TestCheckResourceAttrPair(variableResourceName(namespaceVariable), "scope_id", "cm_namespace.namespace", "id"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "key", namespaceVariableKey),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "type", namespaceVariableType),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value", namespaceVariableNumericValueAfterUpdate),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_sensitive", namespaceVariableIsSensitive),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "is_overridable", namespaceVariableIsOverridable),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.#", "2"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.0.value", "50"),
+					resource.TestCheckResourceAttr(variableResourceName(namespaceVariable), "value_conditions.1.value", "5"),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(variableResourceName(namespaceVariable), "id"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "display_name"),
+					resource.TestCheckNoResourceAttr(variableResourceName(namespaceVariable), "is_required"),
+				),
 			},
 		},
 	})
