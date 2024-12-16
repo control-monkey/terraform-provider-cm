@@ -7,9 +7,8 @@ import (
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
-	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -127,29 +126,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "Set up requirements to approve a deployment",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
-					"rules": schema.ListNestedAttribute{
-						MarkdownDescription: "Set up rules for approving deployment processes. At least one rule should be configured",
-						Required:            true,
-						Validators: []validator.List{
-							listvalidator.SizeAtLeast(1),
-						},
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"type": schema.StringAttribute{
-									MarkdownDescription: "The type of the rule. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#deployment-approval-policy-rule-types)",
-									Required:            true,
-									Validators: []validator.String{
-										cmStringValidators.NotBlank(),
-									},
-								},
-								"parameters": schema.StringAttribute{
-									MarkdownDescription: fmt.Sprintf("JSON format of the rule parameters according to the `type`. Find supported parameters [here](https://docs.controlmonkey.io/controlmonkey-api/approval-policy-rules)"),
-									Optional:            true,
-									CustomType:          jsontypes.NormalizedType{},
-								},
-							},
-						},
-					},
+					"rules": cross_schema.DeploymentApprovalPolicyRuleSchema,
 					"override_behavior": schema.StringAttribute{
 						MarkdownDescription: fmt.Sprintf("Decide whether stacks can override this configuration. Allowed values: %s.", helpers.EnumForDocs(cmTypes.OverrideBehaviorTypes)),
 						Required:            true,

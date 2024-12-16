@@ -51,7 +51,7 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
-	if deploymentApprovalPolicy, hasChanged := deploymentApprovalPolicyConverter(plan.DeploymentApprovalPolicy, state.DeploymentApprovalPolicy, converterType); hasChanged {
+	if deploymentApprovalPolicy, hasChanged := cross_models.DeploymentApprovalPolicyConverter(plan.DeploymentApprovalPolicy, state.DeploymentApprovalPolicy, converterType); hasChanged {
 		data.SetDeploymentApprovalPolicy(deploymentApprovalPolicy)
 		hasChanges = true
 	}
@@ -116,33 +116,6 @@ func deploymentBehaviorConverter(plan *DeploymentBehaviorModel, state *Deploymen
 	}
 	if plan.WaitForApproval != state.WaitForApproval {
 		retVal.SetWaitForApproval(plan.WaitForApproval.ValueBoolPointer())
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func deploymentApprovalPolicyConverter(plan *DeploymentApprovalPolicyModel, state *DeploymentApprovalPolicyModel, converterType commons.ConverterType) (*stack.DeploymentApprovalPolicy, bool) {
-	var retVal *stack.DeploymentApprovalPolicy
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.DeploymentApprovalPolicy)
-	hasChanges := false
-
-	if state == nil {
-		state = new(DeploymentApprovalPolicyModel) // dummy initialization
-		hasChanges = true                          // must have changes because before is null and after is not
-	}
-
-	if innerProperty, hasInnerChanges := cross_models.DeploymentApprovalPolicyRulesConverter(plan.Rules, state.Rules, converterType); hasInnerChanges {
-		retVal.SetRules(innerProperty)
 		hasChanges = true
 	}
 

@@ -199,7 +199,11 @@ Required:
 
 Required:
 
-- `type` (String) The type of the rule. Allowed values: [requireApproval, autoApprove, requireTwoApprovals].
+- `type` (String) The type of the rule. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#deployment-approval-policy-rule-types)
+
+Optional:
+
+- `parameters` (String) JSON format of the rule parameters according to the `type`. Find supported parameters [here](https://docs.controlmonkey.io/controlmonkey-api/approval-policy-rules)
 
 
 

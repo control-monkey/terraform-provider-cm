@@ -7,10 +7,10 @@ import (
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -91,30 +91,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"deployment_approval_policy": schema.SingleNestedAttribute{
-				MarkdownDescription: "Set up requirements to approve a deployment",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"rules": schema.ListNestedAttribute{
-						MarkdownDescription: "Set up rules for approving deployment processes. At least one rule should be configured",
-						Required:            true,
-						Validators: []validator.List{
-							listvalidator.SizeAtLeast(1),
-						},
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"type": schema.StringAttribute{
-									MarkdownDescription: fmt.Sprintf("The type of the rule. Allowed values: %s.", helpers.EnumForDocs(cmTypes.DeploymentApprovalPolicyRuleTypes)),
-									Required:            true,
-									Validators: []validator.String{
-										stringvalidator.OneOf(cmTypes.DeploymentApprovalPolicyRuleTypes...),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"deployment_approval_policy": cross_schema.StackDeploymentApprovalPolicySchema,
 			"vcs_info": schema.SingleNestedAttribute{
 				MarkdownDescription: "The configuration of the version control to which the stack is attached.",
 				Required:            true,
@@ -122,9 +99,6 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					"provider_id": schema.StringAttribute{
 						MarkdownDescription: "The ControlMonkey unique ID of the connected version control system.",
 						Required:            true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					"repo_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the version control repository.",
