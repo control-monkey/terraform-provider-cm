@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -37,25 +38,63 @@ resource "%s" "%s" {
 					// No Attributes
 				),
 			},
-			// Update and Read testing
+			test_helpers.GetValidateNoDriftStep(),
 			{
 				Config: providerConfig + fmt.Sprintf(`
+resource "cm_team" "team1" {
+  name = "Namespace Test 1"
+}
+
+resource "cm_team" "team2" {
+  name = "Namespace Test 2"
+}
+
 resource "%s" "%s" {
   name = "%s"
+  deployment_approval_policy = {
+  	override_behavior = "allow"
+    rules = [
+      {
+        type = "requireTeamsApproval"
+        parameters = jsonencode({
+          teams = [cm_team.team1.id, cm_team.team2.id]
+        })
+      },
+      {
+        type = "requireTwoApprovals"
+      },
+    ]
+  }
 }
 `, cmNamespace, n1ResourceName, n1NameAfterUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "name", n1NameAfterUpdate),
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(namespaceResourceName(n1ResourceName), "id"),
+					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.0.type", "requireTeamsApproval"),
+					resource.TestCheckResourceAttrSet(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.0.parameters"),
+					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.1.type", "requireTwoApprovals"),
 					// No Attributes
+					resource.TestCheckNoResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.1.parameters"),
 					resource.TestCheckNoResourceAttr(namespaceResourceName(n1ResourceName), "description"),
 				),
 			},
+			test_helpers.GetValidateNoDriftStep(),
 			{
 				ResourceName:      fmt.Sprintf("%s.%s", cmNamespace, n1ResourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "name", n1NameAfterUpdate),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(namespaceResourceName(n1ResourceName), "id"),
+					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.0.type", "requireTeamsApproval"),
+					resource.TestCheckResourceAttrSet(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.0.parameters"),
+					resource.TestCheckResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.1.type", "requireTwoApprovals"),
+					// No Attributes
+					resource.TestCheckNoResourceAttr(namespaceResourceName(n1ResourceName), "deployment_approval_policy.rules.1.parameters"),
+					resource.TestCheckNoResourceAttr(namespaceResourceName(n1ResourceName), "description"),
+				),
 			},
 		},
 	})

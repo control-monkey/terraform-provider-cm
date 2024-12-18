@@ -126,6 +126,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewOrgConfigurationResource,
 		NewCustomRoleResource,
 		NewCustomAbacConfigurationResource,
+		NewBlueprintResource,
 	}
 }
 

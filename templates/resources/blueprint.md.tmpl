@@ -1,0 +1,31 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+~> **NOTE:** All dynamic parameters referenced in `name_pattern`, `path_pattern`, and `branch_pattern` must be explicitly defined in `substitute_parameters`.
+
+{{tffile "examples/resources/cm_blueprint/resource.tf"}}
+
+### This example demonstrates a blueprint stored in the terraform repository, while stacks launched from it are pushed to a separate repository named terraform-developers. Deployment of the new infrastructure requires approval from two distinct users. Additionally, the substitute parameter env includes specific conditions for its value, which must be provided by the user when launching the stack.
+{{tffile "examples/resources/cm_blueprint/resource2.tf"}}
+
+### This example features a ready-to-run blueprint that is already mapped to a namespace where new stacks can be launched. Deployment of a new stack requires team approval. Additionally, the code_dynamic_parameter substitute parameter is used in the blueprint files, and its value—provided by the user during stack launch—will replace all occurrences of the parameter in the code.
+{{tffile "examples/resources/cm_blueprint/resource3.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_blueprint` can be imported using the ID of the Blueprint, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

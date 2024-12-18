@@ -1,6 +1,13 @@
-resource "cm_namespace" "dev_namespace" {
-  name        = "Dev"
-  description = "AWS dev env"
+data "cm_team" "team_devops" {
+  name = "DevOps Team"
+}
+
+data "cm_team" "team_prod" {
+  name = "Prod Team"
+}
+
+resource "cm_namespace" "prod_namespace" {
+  name = "Prod"
 
   external_credentials = [
     {
@@ -9,16 +16,15 @@ resource "cm_namespace" "dev_namespace" {
     }
   ]
 
-  policy = {
-    ttl_config = {
-      max_ttl = {
-        type  = "days"
-        value = "2"
-      }
-      default_ttl = {
-        type  = "hours"
-        value = "3"
-      }
-    }
+  deployment_approval_policy = {
+    override_behavior = "deny"
+    rules = [
+      {
+        type = "requireTeamsApproval"
+        parameters = jsonencode({
+          teams = [cm_team.team_devops.id, cm_team.team_prod.id]
+        })
+      },
+    ]
   }
 }

@@ -1,9 +1,11 @@
 package cross_models
 
 import (
+	"encoding/json"
 	sdkCrossModels "github.com/control-monkey/controlmonkey-sdk-go/services/cross_models"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"reflect"
 )
@@ -11,7 +13,8 @@ import (
 //region Model
 
 type DeploymentApprovalPolicyRuleModel struct {
-	Type types.String `tfsdk:"type"`
+	Type       types.String         `tfsdk:"type"`
+	Parameters jsontypes.Normalized `tfsdk:"parameters"`
 }
 
 //endregion
@@ -45,6 +48,12 @@ func deploymentApprovalPolicyRuleConverter(plan *DeploymentApprovalPolicyRuleMod
 
 	retVal.SetType(plan.Type.ValueStringPointer())
 
+	if plan.Parameters.IsNull() == false {
+		parameters := new(map[string]any)
+		plan.Parameters.Unmarshal(parameters)
+		retVal.SetParameters(parameters)
+	} //not sending null because not all types support parameters
+
 	return retVal
 }
 
@@ -71,6 +80,17 @@ func updateStateAfterReadDeploymentApprovalPolicyRule(deploymentApprovalPolicyRu
 	var retVal DeploymentApprovalPolicyRuleModel
 
 	retVal.Type = helpers.StringValueOrNull(deploymentApprovalPolicyRule.Type)
+
+	if deploymentApprovalPolicyRule.Parameters != nil {
+		jsonSettingsString, err := json.Marshal(deploymentApprovalPolicyRule.Parameters)
+		if err != nil {
+			retVal.Parameters = jsontypes.NewNormalizedNull()
+		}
+
+		retVal.Parameters = jsontypes.NewNormalizedValue(string(jsonSettingsString))
+	} else {
+		retVal.Parameters = jsontypes.NewNormalizedNull()
+	}
 
 	return retVal
 }

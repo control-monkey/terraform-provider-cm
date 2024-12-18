@@ -24,7 +24,7 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.DeploymentApprovalPolicy != nil {
-		dap := updateStateAfterReadDeploymentApprovalPolicy(data.DeploymentApprovalPolicy)
+		dap := cross_models.UpdateStateAfterReadDeploymentApprovalPolicy(data.DeploymentApprovalPolicy)
 		state.DeploymentApprovalPolicy = &dap
 	} else {
 		state.DeploymentApprovalPolicy = nil
@@ -78,19 +78,6 @@ func updateStateAfterReadDeploymentBehavior(deploymentBehavior *sdkStack.Deploym
 
 	retVal.DeployOnPush = helpers.BoolValueOrNull(deploymentBehavior.DeployOnPush)
 	retVal.WaitForApproval = helpers.BoolValueOrNull(deploymentBehavior.WaitForApproval)
-
-	return retVal
-}
-
-func updateStateAfterReadDeploymentApprovalPolicy(deploymentApprovalPolicy *sdkStack.DeploymentApprovalPolicy) DeploymentApprovalPolicyModel {
-	var retVal DeploymentApprovalPolicyModel
-
-	if deploymentApprovalPolicy.Rules != nil {
-		rs := cross_models.UpdateStateAfterReadDeploymentApprovalPolicyRules(deploymentApprovalPolicy.Rules)
-		retVal.Rules = rs
-	} else {
-		retVal.Rules = nil
-	}
 
 	return retVal
 }

@@ -3,13 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,24 +126,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "Set up requirements to approve a deployment",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
-					"rules": schema.ListNestedAttribute{
-						MarkdownDescription: "Set up rules for approving deployment processes. At least one rule should be configured",
-						Required:            true,
-						Validators: []validator.List{
-							listvalidator.SizeAtLeast(1),
-						},
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"type": schema.StringAttribute{
-									MarkdownDescription: fmt.Sprintf("The type of the rule. Allowed values: %s.", helpers.EnumForDocs(cmTypes.DeploymentApprovalPolicyRuleTypes)),
-									Required:            true,
-									Validators: []validator.String{
-										stringvalidator.OneOf(cmTypes.DeploymentApprovalPolicyRuleTypes...),
-									},
-								},
-							},
-						},
-					},
+					"rules": cross_schema.DeploymentApprovalPolicyRuleSchema,
 					"override_behavior": schema.StringAttribute{
 						MarkdownDescription: fmt.Sprintf("Decide whether stacks can override this configuration. Allowed values: %s.", helpers.EnumForDocs(cmTypes.OverrideBehaviorTypes)),
 						Required:            true,

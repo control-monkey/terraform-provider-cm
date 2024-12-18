@@ -34,7 +34,7 @@ resource "cm_namespace" "dev_cross_account_namespace" {
 
   external_credentials = [
     {
-      external_credentials_id = "ext-123" # default credentials
+      external_credentials_id = "ext-123"
       type                    = "awsAssumeRole"
     },
     {
@@ -51,11 +51,18 @@ resource "cm_namespace" "dev_cross_account_namespace" {
 }
 ```
 
-### Namespace with default & max TTL configured. Stacks under this namespace will inherit this TTL configuration by default.
+### A production namespace configured with a deployment approval policy that restricts deployment permissions to specific teams.
 ```terraform
-resource "cm_namespace" "dev_namespace" {
-  name        = "Dev"
-  description = "AWS dev env"
+data "cm_team" "team_devops" {
+  name = "DevOps Team"
+}
+
+data "cm_team" "team_prod" {
+  name = "Prod Team"
+}
+
+resource "cm_namespace" "prod_namespace" {
+  name = "Prod"
 
   external_credentials = [
     {
@@ -64,17 +71,16 @@ resource "cm_namespace" "dev_namespace" {
     }
   ]
 
-  policy = {
-    ttl_config = {
-      max_ttl = {
-        type  = "days"
-        value = "2"
-      }
-      default_ttl = {
-        type  = "hours"
-        value = "3"
-      }
-    }
+  deployment_approval_policy = {
+    override_behavior = "deny"
+    rules = [
+      {
+        type = "requireTeamsApproval"
+        parameters = jsonencode({
+          teams = [cm_team.team_devops.id, cm_team.team_prod.id]
+        })
+      },
+    ]
   }
 }
 ```
@@ -112,7 +118,11 @@ Required:
 
 Required:
 
-- `type` (String) The type of the rule. Allowed values: [requireApproval, autoApprove, requireTwoApprovals].
+- `type` (String) The type of the rule. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#deployment-approval-policy-rule-types)
+
+Optional:
+
+- `parameters` (String) JSON format of the rule parameters according to the `type`. Find supported parameters [here](https://docs.controlmonkey.io/controlmonkey-api/approval-policy-rules)
 
 
 

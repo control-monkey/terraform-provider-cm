@@ -71,9 +71,6 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					"provider_id": schema.StringAttribute{
 						MarkdownDescription: "The ControlMonkey unique ID of the connected version control system.",
 						Required:            true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					"repo_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the version control repository.",

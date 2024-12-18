@@ -107,6 +107,7 @@ resource "cm_variable" "ephemeral_stack_instance_types" {
 ### Optional
 
 - `description` (String) Description for the variable.
+- `display_name` (String) Display name provides the flexibility to assign a descriptive name to the variable. This name will be shown in the UI. It can be useful especially for self service variables to make the variables more user-friendly.
 - `is_required` (Boolean) This setting applies to template variables without a specified value. Stacks created from the template need to provide a value for this variable.
 - `scope_id` (String) The ID of the resource to which the variable is attached.
 - `value` (String, Sensitive) The value of the variable.
