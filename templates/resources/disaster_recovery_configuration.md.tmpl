@@ -1,0 +1,30 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+### Default ControlMonkey Behavior for Backing Up Resources (Including Managed Resources).
+{{tffile "examples/resources/cm_disaster_recovery_configuration/resource.tf"}}
+
+### Custom Backup Strategy: Matching awsQuery Resources Pushed to a Specific path.
+{{tffile "examples/resources/cm_disaster_recovery_configuration/resource2.tf"}}
+
+### Disaster Recovery Configuration with Group-Specific Destinations (Supports All JSON Formats)
+{{tffile "examples/resources/cm_disaster_recovery_configuration/resource3.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_disaster_recovery_configuration` can be imported using the ID of the Disaster Recovery Configuration, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}
