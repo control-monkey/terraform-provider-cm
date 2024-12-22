@@ -46,12 +46,12 @@ func updateStateAfterReadBackupStrategy(apiEntity *apiDisasterRecovery.BackupStr
 		groupsString, err := json.Marshal(apiEntity.Groups)
 
 		if err != nil {
-			retVal.Groups = jsontypes.NewNormalizedNull()
+			retVal.GroupsJson = jsontypes.NewNormalizedNull()
 		} else {
-			retVal.Groups = jsontypes.NewNormalizedValue(string(groupsString))
+			retVal.GroupsJson = jsontypes.NewNormalizedValue(string(groupsString))
 		}
 	} else {
-		retVal.Groups = jsontypes.NewNormalizedNull()
+		retVal.GroupsJson = jsontypes.NewNormalizedNull()
 	}
 	return retVal
 }

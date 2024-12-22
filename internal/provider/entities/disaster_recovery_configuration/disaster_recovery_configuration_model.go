@@ -16,7 +16,7 @@ type BackupStrategyModel struct {
 	IncludeManagedResources types.Bool           `tfsdk:"include_managed_resources"`
 	Mode                    types.String         `tfsdk:"mode"`
 	VcsInfo                 *VcsInfoModel        `tfsdk:"vcs_info"`
-	Groups                  jsontypes.Normalized `tfsdk:"groups"`
+	GroupsJson              jsontypes.Normalized `tfsdk:"groups_json"`
 }
 
 type VcsInfoModel struct {

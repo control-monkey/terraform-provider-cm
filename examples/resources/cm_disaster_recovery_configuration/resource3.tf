@@ -12,7 +12,7 @@ resource "cm_disaster_recovery_configuration" "autoManagedStackConfiguration" {
       branch      = "main"
     }
 
-    groups = jsonencode(
+    groups_json = jsonencode(
       [
         {
           "vcsInfo": {

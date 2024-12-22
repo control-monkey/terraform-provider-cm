@@ -74,7 +74,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
+					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
 			},
 			// validate no drift step
@@ -102,7 +102,7 @@ resource "%s" "%s" {
 			branch      = "%s"
     	}
 
-      groups = jsonencode([
+      groups_json = jsonencode([
           {
             vcsInfo = {
               path = "a/b/c"
@@ -140,7 +140,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
+					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
 			},
 			// validate no drift step
@@ -173,7 +173,7 @@ resource "%s" "%s" {
 			branch      = "%s"
     	}
 
-      groups = var.groups_json
+      groups_json = var.groups_json
   	}
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
@@ -190,8 +190,8 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups", disasterRecoveryConfigurationBackupStrategyGroupsJson),
+					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJson),
 				),
 			},
 			test_helpers.GetValidateNoDriftStep(),
@@ -218,7 +218,7 @@ resource "%s" "%s" {
 			branch      = "%s"
     	}
 
-      groups = jsonencode([
+      groups_json = jsonencode([
 		{
 		  "vcsInfo": {
 			"path": "a/b/c"
@@ -262,7 +262,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
+					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
 			},
 			// validate no drift step
@@ -295,7 +295,7 @@ resource "%s" "%s" {
 			branch      = "%s"
     	}
 
-      	groups = var.groups_json
+      	groups_json = var.groups_json
   	}
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
@@ -312,8 +312,8 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
+					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
 				),
 			},
 			test_helpers.GetValidateNoDriftStep(),
@@ -345,8 +345,8 @@ resource "%s" "%s" {}
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
+					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
 				),
 			},
 			{
@@ -387,7 +387,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoNameAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
+					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
 			},
 			// validate no drift step
@@ -415,7 +415,7 @@ resource "%s" "%s" {}
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoNameAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
-					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups"),
+					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
 			},
 		},

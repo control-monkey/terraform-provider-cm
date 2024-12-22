@@ -12,7 +12,7 @@ resource "cm_disaster_recovery_configuration" "dr_config" {
       branch      = "main"
     }
 
-    groups = jsonencode(
+    groups_json = jsonencode(
       [
         {
           "vcsInfo": {

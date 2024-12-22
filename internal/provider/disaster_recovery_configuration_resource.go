@@ -40,19 +40,19 @@ func (r *DisasterRecoveryConfigurationResource) Schema(_ context.Context, _ reso
 		MarkdownDescription: "Creates, updates and destroys disaster recovery configurations. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the configuration.",
+				MarkdownDescription: "The ID of the disaster recovery configuration.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: "The type of the provider e.g `aws`",
+				MarkdownDescription: "Specifies the cloud provider type, such as `aws`.",
 				Required:            true,
 				Validators:          []validator.String{cm_stringvalidators.NotBlank()},
 			},
 			"cloud_account_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the cloud account e.g AWS account ID for AWS or Subscription ID for Azure.",
+				MarkdownDescription: "The identifier of the cloud account, such as an AWS Account ID for AWS or a Subscription ID for Azure.",
 				Required:            true,
 				Validators:          []validator.String{cm_stringvalidators.NotBlank()},
 			},
@@ -61,7 +61,7 @@ func (r *DisasterRecoveryConfigurationResource) Schema(_ context.Context, _ reso
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"include_managed_resources": schema.BoolAttribute{
-						MarkdownDescription: "Specify whether to backup managed resources.",
+						MarkdownDescription: "Indicates whether managed resources should be included in the backup.",
 						Required:            true,
 					},
 					"mode": schema.StringAttribute{
@@ -93,8 +93,8 @@ func (r *DisasterRecoveryConfigurationResource) Schema(_ context.Context, _ reso
 							},
 						},
 					},
-					"groups": schema.StringAttribute{
-						MarkdownDescription: fmt.Sprintf("JSON format of youe custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.\nFor more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)"),
+					"groups_json": schema.StringAttribute{
+						MarkdownDescription: fmt.Sprintf("JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.\nFor more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)"),
 						Optional:            true,
 						CustomType:          jsontypes.NormalizedType{},
 					},

@@ -111,13 +111,13 @@ func backupStrategyConverter(plan *BackupStrategyModel, state *BackupStrategyMod
 		hasChanges = true
 	}
 
-	if plan.Groups != state.Groups {
+	if plan.GroupsJson != state.GroupsJson {
 		var groupsList []*map[string]interface{}
 
-		if plan.Groups.IsNull() {
+		if plan.GroupsJson.IsNull() {
 			groupsList = nil
 		} else {
-			plan.Groups.Unmarshal(&groupsList)
+			plan.GroupsJson.Unmarshal(&groupsList)
 		}
 
 		retVal.SetGroups(groupsList)

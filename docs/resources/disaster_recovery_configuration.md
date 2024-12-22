@@ -45,7 +45,7 @@ resource "cm_disaster_recovery_configuration" "dr_config" {
       branch      = "main"
     }
 
-    groups = jsonencode(
+    groups_json = jsonencode(
       [
         {
           "vcsInfo": {
@@ -87,7 +87,7 @@ resource "cm_disaster_recovery_configuration" "autoManagedStackConfiguration" {
       branch      = "main"
     }
 
-    groups = jsonencode(
+    groups_json = jsonencode(
       [
         {
           "vcsInfo": {
@@ -132,25 +132,25 @@ resource "cm_disaster_recovery_configuration" "autoManagedStackConfiguration" {
 ### Required
 
 - `backup_strategy` (Attributes) The configuration specifying where the backup will be stored and how to break down your resources. (see [below for nested schema](#nestedatt--backup_strategy))
-- `cloud_account_id` (String) The ID of the cloud account e.g AWS account ID for AWS or Subscription ID for Azure.
-- `scope` (String) The type of the provider e.g `aws`
+- `cloud_account_id` (String) The identifier of the cloud account, such as an AWS Account ID for AWS or a Subscription ID for Azure.
+- `scope` (String) Specifies the cloud provider type, such as `aws`.
 
 ### Read-Only
 
-- `id` (String) The ID of the configuration.
+- `id` (String) The ID of the disaster recovery configuration.
 
 <a id="nestedatt--backup_strategy"></a>
 ### Nested Schema for `backup_strategy`
 
 Required:
 
-- `include_managed_resources` (Boolean) Specify whether to backup managed resources.
+- `include_managed_resources` (Boolean) Indicates whether managed resources should be included in the backup.
 - `mode` (String) Specify the backup strategy mode whether you want the default ControlMonkey behaviour or your own custom strategy. Allowed values: [default, manual].
 - `vcs_info` (Attributes) Configuration details for the version control system where the disaster recovery snapshot will be stored. (see [below for nested schema](#nestedatt--backup_strategy--vcs_info))
 
 Optional:
 
-- `groups` (String) JSON format of youe custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.
+- `groups_json` (String) JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.
 For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)
 
 <a id="nestedatt--backup_strategy--vcs_info"></a>
