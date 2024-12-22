@@ -8,6 +8,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/custom_abac_configuration"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/custom_role"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/disaster_recovery"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/notification"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
@@ -48,6 +49,7 @@ type Client struct {
 	controlPolicyGroup      control_policy_group.Service
 	customAbacConfiguration custom_abac_configuration.Service
 	customRole              custom_role.Service
+	disasterRecovery        disaster_recovery.Service
 	namespace               namespace.Service
 	namespacePermissions    namespace_permissions.Service
 	notification            notification.Service
@@ -77,6 +79,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		controlPolicyGroup:      control_policy_group.New(sess),
 		customAbacConfiguration: custom_abac_configuration.New(sess),
 		customRole:              custom_role.New(sess),
+		disasterRecovery:        disaster_recovery.New(sess),
 		namespace:               namespace.New(sess),
 		namespacePermissions:    namespace_permissions.New(sess),
 		notification:            notification.New(sess),

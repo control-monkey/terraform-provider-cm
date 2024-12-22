@@ -85,9 +85,9 @@ func updateStateAfterReadDeploymentApprovalPolicyRule(deploymentApprovalPolicyRu
 		jsonSettingsString, err := json.Marshal(deploymentApprovalPolicyRule.Parameters)
 		if err != nil {
 			retVal.Parameters = jsontypes.NewNormalizedNull()
+		} else {
+			retVal.Parameters = jsontypes.NewNormalizedValue(string(jsonSettingsString))
 		}
-
-		retVal.Parameters = jsontypes.NewNormalizedValue(string(jsonSettingsString))
 	} else {
 		retVal.Parameters = jsontypes.NewNormalizedNull()
 	}
