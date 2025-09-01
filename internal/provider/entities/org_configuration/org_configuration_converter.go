@@ -1,10 +1,11 @@
 package organization
 
 import (
+	"reflect"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
-	"reflect"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*organization.OrgConfiguration, bool) {
@@ -33,6 +34,16 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if stateFilesLocations, hasChanged := s3StateFilesLocationsConverter(plan.S3StateFilesLocations, state.S3StateFilesLocations, converterType); hasChanged {
 		retVal.SetTfStateFilesS3Locations(stateFilesLocations)
+		hasChanges = true
+	}
+
+	if azureStateFilesLocations, hasChanged := azureStateFilesLocationsConverter(plan.AzureStateFilesLocations, state.AzureStateFilesLocations, converterType); hasChanged {
+		retVal.SetTfStateFilesAzureStorageLocations(azureStateFilesLocations)
+		hasChanges = true
+	}
+
+	if gcsStateFilesLocations, hasChanged := gcsStateFilesLocationsConverter(plan.GcsStateFilesLocations, state.GcsStateFilesLocations, converterType); hasChanged {
+		retVal.SetTfStateFilesGcsLocations(gcsStateFilesLocations)
 		hasChanges = true
 	}
 
@@ -115,6 +126,65 @@ func s3StateFilesLocationConverter(plan *S3StateFilesLocationModel) *organizatio
 	retVal.SetBucketName(plan.BucketName.ValueStringPointer())
 	retVal.SetBucketRegion(plan.BucketRegion.ValueStringPointer())
 	retVal.SetAwsAccountId(plan.AwsAccountId.ValueStringPointer())
+
+	return retVal
+}
+
+func azureStateFilesLocationsConverter(plan []*AzureStateFilesLocationModel, state []*AzureStateFilesLocationModel, converterType commons.ConverterType) ([]*organization.AzureStorageStateFilesLocation, bool) {
+	var retVal []*organization.AzureStorageStateFilesLocation
+	hasChanged := false
+
+	if reflect.DeepEqual(plan, state) == false {
+		hasChanged = true
+
+		if plan != nil {
+			retVal = make([]*organization.AzureStorageStateFilesLocation, 0)
+
+			for _, r := range plan {
+				loc := azureStateFilesLocationConverter(r)
+				retVal = append(retVal, loc)
+			}
+		}
+	}
+
+	return retVal, hasChanged
+}
+
+func azureStateFilesLocationConverter(plan *AzureStateFilesLocationModel) *organization.AzureStorageStateFilesLocation {
+	retVal := new(organization.AzureStorageStateFilesLocation)
+
+	retVal.SetStorageAccountName(plan.StorageAccountName.ValueStringPointer())
+	retVal.SetContainerName(plan.ContainerName.ValueStringPointer())
+	retVal.SetAzureSubscriptionId(plan.AzureSubscriptionId.ValueStringPointer())
+
+	return retVal
+}
+
+func gcsStateFilesLocationsConverter(plan []*GcsStateFilesLocationModel, state []*GcsStateFilesLocationModel, converterType commons.ConverterType) ([]*organization.GcsStateFilesLocation, bool) {
+	var retVal []*organization.GcsStateFilesLocation
+	hasChanged := false
+
+	if reflect.DeepEqual(plan, state) == false {
+		hasChanged = true
+
+		if plan != nil {
+			retVal = make([]*organization.GcsStateFilesLocation, 0)
+
+			for _, r := range plan {
+				loc := gcsStateFilesLocationConverter(r)
+				retVal = append(retVal, loc)
+			}
+		}
+	}
+
+	return retVal, hasChanged
+}
+
+func gcsStateFilesLocationConverter(plan *GcsStateFilesLocationModel) *organization.GcsStateFilesLocation {
+	retVal := new(organization.GcsStateFilesLocation)
+
+	retVal.SetBucketName(plan.BucketName.ValueStringPointer())
+	retVal.SetGcpProjectId(plan.GcpProjectId.ValueStringPointer())
 
 	return retVal
 }

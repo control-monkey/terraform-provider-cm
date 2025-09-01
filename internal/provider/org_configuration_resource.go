@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
@@ -64,7 +65,7 @@ func (r *OrgConfigurationResource) Schema(_ context.Context, _ resource.SchemaRe
 						},
 					},
 					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
+						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
 						Optional:            true,
 						Validators: []validator.String{
 							cmStringValidators.NotBlank(),
@@ -84,7 +85,7 @@ func (r *OrgConfigurationResource) Schema(_ context.Context, _ resource.SchemaRe
 						},
 					},
 					"groups": schema.ListAttribute{
-						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
+						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configured.", cmTypes.SelfHosted, cmTypes.Managed),
 						ElementType:         types.StringType,
 						Optional:            true,
 						Validators:          commons.ValidateUniqueListWithNoBlankValues(),
@@ -116,6 +117,57 @@ func (r *OrgConfigurationResource) Schema(_ context.Context, _ resource.SchemaRe
 						},
 						"aws_account_id": schema.StringAttribute{
 							MarkdownDescription: "The AWS account ID in which the bucket is situated.",
+							Required:            true,
+							Validators: []validator.String{
+								cmStringValidators.NotBlank(),
+							},
+						},
+					},
+				},
+			},
+			"azure_storage_state_files_locations": schema.ListNestedAttribute{
+				MarkdownDescription: "The Azure Storage locations of your current terraform state files. This will be used by ControlMonkey to scan for existing managed resources.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"storage_account_name": schema.StringAttribute{
+							MarkdownDescription: "The Azure Storage account name.",
+							Required:            true,
+							Validators: []validator.String{
+								cmStringValidators.NotBlank(),
+							},
+						},
+						"container_name": schema.StringAttribute{
+							MarkdownDescription: "The container name within the storage account.",
+							Required:            true,
+							Validators: []validator.String{
+								cmStringValidators.NotBlank(),
+							},
+						},
+						"azure_subscription_id": schema.StringAttribute{
+							MarkdownDescription: "The Azure Subscription ID where the storage account resides.",
+							Required:            true,
+							Validators: []validator.String{
+								cmStringValidators.NotBlank(),
+							},
+						},
+					},
+				},
+			},
+			"gcs_state_files_locations": schema.ListNestedAttribute{
+				MarkdownDescription: "The GCS buckets of your current terraform state files. This will be used by ControlMonkey to scan for existing managed resources.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"bucket_name": schema.StringAttribute{
+							MarkdownDescription: "The name of the bucket.",
+							Required:            true,
+							Validators: []validator.String{
+								cmStringValidators.NotBlank(),
+							},
+						},
+						"gcp_project_id": schema.StringAttribute{
+							MarkdownDescription: "The GCP project ID where the bucket resides.",
 							Required:            true,
 							Validators: []validator.String{
 								cmStringValidators.NotBlank(),
@@ -234,7 +286,7 @@ func (r *OrgConfigurationResource) Read(ctx context.Context, req resource.ReadRe
 			return
 		}
 
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read org configuration"), err.Error())
+		resp.Diagnostics.AddError("Failed to read org configuration", err.Error())
 		return
 	}
 
@@ -293,7 +345,7 @@ func (r *OrgConfigurationResource) checkIfExistsBeforeCreate(ctx context.Context
 
 	if err != nil {
 		retVal.AddError(resourceCreationFailedError, fmt.Sprintf("Failed to create org configuration. Error: %s", err))
-	} else if helpers.IsAllNilFields(res) == false {
+	} else if !helpers.IsAllNilFields(res) {
 		retVal.AddError("Org Configuration already exists, there is only one configuration allowed per organization",
 			fmt.Sprintf("Import operation is required to manage this resourcce. Use import command e.g 'terraform import cm_org_configuration.<resource_name> %s'", tfOrgConfiguration.ImportID),
 		)
@@ -320,7 +372,7 @@ func (r *OrgConfigurationResource) Update(ctx context.Context, req resource.Upda
 
 	if _, err := r.client.Client.organization.UpsertOrgConfiguration(ctx, body); err != nil {
 		if commons.IsNotFoundResponseError(err) {
-			resp.Diagnostics.AddError(resourceNotFoundError, fmt.Sprintf("Org Configuration not found"))
+			resp.Diagnostics.AddError(resourceNotFoundError, "Org Configuration not found")
 			return
 		}
 		resp.Diagnostics.AddError(
