@@ -9,6 +9,12 @@ description: |-
 
 Creates, updates and destroys control policies.
 
+## Learn More
+
+- [Introducing Control Policies](https://controlmonkey.io/news/introducing-control-policies/)
+- [Managed Policies for Security](https://controlmonkey.io/news/managed-policies-for-security/)
+- [Module-Only Provisioning Policy](https://controlmonkey.io/news/module-only-terraform-provisioning-policy/)
+
 ## Example Usage
 ```terraform
 resource "cm_control_policy" "control_policy" {

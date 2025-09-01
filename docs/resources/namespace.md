@@ -9,6 +9,12 @@ description: |-
 
 Creates, updates and destroys namespaces.
 
+## Learn More
+
+- [Terraform CI/CD Showdown: DIY or Buy?](https://controlmonkey.io/blog/terraform-diy-vs-buy/)
+- [Running Terraform with Jenkins: Pros and Cons](https://controlmonkey.io/blog/running-terraform-with-jenkins/)
+- [Build a Terraform CI/CD Pipeline on AWS](https://controlmonkey.io/blog/terraform-ci-cd-pipeline-aws/)
+
 ## Example Usage
 
 ### Simple namespace
@@ -144,7 +150,7 @@ Optional:
 
 Optional:
 
-- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
+- `opentofu_version` (String) the OpenTofu version that will be used for OpenTofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 
@@ -159,7 +165,7 @@ Required:
 
 Optional:
 
-- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configures.
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 
 ## Import
 

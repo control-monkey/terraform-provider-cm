@@ -9,6 +9,13 @@ description: |-
 
 Creates, updates and destroys stacks.
 
+## Learn More
+
+- [Terraform CI/CD Showdown: DIY or Buy?](https://controlmonkey.io/blog/terraform-diy-vs-buy/)
+- [Running Terraform with Jenkins: Pros and Cons](https://controlmonkey.io/blog/running-terraform-with-jenkins/)
+- [Build a Terraform CI/CD Pipeline on AWS](https://controlmonkey.io/blog/terraform-ci-cd-pipeline-aws/)
+- [Detect When the Same Terraform Resource Is Managed in Multiple Files](https://controlmonkey.io/news/same-terraform-resource-multiple-files/)
+
 ## Example Usage
 
 ### Simple stack
@@ -213,7 +220,7 @@ Optional:
 Optional:
 
 - `is_terragrunt_run_all` (Boolean) When using terragrunt, as long as this field is set to `True`, this field will execute "run-all" commands on multiple modules for init/plan/apply
-- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
+- `opentofu_version` (String) the OpenTofu version that will be used for OpenTofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 - `var_files` (List of String) Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)
@@ -262,7 +269,7 @@ Required:
 
 Optional:
 
-- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configures.
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 
 ## Import
 

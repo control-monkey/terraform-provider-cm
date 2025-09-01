@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys disaster recovery configurations. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery)
 
+## Learn More
+
+- [Cloud Disaster Recovery with Terraform: Strategies That Work](https://controlmonkey.io/blog/cloud-disaster-recovery/)
+- [AWS Networking DR Plan with Terraform](https://controlmonkey.io/blog/aws_networking_architecture_dr_plan/)
+
 ## Example Usage
 ### Default ControlMonkey Behavior for Backing Up Resources (Including Managed Resources).
 ```terraform
@@ -150,7 +155,7 @@ Required:
 
 Optional:
 
-- `groups_json` (String) JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.
+- `groups_json` (String) JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This field is not allowed when `mode` is set to `default`.
 For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)
 
 <a id="nestedatt--backup_strategy--vcs_info"></a>

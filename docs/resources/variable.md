@@ -11,6 +11,11 @@ description: |-
 Creates, updates and destroys variables.
 Variable can be either a Terraform variable or an Environment variable.
 
+## Learn More
+
+- [Load Terraform Variables Automatically in ControlMonkey](https://controlmonkey.io/news/load-terraform-variables/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
+
 ## Example Usage
 
 ### Organization variable that will be inherited by all namespaces, templates, stacks.

@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys org configuration.
 
+## Learn More
+
+- [Choosing the Right IaC Platform: What Really Matters at Scale](https://controlmonkey.io/blog/choosing-the-right-iac-platform/)
+- [The Era of Total Cloud Control Is Here](https://controlmonkey.io/blog/the-era-of-total-cloud-control-is-here/)
+
 ## Example Usage
 ```terraform
 resource "cm_org_configuration" "org_configuration" {

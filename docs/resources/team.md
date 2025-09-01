@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys teams.
 
+## Learn More
+
+- [Approval Policies (Teams Approval)](https://controlmonkey.io/news/approval-policy-teams-approval/)
+- [Attribute-Based Access Control with SSO](https://controlmonkey.io/news/attribute-based-access-control-with-controlmonkey-single-sign-on/)
+
 ## Example Usage
 ```terraform
 resource "cm_team" "dev_team" {

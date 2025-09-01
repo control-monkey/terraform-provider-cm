@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys templates for ephemeral stack.
 
+## Learn More
+
+- [Self-service templates support for Terragrunt & OpenTofu](https://controlmonkey.io/news/self-service-templates-support-for-terragrunt-opentofu/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
+
 ## Example Usage
 
 ### Basic template for an ephemeral stack that provides self-service capabilities for developers.

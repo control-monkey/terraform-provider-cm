@@ -9,6 +9,12 @@ description: |-
 
 Creates, updates and destroys teams.
 
+## Learn More
+
+- [Email Alerts for IaC Events in ControlMonkey](https://controlmonkey.io/news/controlmonkey-email-alerts/)
+- [Console Operations Notifications](https://controlmonkey.io/news/console-operations-notifications/)
+- [Terraform Microsoft Teams Support: Real-Time Infrastructure Notifications](https://controlmonkey.io/news/teams-notification-support/)
+
 ## Example Usage
 ```terraform
 resource "cm_notification_endpoint" "notification_endpoint" {

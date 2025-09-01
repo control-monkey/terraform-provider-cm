@@ -9,6 +9,10 @@ description: |-
 
 Creates, updates and destroys custom abac configurations.
 
+## Learn More
+
+- [Attribute-Based Access Control with SSO](https://controlmonkey.io/news/attribute-based-access-control-with-controlmonkey-single-sign-on/)
+
 ## Example Usage
 ```terraform
 resource "cm_team" "team" {

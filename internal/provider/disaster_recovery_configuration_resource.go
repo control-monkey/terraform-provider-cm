@@ -94,7 +94,7 @@ func (r *DisasterRecoveryConfigurationResource) Schema(_ context.Context, _ reso
 						},
 					},
 					"groups_json": schema.StringAttribute{
-						MarkdownDescription: fmt.Sprintf("JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This filed is not allowed when `mode` is set to `default`.\nFor more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)"),
+						MarkdownDescription: fmt.Sprintf("JSON format of your custom strategy. Describe how to group the resources we backup into your VCS. This field is required only when `mode` is set to `manual`. This field is not allowed when `mode` is set to `default`.\nFor more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/disaster-recovery/infrastructure-daily-backup#how-to-configure)"),
 						Optional:            true,
 						CustomType:          jsontypes.NormalizedType{},
 					},

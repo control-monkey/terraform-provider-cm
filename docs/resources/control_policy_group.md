@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys control policy groups.
 
+## Learn More
+
+- [ControlPolicy Groups](https://controlmonkey.io/news/controlpolicy-groups/)
+- [Restrict Specific Module Versions with Policies](https://controlmonkey.io/news/restrict-specific-terraform-modules-versions-with-control-policies/)
+
 ## Example Usage
 ```terraform
 resource "cm_control_policy_group" "policy_group" {

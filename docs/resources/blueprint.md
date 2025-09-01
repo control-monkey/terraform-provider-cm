@@ -9,6 +9,12 @@ description: |-
 
 Creates, updates and destroys blueprints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/self-service-templates/persistent-template)
 
+## Learn More
+
+- [Self-service Infrastructure](https://controlmonkey.io/blog/self-service-infrastructure/)
+- [Self-service templates support for Terragrunt & OpenTofu](https://controlmonkey.io/news/self-service-templates-support-for-terragrunt-opentofu/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
+
 ## Example Usage
 ~> **NOTE:** All dynamic parameters referenced in `name_pattern`, `path_pattern`, and `branch_pattern` must be explicitly defined in `substitute_parameters`.
 

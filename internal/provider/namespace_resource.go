@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -94,7 +95,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 					},
 					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
+						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
 						Optional:            true,
 					},
 				},
@@ -111,7 +112,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						},
 					},
 					"groups": schema.ListAttribute{
-						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
+						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configured.", cmTypes.SelfHosted, cmTypes.Managed),
 						ElementType:         types.StringType,
 						Optional:            true,
 						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
