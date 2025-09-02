@@ -2,9 +2,10 @@ package provider
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -86,6 +87,69 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "substitute_parameters.1.description"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "skip_plan_on_stack_initialization"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "auto_approve_apply_on_initialization"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "%s" "%s" {
+    name = "%s"
+    description = "%s"
+
+    blueprint_vcs_info = {
+        provider_id = "%s"
+        repo_name = "%s"
+        path = "%s"
+    }
+
+    stack_configuration = {
+        name_pattern = "{stack_name}"
+        iac_type = "%s"
+
+        vcs_info_with_patterns = {
+            provider_id = "%s"
+            repo_name = "%s"
+            path_pattern = "{stack_path}"
+        }
+
+        run_trigger = {
+            patterns = ["services/{stack_name}/**", "common/**"]
+            exclude_patterns = ["**/*.md"]
+        }
+
+        iac_config = {
+            terraform_version   = "1.5.9"
+            opentofu_version    = "1.6.0"
+            var_files           = ["vars/common.tfvars"]
+        }
+
+        auto_sync = {
+            deploy_when_drift_detected = true
+        }
+    }
+
+    substitute_parameters = [
+		{
+			key = "stack_name"
+			description = "any name you want"
+		},
+		{
+			key = "stack_path"
+			description = "path"
+		}
+	]
+}
+`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, blueprintProviderId,
+					blueprintRepoName, blueprintRepoPath, blueprintStackConfigurationIacType, blueprintProviderId, blueprintRepoName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.run_trigger.patterns.#", "2"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.run_trigger.exclude_patterns.#", "1"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.terraform_version", "1.5.9"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.opentofu_version", "1.6.0"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.var_files.#", "1"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.auto_sync.deploy_when_drift_detected", "true"),
 				),
 			},
 			// validate no drift step

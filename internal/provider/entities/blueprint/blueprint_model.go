@@ -28,6 +28,9 @@ type StackConfigurationModel struct {
 	IacType                  types.String                                `tfsdk:"iac_type"`
 	VcsInfoWithPatterns      *StackVcsInfoWithPatternsModel              `tfsdk:"vcs_info_with_patterns"`
 	DeploymentApprovalPolicy *cross_models.DeploymentApprovalPolicyModel `tfsdk:"deployment_approval_policy"`
+	RunTrigger               *cross_models.RunTriggerModel               `tfsdk:"run_trigger"`
+	IacConfig                *cross_models.IacConfigModel                `tfsdk:"iac_config"`
+	AutoSync                 *cross_models.AutoSyncModel                 `tfsdk:"auto_sync"`
 }
 
 type StackVcsInfoWithPatternsModel struct {

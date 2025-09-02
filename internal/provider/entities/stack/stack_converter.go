@@ -61,12 +61,12 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
-	if runTrigger, hasChanged := runTriggerConverter(plan.RunTrigger, state.RunTrigger, converterType); hasChanged {
+	if runTrigger, hasChanged := cross_models.RunTriggerConverter(plan.RunTrigger, state.RunTrigger, converterType); hasChanged {
 		data.SetRunTrigger(runTrigger)
 		hasChanges = true
 	}
 
-	if iacConfig, hasChanged := iacConfigConverter(plan.IacConfig, state.IacConfig, converterType); hasChanged {
+	if iacConfig, hasChanged := cross_models.IacConfigConverter(plan.IacConfig, state.IacConfig, converterType); hasChanged {
 		data.SetIacConfig(iacConfig)
 		hasChanges = true
 	}
@@ -81,7 +81,7 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
-	if autoSync, hasChanged := autoSyncConverter(plan.AutoSync, state.AutoSync, converterType); hasChanged {
+	if autoSync, hasChanged := cross_models.AutoSyncConverter(plan.AutoSync, state.AutoSync, converterType); hasChanged {
 		data.SetAutoSync(autoSync)
 		hasChanges = true
 	}
@@ -155,81 +155,6 @@ func vcsInfoConverter(plan *VcsInfoModel, state *VcsInfoModel, converterType com
 	}
 	if plan.Branch != state.Branch {
 		retVal.SetBranch(plan.Branch.ValueStringPointer())
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func runTriggerConverter(plan *RunTriggerModel, state *RunTriggerModel, converterType commons.ConverterType) (*stack.RunTrigger, bool) {
-	var retVal *stack.RunTrigger
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.RunTrigger)
-	hasChanges := false
-
-	if state == nil {
-		state = new(RunTriggerModel) // dummy initialization
-		hasChanges = true            // must have changes because before is null and after is not
-	}
-
-	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Patterns, state.Patterns); hasInnerChanges {
-		retVal.SetPatterns(innerProperty)
-		hasChanges = true
-	}
-
-	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.ExcludePatterns, state.ExcludePatterns); hasInnerChanges {
-		retVal.SetExcludePatterns(innerProperty)
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterType commons.ConverterType) (*stack.IacConfig, bool) {
-	var retVal *stack.IacConfig
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.IacConfig)
-	hasChanges := false
-
-	if state == nil {
-		state = new(IacConfigModel) // dummy initialization
-		hasChanges = true           // must have changes because before is null and after is not
-	}
-
-	if plan.TerraformVersion != state.TerraformVersion {
-		retVal.SetTerraformVersion(plan.TerraformVersion.ValueStringPointer())
-		hasChanges = true
-	}
-	if plan.TerragruntVersion != state.TerragruntVersion {
-		retVal.SetTerragruntVersion(plan.TerragruntVersion.ValueStringPointer())
-		hasChanges = true
-	}
-	if plan.OpentofuVersion != state.OpentofuVersion {
-		retVal.SetOpentofuVersion(plan.OpentofuVersion.ValueStringPointer())
-		hasChanges = true
-	}
-	if plan.IsTerragruntRunAll != state.IsTerragruntRunAll {
-		retVal.SetIsTerragruntRunAll(plan.IsTerragruntRunAll.ValueBoolPointer())
-		hasChanges = true
-	}
-	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.VarFiles, state.VarFiles); hasInnerChanges {
-		retVal.SetVarFiles(innerProperty)
 		hasChanges = true
 	}
 
@@ -345,33 +270,6 @@ func runnerConfigConverter(plan *RunnerConfigModel, state *RunnerConfigModel, co
 
 	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Groups, state.Groups); hasInnerChanges {
 		retVal.SetGroups(innerProperty)
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func autoSyncConverter(plan *AutoSyncModel, state *AutoSyncModel, converterType commons.ConverterType) (*stack.AutoSync, bool) {
-	var retVal *stack.AutoSync
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.AutoSync)
-	hasChanges := false
-
-	if state == nil {
-		state = new(AutoSyncModel) // dummy initialization
-		hasChanges = true          // must have changes because before is null and after is not
-	}
-
-	if plan.DeployWhenDriftDetected != state.DeployWhenDriftDetected {
-		retVal.SetDeployWhenDriftDetected(plan.DeployWhenDriftDetected.ValueBoolPointer())
 		hasChanges = true
 	}
 

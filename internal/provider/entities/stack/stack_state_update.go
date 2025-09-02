@@ -38,14 +38,14 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.RunTrigger != nil {
-		rt := updateStateAfterReadRunTrigger(data.RunTrigger)
+		rt := cross_models.UpdateStateAfterReadRunTrigger(data.RunTrigger)
 		state.RunTrigger = &rt
 	} else {
 		state.RunTrigger = nil
 	}
 
 	if data.IacConfig != nil {
-		ic := updateStateAfterReadIacConfig(data.IacConfig)
+		ic := cross_models.UpdateStateAfterReadIacConfig(data.IacConfig)
 		state.IacConfig = &ic
 	} else {
 		state.IacConfig = nil
@@ -66,7 +66,7 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.AutoSync != nil {
-		as := updateStateAfterReadAutoSync(data.AutoSync)
+		as := cross_models.UpdateStateAfterReadAutoSync(data.AutoSync)
 		state.AutoSync = &as
 	} else {
 		state.AutoSync = nil
@@ -89,27 +89,6 @@ func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
 	retVal.RepoName = helpers.StringValueOrNull(vcsInfo.RepoName)
 	retVal.Path = helpers.StringValueOrNull(vcsInfo.Path)
 	retVal.Branch = helpers.StringValueOrNull(vcsInfo.Branch)
-
-	return retVal
-}
-
-func updateStateAfterReadRunTrigger(runTrigger *sdkStack.RunTrigger) RunTriggerModel {
-	var retVal RunTriggerModel
-
-	retVal.Patterns = helpers.StringPointerSliceToTfList(runTrigger.Patterns)
-	retVal.ExcludePatterns = helpers.StringPointerSliceToTfList(runTrigger.ExcludePatterns)
-
-	return retVal
-}
-
-func updateStateAfterReadIacConfig(iacConfig *sdkStack.IacConfig) IacConfigModel {
-	var retVal IacConfigModel
-
-	retVal.TerraformVersion = helpers.StringValueOrNull(iacConfig.TerraformVersion)
-	retVal.TerragruntVersion = helpers.StringValueOrNull(iacConfig.TerragruntVersion)
-	retVal.OpentofuVersion = helpers.StringValueOrNull(iacConfig.OpentofuVersion)
-	retVal.IsTerragruntRunAll = helpers.BoolValueOrNull(iacConfig.IsTerragruntRunAll)
-	retVal.VarFiles = helpers.StringPointerSliceToTfList(iacConfig.VarFiles)
 
 	return retVal
 }
@@ -155,16 +134,6 @@ func updateStateAfterReadRunnerConfig(rc *sdkStack.RunnerConfig) RunnerConfigMod
 	if rc != nil {
 		retVal.Mode = helpers.StringValueOrNull(rc.Mode)
 		retVal.Groups = helpers.StringPointerSliceToTfList(rc.Groups)
-	}
-
-	return retVal
-}
-
-func updateStateAfterReadAutoSync(as *sdkStack.AutoSync) AutoSyncModel {
-	var retVal AutoSyncModel
-
-	if as != nil {
-		retVal.DeployWhenDriftDetected = helpers.BoolValueOrNull(as.DeployWhenDriftDetected)
 	}
 
 	return retVal

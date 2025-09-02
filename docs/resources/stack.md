@@ -151,7 +151,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 - `auto_sync` (Attributes) Set up auto sync configurations. (see [below for nested schema](#nestedatt--auto_sync))
 - `deployment_approval_policy` (Attributes) Set up requirements to approve a deployment (see [below for nested schema](#nestedatt--deployment_approval_policy))
 - `description` (String) The description of the stack.
-- `iac_config` (Attributes) IaC configuration of the stack. (see [below for nested schema](#nestedatt--iac_config))
+- `iac_config` (Attributes) IaC configuration. (see [below for nested schema](#nestedatt--iac_config))
 - `policy` (Attributes) The policy of the stack. (see [below for nested schema](#nestedatt--policy))
 - `run_trigger` (Attributes) Glob patterns to specify additional paths that should trigger a stack run. (see [below for nested schema](#nestedatt--run_trigger))
 - `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
@@ -220,7 +220,7 @@ Optional:
 Optional:
 
 - `is_terragrunt_run_all` (Boolean) When using terragrunt, as long as this field is set to `True`, this field will execute "run-all" commands on multiple modules for init/plan/apply
-- `opentofu_version` (String) the OpenTofu version that will be used for OpenTofu operations.
+- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 - `var_files` (List of String) Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)

@@ -1,10 +1,11 @@
 package blueprint
 
 import (
+	"reflect"
+
 	apiBlueprint "github.com/control-monkey/controlmonkey-sdk-go/services/blueprint"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
-	"reflect"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*apiBlueprint.Blueprint, bool) {
@@ -136,6 +137,21 @@ func stackConfigurationConverter(plan *StackConfigurationModel, state *StackConf
 
 	if deploymentApprovalPolicy, hasChanged := cross_models.DeploymentApprovalPolicyConverter(plan.DeploymentApprovalPolicy, state.DeploymentApprovalPolicy, converterType); hasChanged {
 		retVal.SetDeploymentApprovalPolicy(deploymentApprovalPolicy)
+		hasChanges = true
+	}
+
+	if runTrigger, hasChanged := cross_models.RunTriggerConverter(plan.RunTrigger, state.RunTrigger, converterType); hasChanged {
+		retVal.SetRunTrigger(runTrigger)
+		hasChanges = true
+	}
+
+	if iacConfig, hasChanged := cross_models.IacConfigConverter(plan.IacConfig, state.IacConfig, converterType); hasChanged {
+		retVal.SetIacConfig(iacConfig)
+		hasChanges = true
+	}
+
+	if autoSync, hasChanged := cross_models.AutoSyncConverter(plan.AutoSync, state.AutoSync, converterType); hasChanged {
+		retVal.SetAutoSync(autoSync)
 		hasChanges = true
 	}
 

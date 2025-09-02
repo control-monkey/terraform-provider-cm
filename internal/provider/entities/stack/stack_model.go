@@ -14,11 +14,11 @@ type ResourceModel struct {
 	DeploymentBehavior       *DeploymentBehaviorModel                    `tfsdk:"deployment_behavior"`
 	DeploymentApprovalPolicy *cross_models.DeploymentApprovalPolicyModel `tfsdk:"deployment_approval_policy"`
 	VcsInfo                  *VcsInfoModel                               `tfsdk:"vcs_info"`
-	RunTrigger               *RunTriggerModel                            `tfsdk:"run_trigger"`
-	IacConfig                *IacConfigModel                             `tfsdk:"iac_config"`
+	RunTrigger               *cross_models.RunTriggerModel               `tfsdk:"run_trigger"`
+	IacConfig                *cross_models.IacConfigModel                `tfsdk:"iac_config"`
 	Policy                   *PolicyModel                                `tfsdk:"policy"`
 	RunnerConfig             *RunnerConfigModel                          `tfsdk:"runner_config"`
-	AutoSync                 *AutoSyncModel                              `tfsdk:"auto_sync"`
+	AutoSync                 *cross_models.AutoSyncModel                 `tfsdk:"auto_sync"`
 }
 
 type DeploymentBehaviorModel struct {
@@ -31,19 +31,6 @@ type VcsInfoModel struct {
 	RepoName   types.String `tfsdk:"repo_name"`
 	Path       types.String `tfsdk:"path"`
 	Branch     types.String `tfsdk:"branch"`
-}
-
-type RunTriggerModel struct {
-	Patterns        types.List `tfsdk:"patterns"`
-	ExcludePatterns types.List `tfsdk:"exclude_patterns"`
-}
-
-type IacConfigModel struct {
-	TerraformVersion   types.String `tfsdk:"terraform_version"`
-	TerragruntVersion  types.String `tfsdk:"terragrunt_version"`
-	OpentofuVersion    types.String `tfsdk:"opentofu_version"`
-	IsTerragruntRunAll types.Bool   `tfsdk:"is_terragrunt_run_all"`
-	VarFiles           types.List   `tfsdk:"var_files"`
 }
 
 type PolicyModel struct {
@@ -62,8 +49,4 @@ type TtlDefinitionModel struct {
 type RunnerConfigModel struct {
 	Mode   types.String `tfsdk:"mode"`
 	Groups types.List   `tfsdk:"groups"`
-}
-
-type AutoSyncModel struct {
-	DeployWhenDriftDetected types.Bool `tfsdk:"deploy_when_drift_detected"`
 }

@@ -116,52 +116,8 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"run_trigger": schema.SingleNestedAttribute{
-				MarkdownDescription: "Glob patterns to specify additional paths that should trigger a stack run.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"patterns": schema.ListAttribute{
-						MarkdownDescription: "Patterns that trigger a stack run.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-					"exclude_patterns": schema.ListAttribute{
-						MarkdownDescription: "Patterns that will not trigger a stack run.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-				},
-			},
-			"iac_config": schema.SingleNestedAttribute{
-				MarkdownDescription: "IaC configuration of the stack.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"terraform_version": schema.StringAttribute{
-						MarkdownDescription: "the Terraform version that will be used for terraform operations.",
-						Optional:            true,
-					},
-					"terragrunt_version": schema.StringAttribute{
-						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
-						Optional:            true,
-					},
-					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
-						Optional:            true,
-					},
-					"is_terragrunt_run_all": schema.BoolAttribute{
-						MarkdownDescription: "When using terragrunt, as long as this field is set to `True`, this field will execute \"run-all\" commands on multiple modules for init/plan/apply",
-						Optional:            true,
-					},
-					"var_files": schema.ListAttribute{
-						ElementType:         types.StringType,
-						Optional:            true,
-						MarkdownDescription: "Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)",
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-				},
-			},
+			"run_trigger": cross_schema.RunTriggerSchema,
+			"iac_config":  cross_schema.IacConfigSchema,
 			"policy": schema.SingleNestedAttribute{
 				MarkdownDescription: "The policy of the stack.",
 				Optional:            true,
@@ -209,16 +165,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"auto_sync": schema.SingleNestedAttribute{
-				MarkdownDescription: "Set up auto sync configurations.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"deploy_when_drift_detected": schema.BoolAttribute{
-						MarkdownDescription: "If set to `true`, a deployment will start automatically upon detecting a drift or multiple drifts",
-						Optional:            true,
-					},
-				},
-			},
+			"auto_sync": cross_schema.AutoSyncSchema,
 		},
 	}
 }
