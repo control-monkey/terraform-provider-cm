@@ -2,8 +2,9 @@ package provider
 
 import (
 	"context"
-	"github.com/control-monkey/terraform-provider-cm/version"
 	"os"
+
+	"github.com/control-monkey/terraform-provider-cm/version"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -128,6 +129,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewCustomAbacConfigurationResource,
 		NewBlueprintResource,
 		NewDisasterRecoveryConfigurationResource,
+		NewNotificationSlackAppResource,
 	}
 }
 
@@ -143,5 +145,6 @@ func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() dataso
 		NewStackDataSource,
 		NewCustomRoleDataSource,
 		NewCustomAbacConfigurationDataSource,
+		NewNotificationSlackAppDataSource,
 	}
 }
