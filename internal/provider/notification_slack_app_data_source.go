@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	tfSlackAppData "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/notification_slack_app_data"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -42,15 +43,24 @@ func (r *NotificationSlackAppDataSource) Schema(_ context.Context, _ datasource.
 	}
 }
 
-func (r *NotificationSlackAppDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+// Configure adds the provider configured client to the data source.
+func (r *NotificationSlackAppDataSource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
+
 	client, ok := req.ProviderData.(*ControlMonkeyAPIClient)
+
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", fmt.Sprintf("Expected *ControlMonkeyAPIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData))
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *ControlMonkeyAPIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
 		return
 	}
+
 	r.client = client
 }
 

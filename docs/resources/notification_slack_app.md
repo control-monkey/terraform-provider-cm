@@ -39,7 +39,7 @@ resource "cm_notification_slack_app" "slack_app" {
 
 ### Required
 
-- `bot_auth_token` (String, Sensitive) The bot auth token. Optional and sensitive. Not persisted to state.
+- `bot_auth_token` (String, Sensitive) A sensitive bot auth token
 - `name` (String) The name of the Slack App.
 
 ### Read-Only

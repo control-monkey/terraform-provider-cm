@@ -2,6 +2,7 @@ TEST?=./...
 PKGNAME?=./internal/provider
 VERSION?=$(shell grep -o 'Version = \".*\"' version/version.go | grep -o \[0-9.]\\+)
 RELEASE?=v$(VERSION)
+ENV?=local
 
 V := 0
 Q := $(if $(filter 1,$(V)),,@)
@@ -19,7 +20,7 @@ test: fmtcheck
 
 .PHONY: testacc
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 $(TESTARGS) -timeout 120m
+	set -a; if [ -f .env.$(ENV) ]; then source .env.$(ENV); fi; set +a; TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 $(TESTARGS) -timeout 120m
 
 .PHONY: testcompile # https://stackoverflow.com/questions/72721580/how-to-compile-all-tests-across-a-repo-without-executing-them
 testcompile:
@@ -119,3 +120,11 @@ pre_build: fmt docscheck vet testcompile testacc
 .PHONY: imports
 imports:
 	$(Q) goimports -w $$($(GO) list -f {{.Dir}} ./... | grep -v /vendor/)
+
+.PHONY: testentity
+testentity: ## Run a specific test (requires TESTNAME)
+	@if [ -z "$(TESTNAME)" ]; then \
+		echo "ERROR: TESTNAME must be set, e.g. make testentity TESTNAME=NotificationEndpointResource"; \
+		exit 1; \
+	fi
+	@bash -lc 'set -a; if [ -f .env.$(ENV) ]; then source .env.$(ENV); fi; set +a; TF_ACC=1 go test $(PKGNAME) -v -run $(TESTNAME) $(TESTARGS) | cat'

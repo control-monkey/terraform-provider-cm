@@ -49,15 +49,24 @@ func (r *NotificationSlackAppResource) Schema(_ context.Context, _ resource.Sche
 	}
 }
 
+// Configure adds the provider configured client to the data source.
 func (r *NotificationSlackAppResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
+
 	client, ok := req.ProviderData.(*ControlMonkeyAPIClient)
+
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", fmt.Sprintf("Expected *ControlMonkeyAPIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData))
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *ControlMonkeyAPIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
 		return
 	}
+
 	r.client = client
 }
 
