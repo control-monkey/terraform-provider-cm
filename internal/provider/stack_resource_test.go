@@ -2,8 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
+	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -18,16 +20,19 @@ const (
 	s1Description               = "hi"
 	s1DeployOnPush              = "false"
 	s1WaitForApproval           = "true"
-	s1ProviderId                = "vcsp-jgkig4q04e"
 	s1TerraformVersion          = "1.4.5"
 	s1RunTriggerPatternsElement = "hi"
-	s1RepoName                  = "control-monkey/terraform"
 	s1PolicyTtlType             = "hours"
 	s1PolicyTtlValue            = "1"
 
 	s1NameAfterUpdate             = "stack2"
 	s1IacTypeAfterUpdate          = "terragrunt"
 	s1TerrgruntVersionAfterUpdate = "0.45.3"
+)
+
+var (
+	s1ProviderId = os.Getenv("CM_TEST_PROVIDER_ID")
+	s1RepoName   = os.Getenv("CM_TEST_REPO_NAME")
 )
 
 // should return 400

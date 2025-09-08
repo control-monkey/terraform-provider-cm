@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,8 +15,6 @@ const (
 	t1Name                  = "Dev Self-Service Template"
 	t1IacType               = "terraform"
 	t1Description           = "Self service on Dev environment for developers"
-	t1ProviderId            = "vcsp-jgkig4q04e"
-	t1RepoName              = "terraform/test"
 	t1PolicyMaxTtlType      = "days"
 	t1PolicyMaxTtlValue     = "2"
 	t1PolicyDefaultTtlType  = "hours"
@@ -24,6 +23,11 @@ const (
 	t1PolicyDefaultTtlValueAfterUpdate = "1"
 	t1NameAfterUpdate                  = "Dev Self-Service Template After Update"
 	t1IacTypeAfterUpdate               = "terragrunt"
+)
+
+var (
+	t1ProviderId = os.Getenv("CM_TEST_PROVIDER_ID")
+	t1RepoName   = os.Getenv("CM_TEST_REPO_NAME")
 )
 
 func TestAccTemplateResource(t *testing.T) {

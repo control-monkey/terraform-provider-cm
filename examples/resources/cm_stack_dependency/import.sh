@@ -1,0 +1,1 @@
+terraform import cm_stack_dependency.dependency sdep-123
