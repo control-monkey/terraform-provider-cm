@@ -15,7 +15,6 @@ const (
 
 	s1ResourceName              = "stack1"
 	s1IacType                   = "terraform"
-	s1NamespaceId               = "ns-x82yjdyahc"
 	s1Name                      = "stack1"
 	s1Description               = "hi"
 	s1DeployOnPush              = "false"
@@ -42,10 +41,10 @@ func TestAccStackResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: testAccStackResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
  iac_type = "%s"
- namespace_id = "%s"
+ namespace_id = cm_namespace.test_namespace.id
  name = "%s"
  description = "%s"
  deployment_behavior = {
@@ -71,12 +70,12 @@ resource "%s" "%s" {
 	}
  }
 }
-`, cmStack, s1ResourceName, s1IacType, s1NamespaceId, s1Name, s1Description, s1DeployOnPush, s1WaitForApproval,
+`, cmStack, s1ResourceName, s1IacType, s1Name, s1Description, s1DeployOnPush, s1WaitForApproval,
 					s1ProviderId, s1RepoName, s1TerraformVersion, s1RunTriggerPatternsElement,
 					s1PolicyTtlType, s1PolicyTtlValue),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacType),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "namespace_id", s1NamespaceId),
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1Name),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "description", s1Description),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.deploy_on_push", s1DeployOnPush),
@@ -96,7 +95,7 @@ resource "%s" "%s" {
 				ConfigVariables: config.Variables{
 					"trigger_patterns": config.ListVariable(config.StringVariable("a"), config.StringVariable("b")),
 				},
-				Config: providerConfig + fmt.Sprintf(`
+				Config: testAccStackResourceSetup() + fmt.Sprintf(`
 
 variable "trigger_patterns" {
   type = list(string)
@@ -105,7 +104,7 @@ variable "trigger_patterns" {
 
 resource "%s" "%s" {
   iac_type = "%s"
-  namespace_id = "%s"
+  namespace_id = cm_namespace.test_namespace.id
   name = "%s"
   deployment_behavior = {
     deploy_on_push = %s
@@ -130,12 +129,12 @@ resource "%s" "%s" {
  	}
    }
  }
-`, cmStack, s1ResourceName, s1IacTypeAfterUpdate, s1NamespaceId, s1NameAfterUpdate, s1DeployOnPush, s1WaitForApproval,
+`, cmStack, s1ResourceName, s1IacTypeAfterUpdate, s1NameAfterUpdate, s1DeployOnPush, s1WaitForApproval,
 					s1ProviderId, s1RepoName, s1TerrgruntVersionAfterUpdate, s1PolicyTtlType, s1PolicyTtlValue),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacTypeAfterUpdate),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "namespace_id", s1NamespaceId),
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1NameAfterUpdate),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.deploy_on_push", s1DeployOnPush),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.wait_for_approval", s1WaitForApproval),
@@ -153,7 +152,7 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: testAccStackResourceSetup() + fmt.Sprintf(`
 
 variable "trigger_patterns" {
   type = list(string)
@@ -162,7 +161,7 @@ variable "trigger_patterns" {
 
 resource "%s" "%s" {
   iac_type = "%s"
-  namespace_id = "%s"
+  namespace_id = cm_namespace.test_namespace.id
   name = "%s"
   deployment_behavior = {
     deploy_on_push = %s
@@ -187,12 +186,12 @@ resource "%s" "%s" {
  	}
    }
  }
-`, cmStack, s1ResourceName, s1IacTypeAfterUpdate, s1NamespaceId, s1NameAfterUpdate, s1DeployOnPush, s1WaitForApproval,
+`, cmStack, s1ResourceName, s1IacTypeAfterUpdate, s1NameAfterUpdate, s1DeployOnPush, s1WaitForApproval,
 					s1ProviderId, s1RepoName, s1TerrgruntVersionAfterUpdate, s1PolicyTtlType, s1PolicyTtlValue),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacTypeAfterUpdate),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "namespace_id", s1NamespaceId),
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1NameAfterUpdate),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.deploy_on_push", s1DeployOnPush),
 					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "deployment_behavior.wait_for_approval", s1WaitForApproval),
@@ -218,4 +217,12 @@ resource "%s" "%s" {
 
 func stackResourceName(s string) string {
 	return fmt.Sprintf("%s.%s", cmStack, s)
+}
+
+func testAccStackResourceSetup() string {
+	return providerConfig + fmt.Sprintf(`
+resource "cm_namespace" "test_namespace" {
+  name = "Stack Namespace"
+}
+`)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
-	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -73,25 +72,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringvalidator.NoneOf(""),
 				},
 			},
-			"deployment_behavior": schema.SingleNestedAttribute{
-				MarkdownDescription: "The deployment behavior configuration.",
-				Required:            true,
-				Attributes: map[string]schema.Attribute{
-					"deploy_on_push": schema.BoolAttribute{
-						MarkdownDescription: "Choose whether to initiate a deployment when a push event occurs or not.",
-						Required:            true,
-					},
-					"wait_for_approval": schema.BoolAttribute{
-						MarkdownDescription: "Use `deployment_approval_policy`. Decide whether to wait for approval before proceeding with the deployment or not.",
-						Optional:            true,
-						DeprecationMessage:  "Attribute \"deployment_behavior.wait_for_approval\" is deprecated. Use \"deployment_approval_policy\" instead",
-						Validators: []validator.Bool{
-							boolvalidator.ConflictsWith(
-								path.MatchRoot("deployment_approval_policy")),
-						},
-					},
-				},
-			},
+			"deployment_behavior":        cross_schema.StackDeploymentBehaviorSchema,
 			"deployment_approval_policy": cross_schema.StackDeploymentApprovalPolicySchema,
 			"vcs_info": schema.SingleNestedAttribute{
 				MarkdownDescription: "The configuration of the version control to which the stack is attached.",
@@ -146,26 +127,8 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"runner_config": schema.SingleNestedAttribute{
-				MarkdownDescription: "Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"mode": schema.StringAttribute{
-						MarkdownDescription: fmt.Sprintf("The runner mode. Allowed values: %s.", helpers.EnumForDocs(cmTypes.RunnerConfigModeTypes)),
-						Required:            true,
-						Validators: []validator.String{
-							stringvalidator.OneOf(cmTypes.RunnerConfigModeTypes...),
-						},
-					},
-					"groups": schema.ListAttribute{
-						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configured.", cmTypes.SelfHosted, cmTypes.Managed),
-						ElementType:         types.StringType,
-						Optional:            true,
-						// Validation in ValidateConfig
-					},
-				},
-			},
-			"auto_sync": cross_schema.AutoSyncSchema,
+			"runner_config": cross_schema.StackRunnerConfigSchema,
+			"auto_sync":     cross_schema.AutoSyncSchema,
 		},
 	}
 }

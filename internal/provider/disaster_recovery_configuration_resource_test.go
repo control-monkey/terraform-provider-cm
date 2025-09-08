@@ -18,8 +18,6 @@ const (
 	disasterRecoveryConfigurationScope                    = "aws"
 	disasterRecoveryConfigurationMode                     = "default"
 	disasterRecoveryConfigurationIncludeManaged           = "true"
-	disasterRecoveryConfigurationProviderId               = s1ProviderId
-	disasterRecoveryConfigurationRepoName                 = s1RepoName
 	disasterRecoveryConfigurationRepoBranch               = "main"
 	disasterRecoveryConfigurationBackupStrategyGroupsJson = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::EC2\"],\"resourceTypes\":[\"AWS::EC2::Instance\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner2\",\"value\":\"Me2\"}]}}]\n"
 
@@ -27,9 +25,14 @@ const (
 	disasterRecoveryConfigurationRepoNameAfterUpdate = "terraform"
 )
 
-// normalize json string
-var disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::S3\"],\"resourceTypes\":[\"AWS::S3::Bucket\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner3\",\"value\":\"Me3\"}]}}]\n"
-var disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate = helpers.NormalizeJsonArrayString(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString)
+var (
+	disasterRecoveryConfigurationProviderId = s1ProviderId
+	disasterRecoveryConfigurationRepoName   = s1RepoName
+
+	// normalize json string
+	disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::S3\"],\"resourceTypes\":[\"AWS::S3::Bucket\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner3\",\"value\":\"Me3\"}]}}]\n"
+	disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate       = helpers.NormalizeJsonArrayString(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString)
+)
 
 func TestAccDisasterRecoveryConfigurationResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -38,7 +41,7 @@ func TestAccDisasterRecoveryConfigurationResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(os.Getenv("CM_TEST_CLOUD_ACCOUNT_ID")),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {

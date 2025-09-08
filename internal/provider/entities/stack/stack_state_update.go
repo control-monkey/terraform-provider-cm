@@ -17,7 +17,7 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	data := stack.Data
 
 	if data.DeploymentBehavior != nil {
-		dp := updateStateAfterReadDeploymentBehavior(data.DeploymentBehavior)
+		dp := cross_models.UpdateStateAfterReadDeploymentBehavior(data.DeploymentBehavior)
 		state.DeploymentBehavior = &dp
 	} else {
 		state.DeploymentBehavior = nil
@@ -59,7 +59,7 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.RunnerConfig != nil {
-		rc := updateStateAfterReadRunnerConfig(data.RunnerConfig)
+		rc := cross_models.UpdateStateAfterReadRunnerConfig(data.RunnerConfig)
 		state.RunnerConfig = &rc
 	} else {
 		state.RunnerConfig = nil
@@ -71,15 +71,6 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	} else {
 		state.AutoSync = nil
 	}
-}
-
-func updateStateAfterReadDeploymentBehavior(deploymentBehavior *sdkStack.DeploymentBehavior) DeploymentBehaviorModel {
-	var retVal DeploymentBehaviorModel
-
-	retVal.DeployOnPush = helpers.BoolValueOrNull(deploymentBehavior.DeployOnPush)
-	retVal.WaitForApproval = helpers.BoolValueOrNull(deploymentBehavior.WaitForApproval)
-
-	return retVal
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
@@ -124,17 +115,6 @@ func updateStateAfterReadTtlDefinition(ttl *sdkStack.TtlDefinition) TtlDefinitio
 
 	retVal.Type = helpers.StringValueOrNull(ttl.Type)
 	retVal.Value = helpers.Int64ValueOrNull(ttl.Value)
-
-	return retVal
-}
-
-func updateStateAfterReadRunnerConfig(rc *sdkStack.RunnerConfig) RunnerConfigModel {
-	var retVal RunnerConfigModel
-
-	if rc != nil {
-		retVal.Mode = helpers.StringValueOrNull(rc.Mode)
-		retVal.Groups = helpers.StringPointerSliceToTfList(rc.Groups)
-	}
 
 	return retVal
 }

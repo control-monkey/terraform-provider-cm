@@ -2,14 +2,13 @@ package stack
 
 import (
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/stack"
-	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	sdkStack "github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
-func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*stack.Stack, bool) {
-	var retVal *stack.Stack
+func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*sdkStack.Stack, bool) {
+	var retVal *sdkStack.Stack
 
 	if plan == nil {
 		if state == nil {
@@ -19,7 +18,7 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		}
 	}
 
-	retVal = new(stack.Stack)
+	retVal = new(sdkStack.Stack)
 	hasChanges := false
 
 	if state == nil {
@@ -44,9 +43,9 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
-	var data stack.Data
+	var data sdkStack.Data
 
-	if deploymentBehavior, hasChanged := deploymentBehaviorConverter(plan.DeploymentBehavior, state.DeploymentBehavior, converterType); hasChanged {
+	if deploymentBehavior, hasChanged := cross_models.DeploymentBehaviorConverter(plan.DeploymentBehavior, state.DeploymentBehavior, converterType); hasChanged {
 		data.SetDeploymentBehavior(deploymentBehavior)
 		hasChanges = true
 	}
@@ -76,7 +75,7 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
-	if runnerConfig, hasChanged := runnerConfigConverter(plan.RunnerConfig, state.RunnerConfig, converterType); hasChanged {
+	if runnerConfig, hasChanged := cross_models.RunnerConfigConverter(plan.RunnerConfig, state.RunnerConfig, converterType); hasChanged {
 		data.SetRunnerConfig(runnerConfig)
 		hasChanges = true
 	}
@@ -91,8 +90,8 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 	return retVal, hasChanges
 }
 
-func deploymentBehaviorConverter(plan *DeploymentBehaviorModel, state *DeploymentBehaviorModel, converterType commons.ConverterType) (*stack.DeploymentBehavior, bool) {
-	var retVal *stack.DeploymentBehavior
+func vcsInfoConverter(plan *VcsInfoModel, state *VcsInfoModel, converterType commons.ConverterType) (*sdkStack.VcsInfo, bool) {
+	var retVal *sdkStack.VcsInfo
 
 	if plan == nil {
 		if state == nil {
@@ -102,38 +101,7 @@ func deploymentBehaviorConverter(plan *DeploymentBehaviorModel, state *Deploymen
 		}
 	}
 
-	retVal = new(stack.DeploymentBehavior)
-	hasChanges := false
-
-	if state == nil {
-		state = new(DeploymentBehaviorModel) // dummy initialization
-		hasChanges = true                    // must have changes because before is null and after is not
-	}
-
-	if plan.DeployOnPush != state.DeployOnPush {
-		retVal.SetDeployOnPush(plan.DeployOnPush.ValueBoolPointer())
-		hasChanges = true
-	}
-	if plan.WaitForApproval != state.WaitForApproval {
-		retVal.SetWaitForApproval(plan.WaitForApproval.ValueBoolPointer())
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func vcsInfoConverter(plan *VcsInfoModel, state *VcsInfoModel, converterType commons.ConverterType) (*stack.VcsInfo, bool) {
-	var retVal *stack.VcsInfo
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.VcsInfo)
+	retVal = new(sdkStack.VcsInfo)
 	hasChanges := false
 
 	if state == nil {
@@ -161,8 +129,8 @@ func vcsInfoConverter(plan *VcsInfoModel, state *VcsInfoModel, converterType com
 	return retVal, hasChanges
 }
 
-func policyConverter(plan *PolicyModel, state *PolicyModel, converterType commons.ConverterType) (*stack.Policy, bool) {
-	var retVal *stack.Policy
+func policyConverter(plan *PolicyModel, state *PolicyModel, converterType commons.ConverterType) (*sdkStack.Policy, bool) {
+	var retVal *sdkStack.Policy
 
 	if plan == nil {
 		if state == nil {
@@ -172,7 +140,7 @@ func policyConverter(plan *PolicyModel, state *PolicyModel, converterType common
 		}
 	}
 
-	retVal = new(stack.Policy)
+	retVal = new(sdkStack.Policy)
 	hasChanges := false
 
 	if state == nil {
@@ -187,8 +155,8 @@ func policyConverter(plan *PolicyModel, state *PolicyModel, converterType common
 	return retVal, hasChanges
 }
 
-func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterType commons.ConverterType) (*stack.TtlConfig, bool) {
-	var retVal *stack.TtlConfig
+func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterType commons.ConverterType) (*sdkStack.TtlConfig, bool) {
+	var retVal *sdkStack.TtlConfig
 
 	if plan == nil {
 		if state == nil {
@@ -198,7 +166,7 @@ func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterTy
 		}
 	}
 
-	retVal = new(stack.TtlConfig)
+	retVal = new(sdkStack.TtlConfig)
 	hasChanges := false
 
 	if state == nil {
@@ -213,8 +181,8 @@ func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterTy
 	return retVal, hasChanges
 }
 
-func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionModel, converterType commons.ConverterType) (*stack.TtlDefinition, bool) {
-	var retVal *stack.TtlDefinition
+func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionModel, converterType commons.ConverterType) (*sdkStack.TtlDefinition, bool) {
+	var retVal *sdkStack.TtlDefinition
 
 	if plan == nil {
 		if state == nil {
@@ -224,7 +192,7 @@ func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionM
 		}
 	}
 
-	retVal = new(stack.TtlDefinition)
+	retVal = new(sdkStack.TtlDefinition)
 	hasChanges := false
 
 	if state == nil {
@@ -238,38 +206,6 @@ func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionM
 	}
 	if plan.Value != state.Value {
 		retVal.SetValue(controlmonkey.Int(int(plan.Value.ValueInt64())))
-		hasChanges = true
-	}
-
-	return retVal, hasChanges
-}
-
-func runnerConfigConverter(plan *RunnerConfigModel, state *RunnerConfigModel, converterType commons.ConverterType) (*stack.RunnerConfig, bool) {
-	var retVal *stack.RunnerConfig
-
-	if plan == nil {
-		if state == nil {
-			return nil, false // both are the same, no changes
-		} else {
-			return nil, true // before had data, after update is null -> update to null
-		}
-	}
-
-	retVal = new(stack.RunnerConfig)
-	hasChanges := false
-
-	if state == nil {
-		state = new(RunnerConfigModel) // dummy initialization
-		hasChanges = true              // must have changes because before is null and after is not
-	}
-
-	if plan.Mode != state.Mode {
-		retVal.SetMode(plan.Mode.ValueStringPointer())
-		hasChanges = true
-	}
-
-	if innerProperty, hasInnerChanges := helpers.TfListStringConverter(plan.Groups, state.Groups); hasInnerChanges {
-		retVal.SetGroups(innerProperty)
 		hasChanges = true
 	}
 

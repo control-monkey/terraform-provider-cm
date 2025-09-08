@@ -16,12 +16,15 @@ const (
 
 	blueprintName                      = "Test Blueprint"
 	blueprintDescription               = "Description"
-	blueprintProviderId                = s1ProviderId
-	blueprintRepoName                  = s1RepoName
 	blueprintRepoPath                  = "cm/blueprint"
 	blueprintStackConfigurationIacType = "terraform"
 
 	blueprintNameAfterUpdate = "updated name"
+)
+
+var (
+	blueprintProviderId = s1ProviderId
+	blueprintRepoName   = s1RepoName
 )
 
 func TestAccBlueprintResource(t *testing.T) {
