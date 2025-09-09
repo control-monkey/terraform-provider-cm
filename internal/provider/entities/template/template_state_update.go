@@ -3,6 +3,7 @@ package template
 import (
 	sdkTemplate "github.com/control-monkey/controlmonkey-sdk-go/services/template"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
 func UpdateStateAfterRead(res *sdkTemplate.Template, state *ResourceModel) {
@@ -27,6 +28,20 @@ func UpdateStateAfterRead(res *sdkTemplate.Template, state *ResourceModel) {
 	}
 
 	state.SkipStateRefreshOnDestroy = helpers.BoolValueOrNull(template.SkipStateRefreshOnDestroy)
+
+	if template.IacConfig != nil {
+		iacConfig := updateStateAfterReadIacConfig(template.IacConfig)
+		state.IacConfig = &iacConfig
+	} else {
+		state.IacConfig = nil
+	}
+
+	if template.RunnerConfig != nil {
+		runnerConfig := cross_models.UpdateStateAfterReadRunnerConfig(template.RunnerConfig)
+		state.RunnerConfig = &runnerConfig
+	} else {
+		state.RunnerConfig = nil
+	}
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkTemplate.VcsInfo) VcsInfoModel {
@@ -77,6 +92,16 @@ func updateStateAfterReadTtlDefinition(ttl *sdkTemplate.TtlDefinition) TtlDefini
 
 	retVal.Type = helpers.StringValueOrNull(ttl.Type)
 	retVal.Value = helpers.Int64ValueOrNull(ttl.Value)
+
+	return retVal
+}
+
+func updateStateAfterReadIacConfig(iacConfig *sdkTemplate.IacConfig) IacConfigModel {
+	var retVal IacConfigModel
+
+	retVal.TerraformVersion = helpers.StringValueOrNull(iacConfig.TerraformVersion)
+	retVal.TerragruntVersion = helpers.StringValueOrNull(iacConfig.TerragruntVersion)
+	retVal.OpentofuVersion = helpers.StringValueOrNull(iacConfig.OpentofuVersion)
 
 	return retVal
 }

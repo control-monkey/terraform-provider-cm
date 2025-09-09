@@ -8,6 +8,7 @@ import (
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/template"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -135,7 +136,64 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "When enabled, the state will not get refreshed before planning the destroy operation.",
 				Optional:            true,
 			},
+			"iac_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "IaC configuration of the template.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"terraform_version": schema.StringAttribute{
+						MarkdownDescription: "the Terraform version that will be used for terraform operations.",
+						Optional:            true,
+					},
+					"terragrunt_version": schema.StringAttribute{
+						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
+						Optional:            true,
+					},
+					"opentofu_version": schema.StringAttribute{
+						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
+						Optional:            true,
+					},
+				},
+			},
+			"runner_config": cross_schema.StackRunnerConfigSchema,
 		},
+	}
+}
+
+func (r *TemplateResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data template.ResourceModel
+
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
+
+	runnerConfig := data.RunnerConfig
+
+	if runnerConfig != nil {
+		mode := runnerConfig.Mode
+
+		if helpers.IsKnown(mode) {
+			modeValue := mode.ValueString()
+
+			if modeValue == cmTypes.Managed && runnerConfig.Groups.IsNull() == false {
+				resp.Diagnostics.AddError(
+					validationError, fmt.Sprintf("runner_config.mode with type '%s' cannot have runner_config.groups", cmTypes.Managed),
+				)
+			} else if modeValue == cmTypes.SelfHosted && helpers.IsKnown(runnerConfig.Groups) {
+				if len(runnerConfig.Groups.Elements()) == 0 {
+					resp.Diagnostics.AddError(
+						validationError, fmt.Sprintf("runner_config.mode with type '%s' requires runner_config.groups to be not empty", cmTypes.SelfHosted),
+					)
+				} else if helpers.DoesTfListContainsEmptyValue(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						validationError, "Found empty string in runner_config.groups",
+					)
+				} else if !helpers.IsTfStringSliceUnique(runnerConfig.Groups) {
+					resp.Diagnostics.AddError(
+						validationError, "Found duplicate in runner_config.groups",
+					)
+				}
+			}
+		}
 	}
 }
 
