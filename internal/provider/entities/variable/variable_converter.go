@@ -71,5 +71,10 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true
 	}
 
+	if plan.BlueprintVariableManagedBy != state.BlueprintVariableManagedBy {
+		retVal.SetBlueprintManagedBy(plan.BlueprintVariableManagedBy.ValueStringPointer())
+		hasChanges = true
+	}
+
 	return retVal, hasChanges
 }

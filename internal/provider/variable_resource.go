@@ -117,6 +117,14 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"value_conditions": cross_schema.ValueConditionsSchema,
+			"blueprint_variable_managed_by": schema.StringAttribute{
+				MarkdownDescription: "If value is `stack`, then the variable will be managed in the ControlMonkey stack instead of tfVars file. Otherwise, if `inCode`, the variable will be managed in tfVars file.",
+				Optional:            true,
+				Validators: []validator.String{
+					cm_stringvalidators.NotBlank(),
+					stringvalidator.OneOf(cmTypes.BlueprintVariableManagedByTypes...),
+				},
+			},
 		},
 	}
 }
