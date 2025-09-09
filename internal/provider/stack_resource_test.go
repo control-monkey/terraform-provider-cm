@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"os"
 	"testing"
 
@@ -90,6 +91,9 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
 				),
 			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
 			// Update and Read testing
 			{
 				ConfigVariables: config.Variables{
@@ -150,6 +154,9 @@ resource "%s" "%s" {
 					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "iac_config.terraform_version"),
 				),
 			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
 			// Update and Read testing
 			{
 				Config: testAccStackResourceSetup() + fmt.Sprintf(`
@@ -206,6 +213,102 @@ resource "%s" "%s" {
 					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "iac_config.terraform_version"),
 				),
 			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			// Test capabilities
+			{
+				Config: testAccStackResourceSetup() + fmt.Sprintf(`
+resource "%s" "%s" {
+  iac_type = "%s"
+  namespace_id = cm_namespace.test_namespace.id
+  name = "%s"
+  deployment_behavior = {
+    deploy_on_push = %s
+  }
+  vcs_info = {
+    provider_id = "%s"
+    repo_name = "%s"
+  }
+  capabilities = {
+    deploy_on_push = {
+      status = "enabled"
+    }
+    plan_on_pr = {
+      status = "disabled"
+    }
+    drift_detection = {
+      status = "enabled"
+    }
+  }
+  policy = {
+     ttl_config = {
+ 	  ttl = {
+ 	    type = "%s"
+ 	    value = %s
+ 	  }
+ 	}
+   }
+}
+`, cmStack, s1ResourceName, s1IacType, s1Name, s1DeployOnPush, s1ProviderId, s1RepoName, s1PolicyTtlType, s1PolicyTtlValue),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacType),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1Name),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.deploy_on_push.status", "enabled"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.plan_on_pr.status", "disabled"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.drift_detection.status", "enabled"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			// Test capabilities
+			{
+				Config: testAccStackResourceSetup() + fmt.Sprintf(`
+resource "%s" "%s" {
+  iac_type = "%s"
+  namespace_id = cm_namespace.test_namespace.id
+  name = "%s"
+  deployment_behavior = {
+    deploy_on_push = %s
+  }
+  vcs_info = {
+    provider_id = "%s"
+    repo_name = "%s"
+  }
+  capabilities = {
+    deploy_on_push = {
+      status = "disabled"
+    }
+    plan_on_pr = {
+      status = "enabled"
+    }
+    drift_detection = {
+      status = "enabled"
+    }
+  }
+  policy = {
+     ttl_config = {
+ 	  ttl = {
+ 	    type = "%s"
+ 	    value = %s
+ 	  }
+ 	}
+   }
+}
+`, cmStack, s1ResourceName, s1IacType, s1Name, s1DeployOnPush, s1ProviderId, s1RepoName, s1PolicyTtlType, s1PolicyTtlValue),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "iac_type", s1IacType),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "name", s1Name),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.deploy_on_push.status", "disabled"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.plan_on_pr.status", "enabled"),
+					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "capabilities.drift_detection.status", "enabled"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
 			{
 				ResourceName:      fmt.Sprintf("%s.%s", cmStack, s1ResourceName),
 				ImportState:       true,
