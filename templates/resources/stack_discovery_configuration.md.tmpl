@@ -1,0 +1,32 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Stack Auto-Discovery in ControlMonkey enables automatic detection and registration of infrastructure stacks based on Git repository structure. When folders or paths containing Terraform code are added to a repository, ControlMonkey can automatically create and manage corresponding stacks, integrating them into the infrastructure CI/CD process.
+
+Stack Auto-Discovery is triggered by:
+- Opening or updating a Pull Request (PR)
+- Pushing directly to the main branch
+
+## Example Usage
+
+{{tffile "examples/resources/cm_stack_discovery_configuration/resource.tf"}}
+
+### With Multiple VCS Patterns and Self-Hosted Runners
+
+{{tffile "examples/resources/cm_stack_discovery_configuration/resource2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+`cm_stack_discovery_configuration` can be imported using the ID of the Stack Discovery Configuration, e.g.
+
+{{codefile "shell" .ImportFile}}

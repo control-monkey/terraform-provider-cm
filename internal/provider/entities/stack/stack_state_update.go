@@ -71,6 +71,14 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	} else {
 		state.AutoSync = nil
 	}
+
+	if data.Capabilities != nil {
+		dap := updateStateAfterReadCapabilities(data.Capabilities)
+		state.Capabilities = &dap
+	} else {
+		state.Capabilities = nil
+	}
+
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
@@ -115,6 +123,41 @@ func updateStateAfterReadTtlDefinition(ttl *sdkStack.TtlDefinition) TtlDefinitio
 
 	retVal.Type = helpers.StringValueOrNull(ttl.Type)
 	retVal.Value = helpers.Int64ValueOrNull(ttl.Value)
+
+	return retVal
+}
+
+func updateStateAfterReadCapabilities(capabilities *sdkStack.Capabilities) CapabilitiesModel {
+	var retVal CapabilitiesModel
+
+	if capabilities.DeployOnPush != nil {
+		dop := updateStateAfterReadCapabilityConfig(capabilities.DeployOnPush)
+		retVal.DeployOnPush = &dop
+	} else {
+		retVal.DeployOnPush = nil
+	}
+
+	if capabilities.PlanOnPr != nil {
+		pop := updateStateAfterReadCapabilityConfig(capabilities.PlanOnPr)
+		retVal.PlanOnPr = &pop
+	} else {
+		retVal.PlanOnPr = nil
+	}
+
+	if capabilities.DriftDetection != nil {
+		dd := updateStateAfterReadCapabilityConfig(capabilities.DriftDetection)
+		retVal.DriftDetection = &dd
+	} else {
+		retVal.DriftDetection = nil
+	}
+
+	return retVal
+}
+
+func updateStateAfterReadCapabilityConfig(c *sdkStack.CapabilityConfig) CapabilityConfigModel {
+	var retVal CapabilityConfigModel
+
+	retVal.Status = helpers.StringValueOrNull(c.Status)
 
 	return retVal
 }

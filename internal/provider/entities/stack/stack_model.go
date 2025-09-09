@@ -18,6 +18,7 @@ type ResourceModel struct {
 	IacConfig                *cross_models.IacConfigModel                `tfsdk:"iac_config"`
 	Policy                   *PolicyModel                                `tfsdk:"policy"`
 	RunnerConfig             *cross_models.RunnerConfigModel             `tfsdk:"runner_config"`
+	Capabilities             *CapabilitiesModel                          `tfsdk:"capabilities"`
 	AutoSync                 *cross_models.AutoSyncModel                 `tfsdk:"auto_sync"`
 }
 
@@ -39,4 +40,14 @@ type TtlConfigModel struct {
 type TtlDefinitionModel struct {
 	Type  types.String `tfsdk:"type"`
 	Value types.Int64  `tfsdk:"value"`
+}
+
+type CapabilitiesModel struct {
+	DeployOnPush   *CapabilityConfigModel `tfsdk:"deploy_on_push"`
+	PlanOnPr       *CapabilityConfigModel `tfsdk:"plan_on_pr"`
+	DriftDetection *CapabilityConfigModel `tfsdk:"drift_detection"`
+}
+
+type CapabilityConfigModel struct {
+	Status types.String `tfsdk:"status"`
 }

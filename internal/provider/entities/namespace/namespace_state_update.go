@@ -40,6 +40,13 @@ func UpdateStateAfterRead(res *sdkNamespace.Namespace, state *ResourceModel) {
 		state.DeploymentApprovalPolicy = nil
 	}
 
+	if namespace.Capabilities != nil {
+		dap := updateStateAfterReadCapabilities(namespace.Capabilities)
+		state.Capabilities = &dap
+	} else {
+		state.Capabilities = nil
+	}
+
 }
 
 func updateStateAfterReadExternalCredentials(externalCredentials []*sdkNamespace.ExternalCredentials) []*ExternalCredentialsModel {
@@ -98,6 +105,42 @@ func updateStateAfterReadDeploymentApprovalPolicy(deploymentApprovalPolicy *sdkN
 	}
 
 	retVal.OverrideBehavior = helpers.StringValueOrNull(deploymentApprovalPolicy.OverrideBehavior)
+
+	return retVal
+}
+
+func updateStateAfterReadCapabilities(capabilities *sdkNamespace.Capabilities) CapabilitiesModel {
+	var retVal CapabilitiesModel
+
+	if capabilities.DeployOnPush != nil {
+		dop := updateStateAfterReadCapabilityConfig(capabilities.DeployOnPush)
+		retVal.DeployOnPush = &dop
+	} else {
+		retVal.DeployOnPush = nil
+	}
+
+	if capabilities.PlanOnPr != nil {
+		pop := updateStateAfterReadCapabilityConfig(capabilities.PlanOnPr)
+		retVal.PlanOnPr = &pop
+	} else {
+		retVal.PlanOnPr = nil
+	}
+
+	if capabilities.DriftDetection != nil {
+		dd := updateStateAfterReadCapabilityConfig(capabilities.DriftDetection)
+		retVal.DriftDetection = &dd
+	} else {
+		retVal.DriftDetection = nil
+	}
+
+	return retVal
+}
+
+func updateStateAfterReadCapabilityConfig(c *sdkNamespace.CapabilityConfig) CapabilityConfigModel {
+	var retVal CapabilityConfigModel
+
+	retVal.Status = helpers.StringValueOrNull(c.Status)
+	retVal.IsOverridable = helpers.BoolValueOrNull(c.IsOverridable)
 
 	return retVal
 }

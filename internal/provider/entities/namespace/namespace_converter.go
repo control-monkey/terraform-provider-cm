@@ -1,11 +1,12 @@
 package namespace
 
 import (
+	"reflect"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
-	"reflect"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*namespace.Namespace, bool) {
@@ -53,6 +54,11 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if deploymentApprovalPolicy, hasChanged := deploymentApprovalPolicyConverter(plan.DeploymentApprovalPolicy, state.DeploymentApprovalPolicy, converterType); hasChanged {
 		retVal.SetDeploymentApprovalPolicy(deploymentApprovalPolicy)
+		hasChanges = true
+	}
+
+	if capabilities, hasChanged := capabilitiesConverter(plan.Capabilities, state.Capabilities, converterType); hasChanged {
+		retVal.SetCapabilities(capabilities)
 		hasChanges = true
 	}
 
@@ -187,6 +193,75 @@ func deploymentApprovalPolicyConverter(plan *DeploymentApprovalPolicyModel, stat
 
 	if plan.OverrideBehavior != state.OverrideBehavior {
 		retVal.SetOverrideBehavior(plan.OverrideBehavior.ValueStringPointer())
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func capabilitiesConverter(plan *CapabilitiesModel, state *CapabilitiesModel, converterType commons.ConverterType) (*namespace.Capabilities, bool) {
+	var retVal *namespace.Capabilities
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(namespace.Capabilities)
+	hasChanges := false
+
+	if state == nil {
+		state = new(CapabilitiesModel) // dummy initialization
+		hasChanges = true              // must have changes because before is null and after is not
+	}
+
+	if deployOnPush, hasChanged := capabilityConfigConverter(plan.DeployOnPush, state.DeployOnPush, converterType); hasChanged {
+		retVal.SetDeployOnPush(deployOnPush)
+		hasChanges = true
+	}
+
+	if planOnPr, hasChanged := capabilityConfigConverter(plan.PlanOnPr, state.PlanOnPr, converterType); hasChanged {
+		retVal.SetPlanOnPr(planOnPr)
+		hasChanges = true
+	}
+
+	if driftDetection, hasChanged := capabilityConfigConverter(plan.DriftDetection, state.DriftDetection, converterType); hasChanged {
+		retVal.SetDriftDetection(driftDetection)
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func capabilityConfigConverter(plan *CapabilityConfigModel, state *CapabilityConfigModel, converterType commons.ConverterType) (*namespace.CapabilityConfig, bool) {
+	var retVal *namespace.CapabilityConfig
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(namespace.CapabilityConfig)
+	hasChanges := false
+
+	if state == nil {
+		state = new(CapabilityConfigModel) // dummy initialization
+		hasChanges = true                  // must have changes because before is null and after is not
+	}
+
+	if plan.Status != state.Status {
+		retVal.SetStatus(plan.Status.ValueStringPointer())
+		hasChanges = true
+	}
+
+	if plan.IsOverridable != state.IsOverridable {
+		retVal.SetIsOverridable(plan.IsOverridable.ValueBoolPointer())
 		hasChanges = true
 	}
 

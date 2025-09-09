@@ -137,6 +137,43 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					},
 				},
 			},
+			"capabilities": schema.SingleNestedAttribute{
+				MarkdownDescription: "List of capabilities enabled for the stack.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"deploy_on_push": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a deployment will be automatically triggered when changes are pushed to the repository that are relevant to the stack.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+					"plan_on_pr": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a plan will be automatically triggered when a Pull Request is created or updated with changes relevant to the stack.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+					"drift_detection": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, ControlMonkey will frequently check for drifts in your stack configuration.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+				},
+			},
+		},
+	}
+}
+
+func namespaceCapabilityConfigSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"status": schema.StringAttribute{
+			MarkdownDescription: fmt.Sprint("Whether the capability is enabled or disabled. Allowed values: [enabled, disabled]."),
+			Required:            true,
+			Validators: []validator.String{
+				stringvalidator.OneOf("enabled", "disabled"),
+			},
+		},
+		"is_overridable": schema.BoolAttribute{
+			MarkdownDescription: "Determine if stacks within the namespace can override this capability.",
+			Required:            true,
 		},
 	}
 }
