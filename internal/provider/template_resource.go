@@ -149,7 +149,7 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 						Optional:            true,
 					},
 					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
+						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
 						Optional:            true,
 					},
 				},

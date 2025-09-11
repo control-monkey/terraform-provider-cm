@@ -95,7 +95,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 					},
 					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
+						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
 						Optional:            true,
 					},
 				},

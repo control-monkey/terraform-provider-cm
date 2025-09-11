@@ -65,7 +65,7 @@ func (r *OrgConfigurationResource) Schema(_ context.Context, _ resource.SchemaRe
 						},
 					},
 					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for OpenTofu operations.",
+						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
 						Optional:            true,
 						Validators: []validator.String{
 							cmStringValidators.NotBlank(),

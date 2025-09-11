@@ -50,7 +50,7 @@ resource "cm_stack_dependency" "dependency" {
 
 ### Optional
 
-- `references` (Attributes List) List of references wiring outputs to inputs.When set, `trigger_option` is required (see [below for nested schema](#nestedatt--references))
+- `references` (Attributes List) List of references wiring outputs to inputs. When set, `trigger_option` is required (see [below for nested schema](#nestedatt--references))
 - `trigger_option` (String) Dependency trigger option. When set, `references` is required. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-dependency-trigger-option-types)
 
 ### Read-Only

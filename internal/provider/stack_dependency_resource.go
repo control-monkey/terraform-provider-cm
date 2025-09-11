@@ -66,7 +66,7 @@ func (r *StackDependencyResource) Schema(_ context.Context, _ resource.SchemaReq
 				},
 			},
 			"references": schema.ListNestedAttribute{
-				MarkdownDescription: "List of references wiring outputs to inputs.When set, `trigger_option` is required",
+				MarkdownDescription: "List of references wiring outputs to inputs. When set, `trigger_option` is required",
 				Optional:            true,
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),

@@ -105,7 +105,7 @@ Required:
 
 Optional:
 
-- `opentofu_version` (String) the OpenTofu version that will be used for OpenTofu operations.
+- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
 - `terraform_version` (String) the Terraform version that will be used for terraform operations.
 - `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 
