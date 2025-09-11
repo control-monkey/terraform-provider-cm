@@ -2,7 +2,7 @@ TEST?=./...
 PKGNAME?=./internal/provider
 VERSION?=$(shell grep -o 'Version = \".*\"' version/version.go | grep -o \[0-9.]\\+)
 RELEASE?=v$(VERSION)
-ENV?=local
+ENV?=$(CM_ENV)
 
 V := 0
 Q := $(if $(filter 1,$(V)),,@)
@@ -114,7 +114,7 @@ cm_provider:
 
 # Mimicking build - run before push to vcs
 .PHONY: pre_build
-pre_build: fmt docscheck vet testcompile testacc
+pre_build: docs fmt imports docscheck vet testcompile testacc
 
 # Optimize imports
 .PHONY: imports

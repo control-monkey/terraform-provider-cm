@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -12,19 +12,17 @@ const (
 	tfCmControlPolicyGroupMapping = "cm_control_policy_group_mappings"
 
 	groupMappingResourceName = "groupMapping"
-	controlPolicyGroupId     = "cmpg-fkruxsuepc"
+	enforcementLevel         = "hardMandatory"
+
+	enforcementLevelAfterUpdate = "softMandatory"
 )
 
-func TestAccControlPolicyGroupMappingResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		PreCheck:                 func() { testAccPreCheck(t) },
-		Steps: []resource.TestStep{
-			{
-				ConfigVariables: config.Variables{
-					"stack_var": config.StringVariable("stk-jtnpc6pm34"),
-				},
-				Config: providerConfig + fmt.Sprintf(`
+func testAccControlPolicyGroupMappingResourceSetup() string {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
+
+	return fmt.Sprintf(`
 resource "cm_namespace" "dev_namespace" {
   name = "Dev"
 }
@@ -33,20 +31,44 @@ resource "cm_namespace" "dev_namespace2" {
   name = "Dev2"
 }
 
-variable "stack_var" {
-  type = string
+resource "cm_namespace" "test_target_namespace" {
+  name = "TestTarget"
+}
+resource "cm_stack" "target" {
+  iac_type     = "terraform"
+  namespace_id = cm_namespace.dev_namespace.id
+  name         = "Stack Name"
+  deployment_behavior = {
+    deploy_on_push    = false
+  }
+  vcs_info = {
+    provider_id = "%s"
+    repo_name   = "%s"
+  }
+}
+`, providerId, repoName)
 }
 
+func TestAccControlPolicyGroupMappingResource(t *testing.T) {
+	// Test environment variables used by this function
+	controlPolicyGroupId := test_config.GetControlPolicyGroupId()
+	controlPolicyId := test_config.GetControlPolicyId()
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: providerConfig + testAccControlPolicyGroupMappingResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
   control_policy_group_id = "%s"
   targets = [
 	{
-  	  target_id         = "%s"
-  	  target_type       = "%s"
+  	  target_id         = cm_namespace.test_target_namespace.id
+  	  target_type       = "namespace"
   	  enforcement_level = "%s"
 	  override_enforcements = [
 	    {
-		  control_policy_id = "cmp-cop9ileumk"
+		  control_policy_id = "%s"
 		  enforcement_level = "warning"
 	    },
 	  ]
@@ -62,12 +84,12 @@ resource "%s" "%s" {
   	  enforcement_level = "warning"
 	},
 	{
-  	  target_id         = var.stack_var
+  	  target_id         = cm_stack.target.id
   	  target_type       = "stack"
   	  enforcement_level = "bySeverity"
 	  override_enforcements = [
 	    {
-		  control_policy_id = "cmp-cop9ileumk"
+		  control_policy_id = "%s"
 		  enforcement_level = "softMandatory"
 	    },
 	  ]
@@ -75,7 +97,7 @@ resource "%s" "%s" {
   ]
 }
 `, tfCmControlPolicyGroupMapping, groupMappingResourceName,
-					controlPolicyGroupId, targetId, targetType, enforcementLevel),
+					controlPolicyGroupId, enforcementLevel, controlPolicyId, controlPolicyId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(controlPolicyGroupMappingResourceName(groupMappingResourceName), "control_policy_group_id", controlPolicyGroupId),
 					resource.TestCheckResourceAttr(controlPolicyGroupMappingResourceName(groupMappingResourceName), "targets.#", "4"),
@@ -86,28 +108,24 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
-resource "cm_namespace" "dev_namespace" {
-  name = "Dev"
-}
-
+				Config: providerConfig + testAccControlPolicyGroupMappingResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
   control_policy_group_id = "%s"
   targets = [
 	{
-  	  target_id         = "%s"
-  	  target_type       = "%s"
+  	  target_id         = cm_namespace.dev_namespace.id
+  	  target_type       = "namespace"
   	  enforcement_level = "%s"
 	  override_enforcements = [
 	    {
-		  control_policy_id = "cmp-cop9ileumk"
+		  control_policy_id = "%s"
 		  enforcement_level = "warning"
 	    },
 	  ]
 	},
   ]
 }`, tfCmControlPolicyGroupMapping, groupMappingResourceName,
-					controlPolicyGroupId, targetId, targetType, enforcementLevelAfterUpdate),
+					controlPolicyGroupId, enforcementLevelAfterUpdate, controlPolicyId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(controlPolicyGroupMappingResourceName(groupMappingResourceName), "control_policy_group_id", controlPolicyGroupId),
 					resource.TestCheckResourceAttr(controlPolicyGroupMappingResourceName(groupMappingResourceName), "targets.#", "1"),

@@ -2,9 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
-	"os"
 	"testing"
+
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -26,12 +27,10 @@ const (
 	sdInputNameUpdated     = "vpc_id"
 )
 
-var (
-	sdProviderId = os.Getenv("CM_TEST_PROVIDER_ID")
-	sdRepoName   = os.Getenv("CM_TEST_REPO_NAME")
-)
-
 func TestAccStackDependencyResource(t *testing.T) {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -43,7 +42,7 @@ func TestAccStackDependencyResource(t *testing.T) {
 					"output_name":    config.StringVariable(sdOutputName),
 					"input_name":     config.StringVariable(sdInputName),
 				},
-				Config: testAccStackDependencyResourceSetup() + fmt.Sprintf(`
+				Config: testAccStackDependencyResourceSetup(providerId, repoName) + fmt.Sprintf(`
 variable "trigger_option" {
   type = string
 }
@@ -90,7 +89,7 @@ resource "%s" "%s" {
 					"output_name":    config.StringVariable(sdOutputNameUpdated),
 					"input_name":     config.StringVariable(sdInputNameUpdated),
 				},
-				Config: testAccStackDependencyResourceSetup() + fmt.Sprintf(`
+				Config: testAccStackDependencyResourceSetup(providerId, repoName) + fmt.Sprintf(`
 variable "trigger_option" {
   type = string
 }
@@ -145,7 +144,7 @@ func stackDependencyResourceName(s string) string {
 	return fmt.Sprintf("%s.%s", cmStackDependency, s)
 }
 
-func testAccStackDependencyResourceSetup() string {
+func testAccStackDependencyResourceSetup(providerId string, repoName string) string {
 	return providerConfig + fmt.Sprintf(`
 resource "cm_namespace" "test_namespace" {
   name = "Stack Dependency Test Namespace"
@@ -184,5 +183,5 @@ resource "cm_stack" "target" {
     terraform_version = "1.5.0"
   }
 }
-`, sdStackName, sdProviderId, sdRepoName, sdDependsOnStackName, sdProviderId, sdRepoName)
+`, sdStackName, providerId, repoName, sdDependsOnStackName, providerId, repoName)
 }

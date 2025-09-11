@@ -37,7 +37,7 @@ func (r *NotificationEndpointResource) Metadata(_ context.Context, req resource.
 
 func (r *NotificationEndpointResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys teams.",
+		MarkdownDescription: "Creates, updates and destroys notification endpoints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the endpoint.",

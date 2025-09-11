@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -12,20 +12,38 @@ const (
 	cmTemplateNamespaceMappings = "cm_template_namespace_mappings"
 
 	templateNamespaceMappingsResourceName = "template_namespaces"
-	templateId                            = "tmpl-0mc0gph0zh"
-	mappingNamespaceId                    = "ns-x82yjdyahc"
 )
 
-func TestAccTemplateNamespaceMappingsResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		PreCheck:                 func() { testAccPreCheck(t) },
-		Steps: []resource.TestStep{
-			{
-				ConfigVariables: config.Variables{
-					"namespace_var": config.StringVariable("ns-b5ol64210x"),
-				},
-				Config: providerConfig + fmt.Sprintf(`
+func testAccTemplateNamespaceMappingsResourceSetup(providerId string, repoName string) string {
+	return fmt.Sprintf(`
+resource "cm_template" "test_template" {
+  name                = "TestTemplate"
+  iac_type = "terraform"
+
+  vcs_info = {
+    provider_id = "%s"
+    repo_name   = "%s"
+    path        = "terraform"
+  }
+
+  policy = {
+    ttl_config = {
+      max_ttl = {
+        type  = "days"
+        value = "10"
+      }
+      default_ttl = {
+        type  = "days"
+        value = "5"
+      }
+    }
+  }
+}
+
+resource "cm_namespace" "test_mapping_namespace" {
+  name = "TestMappingNamespace"
+}
+
 resource "cm_namespace" "namespace"{
   name = "Namespace Resource"
 }
@@ -33,19 +51,24 @@ resource "cm_namespace" "namespace"{
 resource "cm_namespace" "namespace2" {
   name = "Namespace Resource2"
 }
-
-variable "namespace_var" {
-  type = string
+`, providerId, repoName)
 }
 
+func TestAccTemplateNamespaceMappingsResource(t *testing.T) {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: providerConfig + testAccTemplateNamespaceMappingsResourceSetup(providerId, repoName) + fmt.Sprintf(`
 resource "%s" "%s" {
-  template_id = "%s"
+  template_id = cm_template.test_template.id
   namespaces = [
     {
-      namespace_id = "%s"
-    },
-    {
-      namespace_id = var.namespace_var
+      namespace_id = cm_namespace.test_mapping_namespace.id
     },
     {
       namespace_id = cm_namespace.namespace.id
@@ -55,31 +78,31 @@ resource "%s" "%s" {
     },
   ]
 }
-`, cmTemplateNamespaceMappings, templateNamespaceMappingsResourceName, templateId, mappingNamespaceId),
+`, cmTemplateNamespaceMappings, templateNamespaceMappingsResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "id"),
 					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "template_id"),
-					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces.#", "4"),
+					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces.#", "3"),
 				),
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: providerConfig + testAccTemplateNamespaceMappingsResourceSetup(providerId, repoName) + fmt.Sprintf(`
 resource "%s" "%s" {
- template_id = "%s"
+ template_id = cm_template.test_template.id
  namespaces = [
   {
-   namespace_id = "%s"
+   namespace_id = cm_namespace.test_mapping_namespace.id
   }
  ]
 }
-`, cmTemplateNamespaceMappings, templateNamespaceMappingsResourceName, templateId, mappingNamespaceId),
+`, cmTemplateNamespaceMappings, templateNamespaceMappingsResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "id"),
-					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "template_id", templateId),
+					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "template_id"),
 					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces.#", "1"),
-					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces.0.namespace_id", mappingNamespaceId),
+					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces.0.namespace_id"),
 				),
 			},
 			{
@@ -88,8 +111,8 @@ resource "%s" "%s" {
 				ImportStateVerify: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "id"),
-					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "id", templateId),
-					resource.TestCheckResourceAttr(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "template_id", templateId),
+					resource.TestCheckResourceAttrPair(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "id", "cm_template.test_template", "id"),
+					resource.TestCheckResourceAttrPair(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "template_id", "cm_template.test_template", "id"),
 					resource.TestCheckResourceAttrSet(templateNamespaceMappingsResource(templateNamespaceMappingsResourceName), "namespaces"),
 				),
 			},

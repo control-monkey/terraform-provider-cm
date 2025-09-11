@@ -2,8 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"testing"
+
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )

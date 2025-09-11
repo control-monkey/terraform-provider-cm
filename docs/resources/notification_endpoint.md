@@ -2,12 +2,12 @@
 page_title: "cm_notification_endpoint Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys teams.
+  Creates, updates and destroys notification endpoints. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/administration/notifications
 ---
 
 # cm_notification_endpoint (Resource)
 
-Creates, updates and destroys teams.
+Creates, updates and destroys notification endpoints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications)
 
 ## Learn More
 
@@ -20,7 +20,7 @@ Creates, updates and destroys teams.
 resource "cm_notification_endpoint" "notification_endpoint" {
   name = "ControlMonkey Notifications"
   protocol = "slack"
-  url = "https://www.slack.com/example/webhook"
+  url = "https://hooks.slack.com"
 }
 ```
 

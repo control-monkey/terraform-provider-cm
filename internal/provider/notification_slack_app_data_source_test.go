@@ -19,23 +19,39 @@ func TestAccNotificationSlackAppDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: providerConfig + fmt.Sprintf(`
-resource "%s" "%s" {
-  name = "slack-app-data"
+resource "cm_notification_slack_app" "slack_app" {
+  name = "Unique Slack App Name 123"
   bot_auth_token = "xoxb-***"
 }
-`, cmNotificationSlackAppDataSource, slackAppTfDataSourceName),
+`),
 			},
 			{
 				Config: providerConfig + fmt.Sprintf(`
-resource "%s" "%s" {
-  name = "slack-app-data"
+resource "cm_notification_slack_app" "slack_app" {
+  name = "Unique Slack App Name 123"
   bot_auth_token = "xoxb-***"
 }
 
 data "%s" "%s" {
-  name = "slack-app-data"
+  name = cm_notification_slack_app.slack_app.name
 }
-`, cmNotificationSlackAppDataSource, slackAppTfDataSourceName, cmNotificationSlackAppDataSource, slackAppTfDataSourceName),
+`, cmNotificationSlackAppDataSource, slackAppTfDataSourceName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(slackAppDataSourceName(slackAppTfDataSourceName), "id"),
+					resource.TestCheckResourceAttrSet(slackAppDataSourceName(slackAppTfDataSourceName), "name"),
+				),
+			},
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "cm_notification_slack_app" "slack_app" {
+  name = "Unique Slack App Name 123"
+  bot_auth_token = "xoxb-***"
+}
+
+data "%s" "%s" {
+  id = cm_notification_slack_app.slack_app.id
+}
+`, cmNotificationSlackAppDataSource, slackAppTfDataSourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(slackAppDataSourceName(slackAppTfDataSourceName), "id"),
 					resource.TestCheckResourceAttrSet(slackAppDataSourceName(slackAppTfDataSourceName), "name"),

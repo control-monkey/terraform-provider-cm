@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	tfTeam "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/team_data"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"

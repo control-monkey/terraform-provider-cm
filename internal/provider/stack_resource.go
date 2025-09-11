@@ -38,7 +38,7 @@ func (r *StackResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys stacks.",
+		MarkdownDescription: "Creates, updates and destroys stacks. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the stack.",

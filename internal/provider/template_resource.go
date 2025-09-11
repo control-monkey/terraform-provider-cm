@@ -38,7 +38,7 @@ func (r *TemplateResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys templates for ephemeral stack.",
+		MarkdownDescription: "Creates, updates and destroys templates for ephemeral stack. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/self-service-templates/template-for-ephemeral-stack)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the template.",

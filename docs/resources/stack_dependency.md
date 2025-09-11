@@ -2,12 +2,18 @@
 page_title: "cm_stack_dependency Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys a stack dependency.
+  Creates, updates and destroys a stack dependency. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/main-concepts/stack/stack-dependencies
 ---
 
 # cm_stack_dependency (Resource)
 
-Creates, updates and destroys a stack dependency.
+Creates, updates and destroys a stack dependency. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack/stack-dependencies)
+
+## Learn more
+
+- [Introducing Stack Dependencies](https://controlmonkey.io/news/introducing-stack-dependencies/)
+- [Comprehensive Overview of your Stack Dependencies](https://controlmonkey.io/news/gain-comprehensive-overview-of-your-stack-dependencies/)
+- [Why Traditional CI/CD Pipelines Fail for Infrastructure](https://controlmonkey.io/blog/why-traditional-ci-cd-fail/)
 
 ## Example Usage
 ```terraform

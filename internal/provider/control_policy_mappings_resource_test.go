@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -12,12 +12,44 @@ const (
 	tfCmControlPolicyMapping = "cm_control_policy_mappings"
 
 	mappingResourceName = "mapping"
-	targetId            = "ns-x82yjdyahc"
-	targetType          = "namespace"
-	enforcementLevel    = "hardMandatory"
-
-	enforcementLevelAfterUpdate = "softMandatory"
 )
+
+func testAccControlPolicyMappingResourceSetup() string {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
+
+	return fmt.Sprintf(`
+resource "cm_control_policy" "test_control_policy" {
+  name = "Control Policy Unique"
+  type = "aws_denied_regions"
+  parameters = jsonencode({
+    regions = ["us-east-1"]
+  })
+}
+
+resource "cm_namespace" "dev_namespace" {
+  name = "Dev"
+}
+
+resource "cm_namespace" "dev_namespace2" {
+  name = "Dev2"
+}
+
+resource "cm_stack" "target" {
+  iac_type     = "terraform"
+  namespace_id = cm_namespace.dev_namespace.id
+  name         = "Stack Name"
+  deployment_behavior = {
+    deploy_on_push    = false
+  }
+  vcs_info = {
+    provider_id = "%s"
+    repo_name   = "%s"
+  }
+}
+`, providerId, repoName)
+}
 
 func TestAccControlPolicyMappingResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -25,25 +57,13 @@ func TestAccControlPolicyMappingResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				ConfigVariables: config.Variables{
-					"stack_var": config.StringVariable("stk-jtnpc6pm34"),
-				},
-				Config: providerConfig + fmt.Sprintf(`
-resource "cm_namespace" "dev_namespace" {
-  name = "Dev"
-}
-
-
-variable "stack_var" {
-  type = string
-}
-
+				Config: providerConfig + testAccControlPolicyMappingResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
-  control_policy_id = "%s"
+  control_policy_id = cm_control_policy.test_control_policy.id
   targets = [
 	{
-  	  target_id         = "%s"
-  	  target_type       = "%s"
+  	  target_id         = cm_namespace.dev_namespace2.id
+  	  target_type       = "namespace"
   	  enforcement_level = "%s"
 	},
 	{
@@ -52,35 +72,30 @@ resource "%s" "%s" {
   	  enforcement_level = "softMandatory"
 	},
 	{
-  	  target_id         = var.stack_var
+  	  target_id         = cm_stack.target.id
   	  target_type       = "stack"
   	  enforcement_level = "hardMandatory"
 	},
   ]
 }
-`, tfCmControlPolicyMapping, mappingResourceName,
-					controlPolicyId, targetId, targetType, enforcementLevel),
+`, tfCmControlPolicyMapping, mappingResourceName, enforcementLevel),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id", controlPolicyId),
+					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id"),
 					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "targets.#", "3"),
 
 					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "id"),
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "id", getId()),
+					resource.TestCheckResourceAttrPair(controlPolicyMappingResourceName(mappingResourceName), "id", "cm_control_policy.test_control_policy", "id"),
 				),
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
-resource "cm_namespace" "dev_namespace" {
-  name = "Dev"
-}
-
+				Config: providerConfig + testAccControlPolicyMappingResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
-  control_policy_id = "%s"
+  control_policy_id = cm_control_policy.test_control_policy.id
   targets = [
 	{
-  	  target_id         = "%s"
-  	  target_type       = "%s"
+  	  target_id         = cm_namespace.dev_namespace2.id
+  	  target_type       = "namespace"
   	  enforcement_level = "%s"
 	},
 	{
@@ -89,14 +104,13 @@ resource "%s" "%s" {
   	  enforcement_level = "softMandatory"
 	},
   ]
-}`, tfCmControlPolicyMapping, mappingResourceName,
-					controlPolicyId, targetId, targetType, enforcementLevelAfterUpdate),
+}`, tfCmControlPolicyMapping, mappingResourceName, enforcementLevelAfterUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id", controlPolicyId),
+					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id"),
 					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "targets.#", "2"),
 
 					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "id"),
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "id", getId()),
+					resource.TestCheckResourceAttrPair(controlPolicyMappingResourceName(mappingResourceName), "id", "cm_control_policy.test_control_policy", "id"),
 				),
 			},
 			{
@@ -104,19 +118,14 @@ resource "%s" "%s" {
 				ImportStateVerify: true,
 				ImportState:       true,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id", controlPolicyId),
+					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "control_policy_id"),
 					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "targets.#", "2"),
 
 					resource.TestCheckResourceAttrSet(controlPolicyMappingResourceName(mappingResourceName), "id"),
-					resource.TestCheckResourceAttr(controlPolicyMappingResourceName(mappingResourceName), "id", getId()),
 				),
 			},
 		},
 	})
-}
-
-func getId() string {
-	return controlPolicyId
 }
 
 func controlPolicyMappingResourceName(s string) string {

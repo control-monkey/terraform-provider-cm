@@ -2,10 +2,12 @@ package provider
 
 import (
 	"fmt"
-	"github.com/control-monkey/controlmonkey-sdk-go/services/commons"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"regexp"
 	"testing"
+
+	"github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -37,6 +39,19 @@ const (
 
 	orgVariableValueAfterUpdate         = "TfValue2"
 	orgVariableIsOverridableAfterUpdate = "true"
+
+	blueprintVariable              = "var_blueprint"
+	blueprintVariableScope         = "blueprint"
+	blueprintVariableKey           = "blueprintVar"
+	blueprintVariableType          = "tfVar"
+	blueprintVariableValue         = "BlueprintValue"
+	blueprintVariableIsSensitive   = "false"
+	blueprintVariableIsOverridable = "true"
+	blueprintVariableManagedBy     = "stack"
+	blueprintVariableDescription   = "Blueprint variable description"
+
+	blueprintVariableValueAfterUpdate     = "BlueprintValue2"
+	blueprintVariableManagedByAfterUpdate = "inCode"
 )
 
 func TestAccVariableResourceNamespace(t *testing.T) {
@@ -328,6 +343,122 @@ resource "%s" "%s" {
 			},
 		},
 	})
+}
+
+func TestAccVariableResourceBlueprint(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVariableBlueprintResourceSetup() + fmt.Sprintf(`
+resource "%s" "%s" {
+	scope                        = "%s"
+	scope_id                     = cm_blueprint.test_blueprint.id
+	key                          = "%s"
+	type                         = "%s"
+	value                        = "%s"
+	description                  = "%s"
+	is_sensitive                 = %s
+	is_overridable               = %s
+	blueprint_variable_managed_by = "%s"
+}
+`, tfCmVariable, blueprintVariable, blueprintVariableScope, blueprintVariableKey,
+					blueprintVariableType, blueprintVariableValue, blueprintVariableDescription,
+					blueprintVariableIsSensitive, blueprintVariableIsOverridable, blueprintVariableManagedBy),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "scope", blueprintVariableScope),
+					resource.TestCheckResourceAttrPair(variableResourceName(blueprintVariable), "scope_id", "cm_blueprint.test_blueprint", "id"),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "key", blueprintVariableKey),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "type", blueprintVariableType),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "value", blueprintVariableValue),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "description", blueprintVariableDescription),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "is_sensitive", blueprintVariableIsSensitive),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "is_overridable", blueprintVariableIsOverridable),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "blueprint_variable_managed_by", blueprintVariableManagedBy),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(variableResourceName(blueprintVariable), "id"),
+				),
+			},
+			// Update and Read testing
+			{
+				Config: testAccVariableBlueprintResourceSetup() + fmt.Sprintf(`
+resource "%s" "%s" {
+	scope                        = "%s"
+	scope_id                     = cm_blueprint.test_blueprint.id
+	key                          = "%s"
+	type                         = "%s"
+	value                        = "%s"
+	description                  = "%s"
+	is_sensitive                 = %s
+	is_overridable               = %s
+	blueprint_variable_managed_by = "%s"
+}
+`, tfCmVariable, blueprintVariable, blueprintVariableScope, blueprintVariableKey,
+					blueprintVariableType, blueprintVariableValueAfterUpdate, blueprintVariableDescription,
+					blueprintVariableIsSensitive, blueprintVariableIsOverridable, blueprintVariableManagedByAfterUpdate),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "scope", blueprintVariableScope),
+					resource.TestCheckResourceAttrPair(variableResourceName(blueprintVariable), "scope_id", "cm_blueprint.test_blueprint", "id"),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "key", blueprintVariableKey),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "type", blueprintVariableType),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "value", blueprintVariableValueAfterUpdate),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "description", blueprintVariableDescription),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "is_sensitive", blueprintVariableIsSensitive),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "is_overridable", blueprintVariableIsOverridable),
+					resource.TestCheckResourceAttr(variableResourceName(blueprintVariable), "blueprint_variable_managed_by", blueprintVariableManagedByAfterUpdate),
+					// Verify dynamic values have any value set in the state.
+					resource.TestCheckResourceAttrSet(variableResourceName(blueprintVariable), "id"),
+				),
+			},
+			{
+				ResourceName:      fmt.Sprintf("%s.%s", tfCmVariable, blueprintVariable),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccVariableBlueprintResourceSetup() string {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
+
+	return providerConfig + fmt.Sprintf(`
+resource "cm_blueprint" "test_blueprint" {
+    name = "Variable Test Blueprint"
+    description = "Blueprint for testing variables"
+
+    blueprint_vcs_info = {
+        provider_id = "%s"
+        repo_name = "%s"
+        path = "cm/blueprint"
+    }
+
+    stack_configuration = {
+        name_pattern = "{stack_name}"
+        iac_type = "terraform"
+
+        vcs_info_with_patterns = {
+            provider_id = "%s"
+            repo_name = "%s"
+            path_pattern = "{stack_path}"
+        }
+    }
+
+    substitute_parameters = [
+		{
+			key = "stack_name"
+			description = "any name you want"
+		},
+		{
+			key = "stack_path"
+			description = "path"
+		}
+	]
+}
+`, providerId, repoName, providerId, repoName)
 }
 
 func variableResourceName(s string) string {

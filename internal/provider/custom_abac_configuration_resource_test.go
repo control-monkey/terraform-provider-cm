@@ -2,11 +2,12 @@ package provider
 
 import (
 	"fmt"
-	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
-	"github.com/hashicorp/terraform-plugin-testing/config"
-	"os"
 	"regexp"
 	"testing"
+
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -25,6 +26,8 @@ const (
 )
 
 func TestAccCustomAbacConfigurationResourceResource(t *testing.T) {
+	// Test environment variables used by this function
+	orgId := test_config.GetOrgId()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -51,7 +54,7 @@ resource "%s" "%s" {
 	]
 }
 `, tfCustomAbacConfigurationResourceResource, customAbacConfigurationTfResourceName, customAbacConfigurationAbacId, customAbacConfigurationName,
-					os.Getenv("ORG_ID"), customAbacConfigurationOrgRole),
+					orgId, customAbacConfigurationOrgRole),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(customAbacConfigurationResourceName(customAbacConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(customAbacConfigurationResourceName(customAbacConfigurationTfResourceName), "custom_abac_id", customAbacConfigurationAbacId),
@@ -86,7 +89,7 @@ resource "%s" "%s" {
 	]
 }
 `, tfCustomAbacConfigurationResourceResource, customAbacConfigurationTfResourceName, customAbacConfigurationAbacId, customAbacConfigurationName,
-					os.Getenv("ORG_ID"), customAbacConfigurationOrgRole2),
+					orgId, customAbacConfigurationOrgRole2),
 				ExpectError: regexp.MustCompile(validationError),
 			},
 			{
@@ -111,7 +114,7 @@ resource "%s" "%s" {
 	]
 }
 `, tfCustomAbacConfigurationResourceResource, customAbacConfigurationTfResourceName, customAbacConfigurationAbacId, customAbacConfigurationNameAfterUpdate,
-					os.Getenv("ORG_ID"), customAbacConfigurationOrgRole),
+					orgId, customAbacConfigurationOrgRole),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(customAbacConfigurationResourceName(customAbacConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(customAbacConfigurationResourceName(customAbacConfigurationTfResourceName), "custom_abac_id", customAbacConfigurationAbacId),
@@ -126,7 +129,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"org_id": config.StringVariable(os.Getenv("ORG_ID")),
+					"org_id": config.StringVariable(orgId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 resource "cm_team" "team1" {
@@ -165,7 +168,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"org_id": config.StringVariable(os.Getenv("ORG_ID")),
+					"org_id": config.StringVariable(orgId),
 				},
 				ResourceName:      customAbacConfigurationResourceName(customAbacConfigurationTfResourceName),
 				ImportState:       true,

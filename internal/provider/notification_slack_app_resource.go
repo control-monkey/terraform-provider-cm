@@ -28,7 +28,7 @@ func (r *NotificationSlackAppResource) Metadata(_ context.Context, req resource.
 
 func (r *NotificationSlackAppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys Slack App notifications integration.",
+		MarkdownDescription: "Creates, updates and destroys Slack App notifications integration. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications/creating-a-slack-app)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the Slack App.",

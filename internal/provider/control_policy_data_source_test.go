@@ -2,14 +2,17 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
-	"os"
 	"testing"
+
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccControlPolicyDataSource(t *testing.T) {
+	// Test environment variables used by this function
+	controlPolicyId := test_config.GetControlPolicyId()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -34,7 +37,7 @@ data "cm_control_policy" "control_policy" {
 			},
 			{
 				ConfigVariables: config.Variables{
-					"control_policy_id": config.StringVariable(os.Getenv("CMP_ID")),
+					"control_policy_id": config.StringVariable(controlPolicyId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "control_policy_id" {
@@ -48,7 +51,7 @@ data "cm_control_policy" "control_policy" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.cm_control_policy.control_policy", "id"),
 					resource.TestCheckResourceAttrSet("data.cm_control_policy.control_policy", "name"),
-					resource.TestCheckResourceAttr("data.cm_control_policy.control_policy", "id", os.Getenv("CMP_ID")),
+					resource.TestCheckResourceAttr("data.cm_control_policy.control_policy", "id", controlPolicyId),
 				),
 			},
 		},

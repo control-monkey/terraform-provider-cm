@@ -2,9 +2,10 @@ package controlPolicyGroupMappings
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 type ResourceModel struct {

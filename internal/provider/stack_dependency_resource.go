@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
@@ -31,7 +32,7 @@ func (r *StackDependencyResource) Metadata(_ context.Context, req resource.Metad
 
 func (r *StackDependencyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys a stack dependency.",
+		MarkdownDescription: "Creates, updates and destroys a stack dependency. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack/stack-dependencies)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the dependency.",

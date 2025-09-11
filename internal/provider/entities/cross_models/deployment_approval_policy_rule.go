@@ -2,12 +2,13 @@ package cross_models
 
 import (
 	"encoding/json"
+	"reflect"
+
 	sdkCrossModels "github.com/control-monkey/controlmonkey-sdk-go/services/cross_models"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
 )
 
 //region Model

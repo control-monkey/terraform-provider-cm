@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -15,23 +15,36 @@ const (
 	eventsSubscriptionsScope        = "namespace"
 )
 
+func testAccEventsSubscriptionsResourceSetup() string {
+	// Test environment variables used by this function
+	slackWebhookUrl := test_config.GetSlackWebhookUrl()
+
+	return fmt.Sprintf(`
+resource "cm_namespace" "namespace" {
+  name = "namespace"
+}
+
+resource "cm_notification_endpoint" "notification_endpoint" {
+  name = "test"
+  protocol = "slack"
+  url = "%s"
+}
+
+resource "cm_notification_endpoint" "notification_endpoint_2" {
+  name = "test2"
+  protocol = "slack"
+  url = "%s"
+}
+`, slackWebhookUrl, slackWebhookUrl)
+}
+
 func TestAccEventsSubscriptionsResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: providerConfig + fmt.Sprintf(`
-resource "cm_notification_endpoint" "notification_endpoint" {
- name = "test"
- protocol = "slack"
- url = "https://cm.com"
-}
-
-resource "cm_namespace" "namespace" {
-  name = "namespace"
-}
-
+				Config: providerConfig + testAccEventsSubscriptionsResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
   scope = "%s"
   scope_id = cm_namespace.namespace.id
@@ -55,24 +68,7 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
-				ConfigVariables: config.Variables{
-					"endpoint_id": config.StringVariable("ne-xw2j29nppk"),
-				},
-				Config: providerConfig + fmt.Sprintf(`
-variable "endpoint_id" {
-  type = string
-}
-
-resource "cm_namespace" "namespace" {
-  name = "namespace"
-}
-
-resource "cm_notification_endpoint" "notification_endpoint" {
- name = "test"
- protocol = "slack"
- url = "https://cm.com"
-}
-
+				Config: providerConfig + testAccEventsSubscriptionsResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
   scope = "%s"
   scope_id = cm_namespace.namespace.id
@@ -88,7 +84,7 @@ resource "%s" "%s" {
     },
     {
       event_type = "stack::deployment::applyStarted"
-	  notification_endpoint_id = var.endpoint_id
+	  notification_endpoint_id = cm_notification_endpoint.notification_endpoint_2.id
     },
   ]
 }
@@ -105,9 +101,6 @@ resource "%s" "%s" {
 
 				ImportState:       true,
 				ImportStateVerify: true,
-				ConfigVariables: config.Variables{
-					"endpoint_id": config.StringVariable("ne-p3p0vmuhde"),
-				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(eventsSubscriptionsResource(eventsSubscriptionsResourceName), "id"),
 					resource.TestCheckResourceAttr(eventsSubscriptionsResource(eventsSubscriptionsResourceName), "scope", eventsSubscriptionsScope),

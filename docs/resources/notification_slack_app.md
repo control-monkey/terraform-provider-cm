@@ -2,12 +2,18 @@
 page_title: "cm_notification_slack_app Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-    Creates, updates and destroys Slack App notifications integration.
+    Creates, updates and destroys Slack App notifications integration. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/administration/notifications/creating-a-slack-app
 ---
 
 # cm_notification_slack_app (Resource)
 
-Creates, updates and destroys Slack App notifications integration.
+Creates, updates and destroys Slack App notifications integration. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications/creating-a-slack-app)
+
+## Learn more
+
+- [Slack App Integration: Cloud Infra Alert](https://controlmonkey.io/news/slack-app-integration/)
+- [Email Alerts for IaC Events in ControlMonkey](https://controlmonkey.io/news/controlmonkey-email-alerts/)
+- [Console Operations Notifications](https://controlmonkey.io/news/console-operations-notifications/)
 
 ## Example Usage
 ```terraform

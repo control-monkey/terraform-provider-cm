@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	tfControlPolicy "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/control_policy_data"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"

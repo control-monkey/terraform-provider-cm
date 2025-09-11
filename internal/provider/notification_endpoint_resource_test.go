@@ -2,10 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -23,6 +23,10 @@ const (
 )
 
 func TestAccNotificationEndpointResource(t *testing.T) {
+	// Test environment variables used by this function
+	email1 := test_config.GetNotificationEndpointEmail1()
+	email2 := test_config.GetNotificationEndpointEmail2()
+	slackAppId := test_config.GetSlackAppId()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -31,9 +35,13 @@ func TestAccNotificationEndpointResource(t *testing.T) {
 			{
 				ConfigVariables: config.Variables{
 					"slack_config": config.ObjectVariable(map[string]config.Variable{
-						"notification_slack_app_id": config.StringVariable(os.Getenv("CM_TEST_SLACK_APP_ID")),
+						"notification_slack_app_id": config.StringVariable(slackAppId),
 						"channel_id":                config.StringVariable("C123"),
 					}),
+					"emails": config.ListVariable(
+						config.StringVariable(email1),
+						config.StringVariable(email2),
+					),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "slack_config" {
@@ -52,7 +60,7 @@ resource "%s" "%s" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "name", notificationEndpointName),
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "protocol", cmTypes.SlackAppProtocol),
-					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.notification_slack_app_id", os.Getenv("CM_TEST_SLACK_APP_ID")),
+					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.notification_slack_app_id", slackAppId),
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.channel_id", "C123"),
 					resource.TestCheckResourceAttrSet(notificationEndpointResource(notificationEndpointResourceName), "id"),
 				),
@@ -63,7 +71,7 @@ resource "%s" "%s" {
 			// Step 2: Update name (still Slack App)
 			{
 				ConfigVariables: config.Variables{
-					"slack_app_id": config.StringVariable(os.Getenv("CM_TEST_SLACK_APP_ID")),
+					"slack_app_id": config.StringVariable(slackAppId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "slack_app_id" {
@@ -83,7 +91,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(notificationEndpointResource(notificationEndpointResourceName), "id"),
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "name", notificationEndpointNameAfterUpdate),
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "protocol", cmTypes.SlackAppProtocol),
-					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.notification_slack_app_id", os.Getenv("CM_TEST_SLACK_APP_ID")),
+					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.notification_slack_app_id", slackAppId),
 					resource.TestCheckResourceAttr(notificationEndpointResource(notificationEndpointResourceName), "slack_app_config.channel_id", "C123"),
 				),
 			},
@@ -93,8 +101,8 @@ resource "%s" "%s" {
 			// Step 3: Switch to Email protocol and set email_addresses
 			{
 				ConfigVariables: config.Variables{
-					"email1": config.StringVariable("dev@gmail.com"),
-					"email2": config.StringVariable("ops@gmail.com"),
+					"email1": config.StringVariable(email1),
+					"email2": config.StringVariable(email2),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "email1" {

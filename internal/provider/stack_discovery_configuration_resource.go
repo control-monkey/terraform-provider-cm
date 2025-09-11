@@ -38,7 +38,7 @@ func (r *StackDiscoveryConfigurationResource) Metadata(_ context.Context, req re
 
 func (r *StackDiscoveryConfigurationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys stack discovery configurations.",
+		MarkdownDescription: "Creates, updates and destroys stack discovery configurations. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack/stack-auto-discovery)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the stack discovery configuration.",

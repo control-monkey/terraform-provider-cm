@@ -2,18 +2,24 @@
 page_title: "cm_stack_discovery_configuration Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys stack discovery configurations.
+  Creates, updates and destroys stack discovery configurations. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/main-concepts/stack/stack-auto-discovery
 ---
 
 # cm_stack_discovery_configuration (Resource)
 
-Creates, updates and destroys stack discovery configurations.
+Creates, updates and destroys stack discovery configurations. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack/stack-auto-discovery)
 
 Stack Auto-Discovery in ControlMonkey enables automatic detection and registration of infrastructure stacks based on Git repository structure. When folders or paths containing Terraform code are added to a repository, ControlMonkey can automatically create and manage corresponding stacks, integrating them into the infrastructure CI/CD process.
 
 Stack Auto-Discovery is triggered by:
 - Opening or updating a Pull Request (PR)
 - Pushing directly to the main branch
+
+## Learn more
+
+- [Automatic Detection and Creation of Terraform Stacks](https://controlmonkey.io/news/automatic-detection-and-creation-of-terraform-stacks/)
+- [Exclude Folders or Paths from Stack Auto-Discovery](https://controlmonkey.io/news/exclude-folders-or-paths-from-stack-auto-discovery/)
+- [Terraform CI/CD Showdown: DIY or Buy?](https://controlmonkey.io/blog/terraform-diy-vs-buy/)
 
 ## Example Usage
 

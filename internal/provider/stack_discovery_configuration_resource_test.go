@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -27,12 +27,10 @@ const (
 	sdcTerraformVersionUpdated = "1.5.0"
 )
 
-var (
-	sdcProviderId = os.Getenv("CM_TEST_PROVIDER_ID")
-	sdcRepoName   = os.Getenv("CM_TEST_REPO_NAME")
-)
-
 func TestAccStackDiscoveryConfigurationResource(t *testing.T) {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -40,8 +38,8 @@ func TestAccStackDiscoveryConfigurationResource(t *testing.T) {
 			// Create and Read testing
 			{
 				ConfigVariables: config.Variables{
-					"provider_id":       config.StringVariable(sdcProviderId),
-					"repo_name":         config.StringVariable(sdcRepoName),
+					"provider_id":       config.StringVariable(providerId),
+					"repo_name":         config.StringVariable(repoName),
 					"terraform_version": config.StringVariable(sdcTerraformVersion),
 				},
 				Config: testAccStackDiscoveryConfigurationResourceSetup() + fmt.Sprintf(`
@@ -100,8 +98,8 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "name", sdcName),
 					resource.TestCheckResourceAttrSet(stackDiscoveryConfigurationResourceName(sdcResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "description", sdcDescription),
-					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.provider_id", sdcProviderId),
-					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.repo_name", sdcRepoName),
+					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.provider_id", providerId),
+					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.repo_name", repoName),
 					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.branch", sdcBranch),
 					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.path_patterns.0", "environments/*/**"),
 					resource.TestCheckResourceAttr(stackDiscoveryConfigurationResourceName(sdcResourceName), "vcs_patterns.0.path_patterns.1", "modules/*/**"),
@@ -120,8 +118,8 @@ resource "%s" "%s" {
 			// Update and Read testing
 			{
 				ConfigVariables: config.Variables{
-					"provider_id":       config.StringVariable(sdcProviderId),
-					"repo_name":         config.StringVariable(sdcRepoName),
+					"provider_id":       config.StringVariable(providerId),
+					"repo_name":         config.StringVariable(repoName),
 					"terraform_version": config.StringVariable(sdcTerraformVersionUpdated),
 				},
 				Config: testAccStackDiscoveryConfigurationResourceSetup() + fmt.Sprintf(`
@@ -191,8 +189,8 @@ resource "%s" "%s" {
 			// Import testing
 			{
 				ConfigVariables: config.Variables{
-					"provider_id":       config.StringVariable(sdcProviderId),
-					"repo_name":         config.StringVariable(sdcRepoName),
+					"provider_id":       config.StringVariable(providerId),
+					"repo_name":         config.StringVariable(repoName),
 					"terraform_version": config.StringVariable(sdcTerraformVersionUpdated),
 				},
 				ResourceName:      fmt.Sprintf("%s.%s", cmStackDiscoveryConfiguration, sdcResourceName),

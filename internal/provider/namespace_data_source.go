@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	tfNamespace "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/namespace_data"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"

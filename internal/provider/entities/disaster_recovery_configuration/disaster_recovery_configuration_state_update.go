@@ -2,6 +2,7 @@ package disaster_recovery_configuration
 
 import (
 	"encoding/json"
+
 	apiDisasterRecovery "github.com/control-monkey/controlmonkey-sdk-go/services/disaster_recovery"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"

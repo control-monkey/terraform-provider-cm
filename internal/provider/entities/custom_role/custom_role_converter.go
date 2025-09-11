@@ -1,9 +1,10 @@
 package customRole
 
 import (
+	"reflect"
+
 	apiCustomRole "github.com/control-monkey/controlmonkey-sdk-go/services/custom_role"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
-	"reflect"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*apiCustomRole.CustomRole, bool) {

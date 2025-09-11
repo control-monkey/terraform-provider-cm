@@ -2,9 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -25,12 +25,10 @@ const (
 	t1IacTypeAfterUpdate               = "terragrunt"
 )
 
-var (
-	t1ProviderId = os.Getenv("CM_TEST_PROVIDER_ID")
-	t1RepoName   = os.Getenv("CM_TEST_REPO_NAME")
-)
-
 func TestAccTemplateResource(t *testing.T) {
+	// Test environment variables used by this function
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -61,13 +59,13 @@ resource "%s" "%s" {
  }
 }
 `, cmTemplate, t1ResourceName, t1Name, t1IacType, t1Description,
-					t1ProviderId, t1RepoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValue),
+					providerId, repoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValue),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "name", t1Name),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "iac_type", t1IacType),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "description", t1Description),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", t1ProviderId),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", t1RepoName),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.type", t1PolicyMaxTtlType),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.value", t1PolicyMaxTtlValue),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.default_ttl.type", t1PolicyDefaultTtlType),
@@ -102,13 +100,13 @@ resource "%s" "%s" {
  }
 }
 `, cmTemplate, t1ResourceName, t1NameAfterUpdate, t1IacTypeAfterUpdate,
-					t1ProviderId, t1RepoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValueAfterUpdate),
+					providerId, repoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValueAfterUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(templateResourceName(t1ResourceName), "id"),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "name", t1NameAfterUpdate),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "iac_type", t1IacTypeAfterUpdate),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", t1ProviderId),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", t1RepoName),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.type", t1PolicyMaxTtlType),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.value", t1PolicyMaxTtlValue),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.default_ttl.type", t1PolicyDefaultTtlType),
@@ -152,13 +150,13 @@ resource "%s" "%s" {
  }
 }
 `, cmTemplate, t1ResourceName, t1NameAfterUpdate, t1IacTypeAfterUpdate,
-					t1ProviderId, t1RepoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValueAfterUpdate),
+					providerId, repoName, t1PolicyMaxTtlType, t1PolicyMaxTtlValue, t1PolicyDefaultTtlType, t1PolicyDefaultTtlValueAfterUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(templateResourceName(t1ResourceName), "id"),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "name", t1NameAfterUpdate),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "iac_type", t1IacTypeAfterUpdate),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", t1ProviderId),
-					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", t1RepoName),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.type", t1PolicyMaxTtlType),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.max_ttl.value", t1PolicyMaxTtlValue),
 					resource.TestCheckResourceAttr(templateResourceName(t1ResourceName), "policy.ttl_config.default_ttl.type", t1PolicyDefaultTtlType),

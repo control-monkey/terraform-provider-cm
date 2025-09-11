@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 
@@ -22,12 +24,10 @@ const (
 	blueprintNameAfterUpdate = "updated name"
 )
 
-var (
-	blueprintProviderId = s1ProviderId
-	blueprintRepoName   = s1RepoName
-)
-
 func TestAccBlueprintResource(t *testing.T) {
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -66,20 +66,20 @@ resource "%s" "%s" {
 		}
 	]
 }
-`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, blueprintProviderId,
-					blueprintRepoName, blueprintRepoPath, blueprintStackConfigurationIacType, blueprintProviderId, blueprintRepoName),
+`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, providerId,
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "name", blueprintName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "description", blueprintDescription),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.path", blueprintRepoPath),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.branch"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.name_pattern", "{stack_name}"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_type", blueprintStackConfigurationIacType),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.path_pattern", "{stack_path}"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.branch_pattern"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.deployment_approval_policy"),
@@ -122,8 +122,7 @@ resource "%s" "%s" {
         }
 
         iac_config = {
-            terraform_version   = "1.5.9"
-            opentofu_version    = "1.6.0"
+            terraform_version   = "1.5.5"
             var_files           = ["vars/common.tfvars"]
         }
 
@@ -143,14 +142,13 @@ resource "%s" "%s" {
 		}
 	]
 }
-`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, blueprintProviderId,
-					blueprintRepoName, blueprintRepoPath, blueprintStackConfigurationIacType, blueprintProviderId, blueprintRepoName),
+`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, providerId,
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.run_trigger.patterns.#", "2"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.run_trigger.exclude_patterns.#", "1"),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.terraform_version", "1.5.9"),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.opentofu_version", "1.6.0"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.terraform_version", "1.5.5"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.var_files.#", "1"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.auto_sync.deploy_when_drift_detected", "true"),
 				),
@@ -244,20 +242,20 @@ resource "%s" "%s" {
     skip_plan_on_stack_initialization = true
     auto_approve_apply_on_initialization = true
 }
-`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintNameAfterUpdate, blueprintDescription, blueprintProviderId,
-					blueprintRepoName, blueprintRepoPath, blueprintStackConfigurationIacType, blueprintProviderId, blueprintRepoName),
+`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintNameAfterUpdate, blueprintDescription, providerId,
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "name", blueprintNameAfterUpdate),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "description", blueprintDescription),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.path", blueprintRepoPath),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.branch", "main"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.name_pattern", "{stack_name}"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_type", blueprintStackConfigurationIacType),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.path_pattern", "{stack_path}"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.branch_pattern", "test"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.deployment_approval_policy.rules.#", "2"),
@@ -309,20 +307,20 @@ resource "%s" "%s" {
 		}
 	]
 }
-`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, blueprintProviderId,
-					blueprintRepoName, blueprintRepoPath, blueprintStackConfigurationIacType, blueprintProviderId, blueprintRepoName),
+`, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, providerId,
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "name", blueprintName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "description", blueprintDescription),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.path", blueprintRepoPath),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "blueprint_vcs_info.branch"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.name_pattern", "{stack_name}"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_type", blueprintStackConfigurationIacType),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", blueprintProviderId),
-					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", blueprintRepoName),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.provider_id", providerId),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.repo_name", repoName),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.path_pattern", "{stack_path}"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.vcs_info_with_patterns.branch_pattern"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.deployment_approval_policy"),

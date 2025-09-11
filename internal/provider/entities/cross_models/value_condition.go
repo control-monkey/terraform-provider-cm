@@ -2,11 +2,12 @@ package cross_models
 
 import (
 	"fmt"
+	"reflect"
+
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	apiCrossModels "github.com/control-monkey/controlmonkey-sdk-go/services/cross_models"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"reflect"
 
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 )

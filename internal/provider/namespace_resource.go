@@ -38,7 +38,7 @@ func (r *NamespaceResource) Metadata(_ context.Context, req resource.MetadataReq
 
 func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys namespaces.",
+		MarkdownDescription: "Creates, updates and destroys namespaces. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/namespaces)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the namespace.",
