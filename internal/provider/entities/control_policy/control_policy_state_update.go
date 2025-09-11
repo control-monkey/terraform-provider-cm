@@ -2,6 +2,7 @@ package controlPolicy
 
 import (
 	"encoding/json"
+
 	apiControlPolicy "github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"

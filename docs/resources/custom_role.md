@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys custom roles.
 
+## Learn More
+
+- [Granular RBAC with Custom Roles](https://controlmonkey.io/news/granular-rbac-with-custom-roles-support/)
+- [Attribute-Based Access Control with SSO](https://controlmonkey.io/news/attribute-based-access-control-with-controlmonkey-single-sign-on/)
+
 ## Example Usage
 ```terraform
 resource "cm_custom_role" "custom_role" {

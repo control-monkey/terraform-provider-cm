@@ -1,0 +1,1 @@
+terraform import cm_notification_slack_app.slack_app nsa-123

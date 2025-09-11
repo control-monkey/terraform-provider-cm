@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"slices"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"slices"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces

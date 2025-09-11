@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	tfControlPolicy "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/control_policy"

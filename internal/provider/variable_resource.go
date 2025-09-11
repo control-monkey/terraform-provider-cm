@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	sdkVariable "github.com/control-monkey/controlmonkey-sdk-go/services/variable"
@@ -39,7 +40,7 @@ func (r *VariableResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys variables.\nVariable can be either a Terraform variable or an Environment variable.",
+		MarkdownDescription: "Creates, updates and destroys variables.\nVariable can be either a Terraform variable or an Environment variable. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/variables)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the variable.",
@@ -117,6 +118,14 @@ func (r *VariableResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"value_conditions": cross_schema.ValueConditionsSchema,
+			"blueprint_variable_managed_by": schema.StringAttribute{
+				MarkdownDescription: "If value is `stack`, then the variable will be managed in the ControlMonkey stack instead of tfVars file. Otherwise, if `inCode`, the variable will be managed in tfVars file.",
+				Optional:            true,
+				Validators: []validator.String{
+					cm_stringvalidators.NotBlank(),
+					stringvalidator.OneOf(cmTypes.BlueprintVariableManagedByTypes...),
+				},
+			},
 		},
 	}
 }

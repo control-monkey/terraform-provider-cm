@@ -1,0 +1,38 @@
+---
+page_title: "{{ .RenderedProviderName }}"
+subcategory: ""
+description: |-
+
+---
+
+# {{ .RenderedProviderName }}
+
+Manage [ControlMonkey](https://controlmonkey.io/) resources and workflows via Terraform.
+
+## Learn More
+
+- [Main site](https://controlmonkey.io/)
+- [ControlMonkey IaC Automation Platform](https://controlmonkey.io/iac-automation-platform/)
+- [ControlMonkey Integrations](https://controlmonkey.io/integrations/)
+- [Product updates](https://controlmonkey.io/product-news/)
+- [Blogs](https://controlmonkey.io/blog/)
+
+## Example Usage
+
+```terraform
+terraform {
+  required_providers {
+    cm = {
+      source  = "control-monkey/cm"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "cm" {
+  // You can also set this via CONTROL_MONKEY_TOKEN environment variable.
+  token = "CONTROL_MONKEY_TOKEN"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}

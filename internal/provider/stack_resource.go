@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -10,7 +11,6 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
-	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -38,7 +38,7 @@ func (r *StackResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys stacks.",
+		MarkdownDescription: "Creates, updates and destroys stacks. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the stack.",
@@ -72,25 +72,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringvalidator.NoneOf(""),
 				},
 			},
-			"deployment_behavior": schema.SingleNestedAttribute{
-				MarkdownDescription: "The deployment behavior configuration.",
-				Required:            true,
-				Attributes: map[string]schema.Attribute{
-					"deploy_on_push": schema.BoolAttribute{
-						MarkdownDescription: "Choose whether to initiate a deployment when a push event occurs or not.",
-						Required:            true,
-					},
-					"wait_for_approval": schema.BoolAttribute{
-						MarkdownDescription: "Use `deployment_approval_policy`. Decide whether to wait for approval before proceeding with the deployment or not.",
-						Optional:            true,
-						DeprecationMessage:  "Attribute \"deployment_behavior.wait_for_approval\" is deprecated. Use \"deployment_approval_policy\" instead",
-						Validators: []validator.Bool{
-							boolvalidator.ConflictsWith(
-								path.MatchRoot("deployment_approval_policy")),
-						},
-					},
-				},
-			},
+			"deployment_behavior":        cross_schema.StackDeploymentBehaviorSchema,
 			"deployment_approval_policy": cross_schema.StackDeploymentApprovalPolicySchema,
 			"vcs_info": schema.SingleNestedAttribute{
 				MarkdownDescription: "The configuration of the version control to which the stack is attached.",
@@ -115,52 +97,8 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"run_trigger": schema.SingleNestedAttribute{
-				MarkdownDescription: "Glob patterns to specify additional paths that should trigger a stack run.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"patterns": schema.ListAttribute{
-						MarkdownDescription: "Patterns that trigger a stack run.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-					"exclude_patterns": schema.ListAttribute{
-						MarkdownDescription: "Patterns that will not trigger a stack run.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-				},
-			},
-			"iac_config": schema.SingleNestedAttribute{
-				MarkdownDescription: "IaC configuration of the stack.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"terraform_version": schema.StringAttribute{
-						MarkdownDescription: "the Terraform version that will be used for terraform operations.",
-						Optional:            true,
-					},
-					"terragrunt_version": schema.StringAttribute{
-						MarkdownDescription: "the Terragrunt version that will be used for terragrunt operations.",
-						Optional:            true,
-					},
-					"opentofu_version": schema.StringAttribute{
-						MarkdownDescription: "the OpenTofu version that will be used for tofu operations.",
-						Optional:            true,
-					},
-					"is_terragrunt_run_all": schema.BoolAttribute{
-						MarkdownDescription: "When using terragrunt, as long as this field is set to `True`, this field will execute \"run-all\" commands on multiple modules for init/plan/apply",
-						Optional:            true,
-					},
-					"var_files": schema.ListAttribute{
-						ElementType:         types.StringType,
-						Optional:            true,
-						MarkdownDescription: "Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)",
-						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
-					},
-				},
-			},
+			"run_trigger": cross_schema.RunTriggerSchema,
+			"iac_config":  cross_schema.IacConfigSchema,
 			"policy": schema.SingleNestedAttribute{
 				MarkdownDescription: "The policy of the stack.",
 				Optional:            true,
@@ -189,34 +127,40 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					},
 				},
 			},
-			"runner_config": schema.SingleNestedAttribute{
-				MarkdownDescription: "Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted.",
+			"runner_config": cross_schema.StackRunnerConfigSchema,
+			"auto_sync":     cross_schema.AutoSyncSchema,
+			"capabilities": schema.SingleNestedAttribute{
+				MarkdownDescription: "List of capabilities enabled for the stack.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
-					"mode": schema.StringAttribute{
-						MarkdownDescription: fmt.Sprintf("The runner mode. Allowed values: %s.", helpers.EnumForDocs(cmTypes.RunnerConfigModeTypes)),
-						Required:            true,
-						Validators: []validator.String{
-							stringvalidator.OneOf(cmTypes.RunnerConfigModeTypes...),
-						},
-					},
-					"groups": schema.ListAttribute{
-						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
-						ElementType:         types.StringType,
+					"deploy_on_push": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a deployment will be automatically triggered when changes are pushed to the repository that are relevant to the stack.",
 						Optional:            true,
-						// Validation in ValidateConfig
+						Attributes:          stackCapabilityConfigSchema(),
+					},
+					"plan_on_pr": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a plan will be automatically triggered when a Pull Request is created or updated with changes relevant to the stack.",
+						Optional:            true,
+						Attributes:          stackCapabilityConfigSchema(),
+					},
+					"drift_detection": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, ControlMonkey will frequently check for drifts in your stack configuration.",
+						Optional:            true,
+						Attributes:          stackCapabilityConfigSchema(),
 					},
 				},
 			},
-			"auto_sync": schema.SingleNestedAttribute{
-				MarkdownDescription: "Set up auto sync configurations.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"deploy_when_drift_detected": schema.BoolAttribute{
-						MarkdownDescription: "If set to `true`, a deployment will start automatically upon detecting a drift or multiple drifts",
-						Optional:            true,
-					},
-				},
+		},
+	}
+}
+
+func stackCapabilityConfigSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"status": schema.StringAttribute{
+			MarkdownDescription: fmt.Sprint("Whether the capability is enabled or disabled. Allowed values: [enabled, disabled]."),
+			Required:            true,
+			Validators: []validator.String{
+				stringvalidator.OneOf("enabled", "disabled"),
 			},
 		},
 	}

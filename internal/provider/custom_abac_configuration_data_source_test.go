@@ -2,15 +2,18 @@ package provider
 
 import (
 	"fmt"
-	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
-	"github.com/hashicorp/terraform-plugin-testing/config"
-	"os"
 	"testing"
+
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccCustomAbacConfigurationDataSource(t *testing.T) {
+	// Test environment variables used by this function
+	orgId := test_config.GetOrgId()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -18,7 +21,7 @@ func TestAccCustomAbacConfigurationDataSource(t *testing.T) {
 			{
 				ConfigVariables: config.Variables{
 					"roles": config.ListVariable(config.ObjectVariable(map[string]config.Variable{
-						"org_id":   config.StringVariable(os.Getenv("ORG_ID")),
+						"org_id":   config.StringVariable(orgId),
 						"org_role": config.StringVariable(cmTypes.RoleViewer),
 					})),
 				},
@@ -60,7 +63,7 @@ data "cm_custom_abac_configuration" "custom_abac_configuration_data2" {
 				ConfigVariables: config.Variables{
 					"custom_abac_configuration_name": config.StringVariable("Custom ABAC Configuration"),
 					"roles": config.ListVariable(config.ObjectVariable(map[string]config.Variable{
-						"org_id":   config.StringVariable(os.Getenv("ORG_ID")),
+						"org_id":   config.StringVariable(orgId),
 						"org_role": config.StringVariable(cmTypes.RoleViewer),
 					})),
 				},

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -37,7 +38,7 @@ func (r *NamespaceResource) Metadata(_ context.Context, req resource.MetadataReq
 
 func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys namespaces.",
+		MarkdownDescription: "Creates, updates and destroys namespaces. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/namespaces)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the namespace.",
@@ -111,7 +112,7 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						},
 					},
 					"groups": schema.ListAttribute{
-						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configures.", cmTypes.SelfHosted, cmTypes.Managed),
+						MarkdownDescription: fmt.Sprintf("In case that `mode` is `%s`, groups must contain at least one runners group. If `mode` is `%s`, this field must not be configured.", cmTypes.SelfHosted, cmTypes.Managed),
 						ElementType:         types.StringType,
 						Optional:            true,
 						Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
@@ -136,6 +137,43 @@ func (r *NamespaceResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					},
 				},
 			},
+			"capabilities": schema.SingleNestedAttribute{
+				MarkdownDescription: "List of capabilities enabled for the stack.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"deploy_on_push": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a deployment will be automatically triggered when changes are pushed to the repository that are relevant to the stack.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+					"plan_on_pr": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, a plan will be automatically triggered when a Pull Request is created or updated with changes relevant to the stack.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+					"drift_detection": schema.SingleNestedAttribute{
+						MarkdownDescription: "When enabled, ControlMonkey will frequently check for drifts in your stack configuration.",
+						Optional:            true,
+						Attributes:          namespaceCapabilityConfigSchema(),
+					},
+				},
+			},
+		},
+	}
+}
+
+func namespaceCapabilityConfigSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"status": schema.StringAttribute{
+			MarkdownDescription: fmt.Sprint("Whether the capability is enabled or disabled. Allowed values: [enabled, disabled]."),
+			Required:            true,
+			Validators: []validator.String{
+				stringvalidator.OneOf("enabled", "disabled"),
+			},
+		},
+		"is_overridable": schema.BoolAttribute{
+			MarkdownDescription: "Determine if stacks within the namespace can override this capability.",
+			Required:            true,
 		},
 	}
 }

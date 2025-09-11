@@ -32,4 +32,6 @@ func UpdateStateAfterRead(res *sdkVariable.ReadVariableOutput, state *ResourceMo
 	} else {
 		state.ValueConditions = nil
 	}
+
+	state.BlueprintVariableManagedBy = helpers.StringValueOrNull(variable.BlueprintManagedBy)
 }

@@ -3,13 +3,18 @@ page_title: "cm_variable Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
   Creates, updates and destroys variables.
-  Variable can be either a Terraform variable or an Environment variable.
+  Variable can be either a Terraform variable or an Environment variable. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/main-concepts/variables
 ---
 
 # cm_variable (Resource)
 
 Creates, updates and destroys variables.
-Variable can be either a Terraform variable or an Environment variable.
+Variable can be either a Terraform variable or an Environment variable. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/variables)
+
+## Learn More
+
+- [Load Terraform Variables Automatically in ControlMonkey](https://controlmonkey.io/news/load-terraform-variables/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
 
 ## Example Usage
 
@@ -106,6 +111,7 @@ resource "cm_variable" "ephemeral_stack_instance_types" {
 
 ### Optional
 
+- `blueprint_variable_managed_by` (String) If value is `stack`, then the variable will be managed in the ControlMonkey stack instead of tfVars file. Otherwise, if `inCode`, the variable will be managed in tfVars file.
 - `description` (String) Description for the variable.
 - `display_name` (String) Display name provides the flexibility to assign a descriptive name to the variable. This name will be shown in the UI. It can be useful especially for self service variables to make the variables more user-friendly.
 - `is_required` (Boolean) This setting applies to template variables without a specified value. Stacks created from the template need to provide a value for this variable.

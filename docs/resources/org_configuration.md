@@ -9,6 +9,11 @@ description: |-
 
 Creates, updates and destroys org configuration.
 
+## Learn More
+
+- [Choosing the Right IaC Platform: What Really Matters at Scale](https://controlmonkey.io/blog/choosing-the-right-iac-platform/)
+- [The Era of Total Cloud Control Is Here](https://controlmonkey.io/blog/the-era-of-total-cloud-control-is-here/)
+
 ## Example Usage
 ```terraform
 resource "cm_org_configuration" "org_configuration" {
@@ -21,6 +26,21 @@ resource "cm_org_configuration" "org_configuration" {
       bucket_name    = "bucket-example"
       bucket_region  = "us-east-1"
       aws_account_id = "123456789"
+    },
+  ]
+
+  azure_storage_state_files_locations = [
+    {
+      storage_account_name  = "mystorageaccount"
+      container_name        = "tfstate"
+      azure_subscription_id = "my-azure-subscription"
+    },
+  ]
+
+  gcs_state_files_locations = [
+    {
+      bucket_name   = "cm-tf-state-bucket"
+      gcp_project_id = "my-gcp-project"
     },
   ]
 
@@ -49,6 +69,8 @@ resource "cm_org_configuration" "org_configuration" {
 
 ### Optional
 
+- `azure_storage_state_files_locations` (Attributes List) The Azure Storage locations of your current terraform state files. This will be used by ControlMonkey to scan for existing managed resources. (see [below for nested schema](#nestedatt--azure_storage_state_files_locations))
+- `gcs_state_files_locations` (Attributes List) The GCS buckets of your current terraform state files. This will be used by ControlMonkey to scan for existing managed resources. (see [below for nested schema](#nestedatt--gcs_state_files_locations))
 - `iac_config` (Attributes) IaC configuration that defines default versions. If not explicitly overridden, these defaults apply to all namespaces/stacks. (see [below for nested schema](#nestedatt--iac_config))
 - `report_configurations` (Attributes List) The S3 buckets of your current terraform state files. This will be used by ControlMonkey to scan for existing managed resources. (see [below for nested schema](#nestedatt--report_configurations))
 - `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
@@ -58,6 +80,25 @@ resource "cm_org_configuration" "org_configuration" {
 ### Read-Only
 
 - `id` (String) The unique ID of this resource.
+
+<a id="nestedatt--azure_storage_state_files_locations"></a>
+### Nested Schema for `azure_storage_state_files_locations`
+
+Required:
+
+- `azure_subscription_id` (String) The Azure Subscription ID where the storage account resides.
+- `container_name` (String) The container name within the storage account.
+- `storage_account_name` (String) The Azure Storage account name.
+
+
+<a id="nestedatt--gcs_state_files_locations"></a>
+### Nested Schema for `gcs_state_files_locations`
+
+Required:
+
+- `bucket_name` (String) The name of the bucket.
+- `gcp_project_id` (String) The GCP project ID where the bucket resides.
+
 
 <a id="nestedatt--iac_config"></a>
 ### Nested Schema for `iac_config`
@@ -97,7 +138,7 @@ Optional:
 
 Optional:
 
-- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configures.
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 - `is_overridable` (Boolean) By setting this option, you allow this configuration to be overridden in specific namespaces/stacks.
 - `mode` (String) The runner mode. Allowed values: [managed, selfHosted].
 

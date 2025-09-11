@@ -11,11 +11,18 @@ const (
 	cmNamespacePermissions = "cm_namespace_permissions"
 
 	namespacePermissionsResourceName = "namespace_permissions"
-	namespaceId                      = "ns-x82yjdyahc"
 	permissionUsername               = "Registry Acceptance Test"
 	permissionRoleViewer             = "viewer"
 	permissionRoleAdmin              = "admin"
 )
+
+func testAccNamespacePermissionsResourceSetup() string {
+	return `
+resource "cm_namespace" "test_namespace" {
+  name = "TestNamespace"
+}
+`
+}
 
 func TestAccNamespacePermissionsResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -23,9 +30,9 @@ func TestAccNamespacePermissionsResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: providerConfig + testAccNamespacePermissionsResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
-  namespace_id = "%s"
+  namespace_id = cm_namespace.test_namespace.id
   permissions = [
     {
       programmatic_username = "%s"
@@ -33,7 +40,7 @@ resource "%s" "%s" {
     },
   ]
 }
-`, cmNamespacePermissions, namespacePermissionsResourceName, namespaceId, permissionUsername, permissionRoleViewer),
+`, cmNamespacePermissions, namespacePermissionsResourceName, permissionUsername, permissionRoleViewer),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "id"),
@@ -44,9 +51,9 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: providerConfig + testAccNamespacePermissionsResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
- namespace_id = "%s"
+ namespace_id = cm_namespace.test_namespace.id
 
   permissions = [
     {
@@ -55,10 +62,10 @@ resource "%s" "%s" {
     },
   ]
 }
-`, cmNamespacePermissions, namespacePermissionsResourceName, namespaceId, permissionUsername, permissionRoleAdmin),
+`, cmNamespacePermissions, namespacePermissionsResourceName, permissionUsername, permissionRoleAdmin),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "id"),
-					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id", namespaceId),
+					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.programmatic_username", permissionUsername),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleAdmin),
 				),
@@ -69,8 +76,7 @@ resource "%s" "%s" {
 				ImportStateVerify: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "id"),
-					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "id", namespaceId),
-					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id", namespaceId),
+					resource.TestCheckResourceAttrSet(namespacePermissionsResource(namespacePermissionsResourceName), "namespace_id"),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.programmatic_username", permissionUsername),
 					resource.TestCheckResourceAttr(namespacePermissionsResource(namespacePermissionsResourceName), "permissions.0.role", permissionRoleAdmin),
 				),

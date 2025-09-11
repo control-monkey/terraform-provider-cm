@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -123,6 +124,9 @@ func (r *BlueprintResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						},
 					},
 					"deployment_approval_policy": cross_schema.StackDeploymentApprovalPolicySchema,
+					"run_trigger":                cross_schema.RunTriggerSchema,
+					"iac_config":                 cross_schema.IacConfigSchema,
+					"auto_sync":                  cross_schema.AutoSyncSchema,
 				},
 			},
 			"substitute_parameters": schema.ListNestedAttribute{

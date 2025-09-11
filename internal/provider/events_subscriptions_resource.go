@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	sdkNotification "github.com/control-monkey/controlmonkey-sdk-go/services/notification"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces

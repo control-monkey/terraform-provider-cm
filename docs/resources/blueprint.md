@@ -9,6 +9,12 @@ description: |-
 
 Creates, updates and destroys blueprints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/self-service-templates/persistent-template)
 
+## Learn More
+
+- [Self-service Infrastructure](https://controlmonkey.io/blog/self-service-infrastructure/)
+- [Self-service templates support for Terragrunt & OpenTofu](https://controlmonkey.io/news/self-service-templates-support-for-terragrunt-opentofu/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
+
 ## Example Usage
 ~> **NOTE:** All dynamic parameters referenced in `name_pattern`, `path_pattern`, and `branch_pattern` must be explicitly defined in `substitute_parameters`.
 
@@ -229,7 +235,10 @@ Required:
 
 Optional:
 
+- `auto_sync` (Attributes) Set up auto sync configurations. (see [below for nested schema](#nestedatt--stack_configuration--auto_sync))
 - `deployment_approval_policy` (Attributes) Set up requirements to approve a deployment (see [below for nested schema](#nestedatt--stack_configuration--deployment_approval_policy))
+- `iac_config` (Attributes) IaC configuration. (see [below for nested schema](#nestedatt--stack_configuration--iac_config))
+- `run_trigger` (Attributes) Glob patterns to specify additional paths that should trigger a stack run. (see [below for nested schema](#nestedatt--stack_configuration--run_trigger))
 
 <a id="nestedatt--stack_configuration--vcs_info_with_patterns"></a>
 ### Nested Schema for `stack_configuration.vcs_info_with_patterns`
@@ -243,6 +252,14 @@ Required:
 Optional:
 
 - `branch_pattern` (String) The target branch for new pull requests containing the new stack files. Substitute parameters (e.g., `{branch}-{env}`) are supported.
+
+
+<a id="nestedatt--stack_configuration--auto_sync"></a>
+### Nested Schema for `stack_configuration.auto_sync`
+
+Optional:
+
+- `deploy_when_drift_detected` (Boolean) If set to `true`, a deployment will start automatically upon detecting a drift or multiple drifts
 
 
 <a id="nestedatt--stack_configuration--deployment_approval_policy"></a>
@@ -263,6 +280,27 @@ Optional:
 
 - `parameters` (String) JSON format of the rule parameters according to the `type`. Find supported parameters [here](https://docs.controlmonkey.io/controlmonkey-api/approval-policy-rules)
 
+
+
+<a id="nestedatt--stack_configuration--iac_config"></a>
+### Nested Schema for `stack_configuration.iac_config`
+
+Optional:
+
+- `is_terragrunt_run_all` (Boolean) When using terragrunt, as long as this field is set to `True`, this field will execute "run-all" commands on multiple modules for init/plan/apply
+- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
+- `terraform_version` (String) the Terraform version that will be used for terraform operations.
+- `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
+- `var_files` (List of String) Custom variable files to pass on to Terraform. For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-settings#var-files)
+
+
+<a id="nestedatt--stack_configuration--run_trigger"></a>
+### Nested Schema for `stack_configuration.run_trigger`
+
+Optional:
+
+- `exclude_patterns` (List of String) Patterns that will not trigger a stack run.
+- `patterns` (List of String) Patterns that trigger a stack run.
 
 
 

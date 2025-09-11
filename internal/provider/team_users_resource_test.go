@@ -11,9 +11,16 @@ const (
 	cmUsersTeam = "cm_team_users"
 
 	teamUsersResourceName = "team_users"
-	teamId                = "team-pgublox37u"
 	userEmail             = "example@email.com"
 )
+
+func testAccTeamUsersResourceSetup() string {
+	return `
+resource "cm_team" "test_team" {
+  name = "TestTeam"
+}
+`
+}
 
 func TestAccTeamUsersResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -21,16 +28,16 @@ func TestAccTeamUsersResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: providerConfig + testAccTeamUsersResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
-  team_id = "%s"
+  team_id = cm_team.test_team.id
   users = [
     {
       email = "%s"
     },
   ]
 }
-`, cmUsersTeam, teamUsersResourceName, teamId, userEmail),
+`, cmUsersTeam, teamUsersResourceName, userEmail),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "id"),
@@ -40,14 +47,14 @@ resource "%s" "%s" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: providerConfig + testAccTeamUsersResourceSetup() + fmt.Sprintf(`
 resource "%s" "%s" {
- team_id = "%s"
+ team_id = cm_team.test_team.id
 }
-`, cmUsersTeam, teamUsersResourceName, teamId),
+`, cmUsersTeam, teamUsersResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "id"),
-					resource.TestCheckResourceAttr(teamUsersResource(teamUsersResourceName), "team_id", teamId),
+					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "team_id"),
 					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users"),
 				),
 			},
@@ -57,8 +64,7 @@ resource "%s" "%s" {
 				ImportStateVerify: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "id"),
-					resource.TestCheckResourceAttr(teamUsersResource(teamUsersResourceName), "id", teamId),
-					resource.TestCheckResourceAttr(teamUsersResource(teamUsersResourceName), "team_id", teamId),
+					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "team_id"),
 					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users"),
 				),
 			},

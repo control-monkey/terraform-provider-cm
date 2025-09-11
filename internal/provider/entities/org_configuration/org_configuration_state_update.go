@@ -21,6 +21,20 @@ func UpdateStateAfterRead(res *sdkOrganization.OrgConfiguration, state *Resource
 		state.S3StateFilesLocations = nil
 	}
 
+	if res.AzureStorageStateFilesLocations != nil {
+		locations := updateStateAfterReadAzureStateFilesLocations(res.AzureStorageStateFilesLocations)
+		state.AzureStateFilesLocations = locations
+	} else {
+		state.AzureStateFilesLocations = nil
+	}
+
+	if res.GcsStateFilesLocations != nil {
+		locations := updateStateAfterReadGcsStateFilesLocations(res.GcsStateFilesLocations)
+		state.GcsStateFilesLocations = locations
+	} else {
+		state.GcsStateFilesLocations = nil
+	}
+
 	if res.RunnerConfig != nil {
 		rc := updateStateAfterReadRunnerConfig(res.RunnerConfig)
 		state.RunnerConfig = &rc
@@ -65,6 +79,55 @@ func updateStateAfterReadLocations(apiEntity *sdkOrganization.S3StateFilesLocati
 	retVal.BucketName = helpers.StringValueOrNull(apiEntity.BucketName)
 	retVal.BucketRegion = helpers.StringValueOrNull(apiEntity.BucketRegion)
 	retVal.AwsAccountId = helpers.StringValueOrNull(apiEntity.AwsAccountId)
+
+	return retVal
+}
+
+func updateStateAfterReadAzureStateFilesLocations(apiEntities []*sdkOrganization.AzureStorageStateFilesLocation) []*AzureStateFilesLocationModel {
+	var retVal []*AzureStateFilesLocationModel
+
+	if apiEntities != nil {
+		retVal = make([]*AzureStateFilesLocationModel, 0)
+
+		for _, apiEntity := range apiEntities {
+			tfEntity := updateStateAfterReadAzureLocation(apiEntity)
+			retVal = append(retVal, &tfEntity)
+		}
+	}
+
+	return retVal
+}
+
+func updateStateAfterReadAzureLocation(apiEntity *sdkOrganization.AzureStorageStateFilesLocation) AzureStateFilesLocationModel {
+	var retVal AzureStateFilesLocationModel
+
+	retVal.StorageAccountName = helpers.StringValueOrNull(apiEntity.StorageAccountName)
+	retVal.ContainerName = helpers.StringValueOrNull(apiEntity.ContainerName)
+	retVal.AzureSubscriptionId = helpers.StringValueOrNull(apiEntity.AzureSubscriptionId)
+
+	return retVal
+}
+
+func updateStateAfterReadGcsStateFilesLocations(apiEntities []*sdkOrganization.GcsStateFilesLocation) []*GcsStateFilesLocationModel {
+	var retVal []*GcsStateFilesLocationModel
+
+	if apiEntities != nil {
+		retVal = make([]*GcsStateFilesLocationModel, 0)
+
+		for _, apiEntity := range apiEntities {
+			tfEntity := updateStateAfterReadGcsLocation(apiEntity)
+			retVal = append(retVal, &tfEntity)
+		}
+	}
+
+	return retVal
+}
+
+func updateStateAfterReadGcsLocation(apiEntity *sdkOrganization.GcsStateFilesLocation) GcsStateFilesLocationModel {
+	var retVal GcsStateFilesLocationModel
+
+	retVal.BucketName = helpers.StringValueOrNull(apiEntity.BucketName)
+	retVal.GcpProjectId = helpers.StringValueOrNull(apiEntity.GcpProjectId)
 
 	return retVal
 }

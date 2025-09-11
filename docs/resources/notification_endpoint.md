@@ -2,19 +2,42 @@
 page_title: "cm_notification_endpoint Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys teams.
+  Creates, updates and destroys notification endpoints. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/administration/notifications
 ---
 
 # cm_notification_endpoint (Resource)
 
-Creates, updates and destroys teams.
+Creates, updates and destroys notification endpoints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications)
+
+## Learn More
+
+- [Email Alerts for IaC Events in ControlMonkey](https://controlmonkey.io/news/controlmonkey-email-alerts/)
+- [Console Operations Notifications](https://controlmonkey.io/news/console-operations-notifications/)
+- [Terraform Microsoft Teams Support: Real-Time Infrastructure Notifications](https://controlmonkey.io/news/teams-notification-support/)
 
 ## Example Usage
 ```terraform
 resource "cm_notification_endpoint" "notification_endpoint" {
   name = "ControlMonkey Notifications"
   protocol = "slack"
-  url = "https://www.slack.com/example/webhook"
+  url = "https://hooks.slack.com"
+}
+```
+
+### Slack App notification endpoint
+```terraform
+data "cm_notification_slack_app" "app" {
+  name = "Slack"
+}
+
+resource "cm_notification_endpoint" "slack_app" {
+  name     = "example-slack-app-endpoint"
+  protocol = "slackApp"
+
+  slack_app_config = {
+    notification_slack_app_id = data.cm_notification_slack_app.app.id
+    channel_id                = "C0123456789"
+  }
 }
 ```
 
@@ -24,12 +47,25 @@ resource "cm_notification_endpoint" "notification_endpoint" {
 ### Required
 
 - `name` (String) The name of the endpoint.
-- `protocol` (String) The notifications vendor. Allowed values: [slack, teams].
-- `url` (String) The webhook url to which the notification will be sent.
+- `protocol` (String) The approach to publish notifications. Allowed values: [slack, slackApp, teams, email].
+
+### Optional
+
+- `email_addresses` (List of String) List of email addresses to notify. Required when `protocol` is **email**. Conflicts with `url` and `slack_app_config`.
+- `slack_app_config` (Attributes) Slack App configuration. Required when `protocol` is **slackApp**. Conflicts with `email_addresses` and `url`. (see [below for nested schema](#nestedatt--slack_app_config))
+- `url` (String) The webhook url to which the notification will be sent. Required when `protocol` is one of [**slack**, **teams**]. Conflicts with `email_addresses` and `slack_app_config`.
 
 ### Read-Only
 
 - `id` (String) The unique ID of the endpoint.
+
+<a id="nestedatt--slack_app_config"></a>
+### Nested Schema for `slack_app_config`
+
+Required:
+
+- `channel_id` (String) The Slack channel ID.
+- `notification_slack_app_id` (String) The Slack App ID.
 
 ## Import
 

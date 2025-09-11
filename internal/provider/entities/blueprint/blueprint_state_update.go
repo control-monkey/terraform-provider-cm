@@ -68,6 +68,27 @@ func updateStateAfterReadStackConfiguration(sc *apiBlueprint.StackConfiguration)
 		sc.DeploymentApprovalPolicy = nil
 	}
 
+	if sc.RunTrigger != nil {
+		rt := cross_models.UpdateStateAfterReadRunTrigger(sc.RunTrigger)
+		retVal.RunTrigger = &rt
+	} else {
+		retVal.RunTrigger = nil
+	}
+
+	if sc.IacConfig != nil {
+		ic := cross_models.UpdateStateAfterReadIacConfig(sc.IacConfig)
+		retVal.IacConfig = &ic
+	} else {
+		retVal.IacConfig = nil
+	}
+
+	if sc.AutoSync != nil {
+		as := cross_models.UpdateStateAfterReadAutoSync(sc.AutoSync)
+		retVal.AutoSync = &as
+	} else {
+		retVal.AutoSync = nil
+	}
+
 	return retVal
 }
 

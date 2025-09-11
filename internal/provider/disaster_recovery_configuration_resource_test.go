@@ -2,11 +2,12 @@ package provider
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
-	"os"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -18,27 +19,31 @@ const (
 	disasterRecoveryConfigurationScope                    = "aws"
 	disasterRecoveryConfigurationMode                     = "default"
 	disasterRecoveryConfigurationIncludeManaged           = "true"
-	disasterRecoveryConfigurationProviderId               = s1ProviderId
-	disasterRecoveryConfigurationRepoName                 = s1RepoName
 	disasterRecoveryConfigurationRepoBranch               = "main"
 	disasterRecoveryConfigurationBackupStrategyGroupsJson = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::EC2\"],\"resourceTypes\":[\"AWS::EC2::Instance\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner2\",\"value\":\"Me2\"}]}}]\n"
 
-	disasterRecoveryConfigurationModeAfterUpdate     = "manual"
-	disasterRecoveryConfigurationRepoNameAfterUpdate = "terraform"
+	disasterRecoveryConfigurationModeAfterUpdate = "manual"
+	repoNameAfterUpdate                          = "terraform"
 )
 
-// normalize json string
-var disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::S3\"],\"resourceTypes\":[\"AWS::S3::Bucket\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner3\",\"value\":\"Me3\"}]}}]\n"
-var disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate = helpers.NormalizeJsonArrayString(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString)
+var (
+	// normalize json string
+	disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString = "[{\"vcsInfo\":{\"path\":\"a/b/c\"},\"awsQuery\":{\"region\":\"us-east-1\",\"services\":[\"AWS::S3\"],\"resourceTypes\":[\"AWS::S3::Bucket\"],\"tags\":[{\"key\":\"Owner\",\"value\":\"Me\"}],\"excludeTags\":[{\"key\":\"Owner3\",\"value\":\"Me3\"}]}}]\n"
+	disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate       = helpers.NormalizeJsonArrayString(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdateString)
+)
 
 func TestAccDisasterRecoveryConfigurationResource(t *testing.T) {
+	// Test environment variables used by this function
+	cloudAccountId := test_config.GetCloudAccountId()
+	providerId := test_config.GetProviderId()
+	repoName := test_config.GetRepoName()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {
@@ -62,17 +67,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationMode, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoName,
+					disasterRecoveryConfigurationMode, providerId,
+					repoName,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationMode),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
@@ -81,7 +86,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {
@@ -128,17 +133,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationModeAfterUpdate, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoName,
+					disasterRecoveryConfigurationModeAfterUpdate, providerId,
+					repoName,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationModeAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
@@ -147,7 +152,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 					"groups_json":      config.StringVariable(disasterRecoveryConfigurationBackupStrategyGroupsJson),
 				},
 				Config: providerConfig + fmt.Sprintf(`
@@ -178,17 +183,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationModeAfterUpdate, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoName,
+					disasterRecoveryConfigurationModeAfterUpdate, providerId,
+					repoName,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationModeAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJson),
@@ -197,7 +202,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {
@@ -250,17 +255,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationModeAfterUpdate, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoName,
+					disasterRecoveryConfigurationModeAfterUpdate, providerId,
+					repoName,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationModeAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
@@ -269,7 +274,7 @@ resource "%s" "%s" {
 			test_helpers.GetValidateNoDriftStep(),
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 					"groups_json":      config.StringVariable(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
 				},
 				Config: providerConfig + fmt.Sprintf(`
@@ -300,17 +305,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationModeAfterUpdate, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoName,
+					disasterRecoveryConfigurationModeAfterUpdate, providerId,
+					repoName,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationModeAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
@@ -322,7 +327,7 @@ resource "%s" "%s" {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 					"groups_json":      config.StringVariable(disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
 				},
 				Config: providerConfig + fmt.Sprintf(`
@@ -339,11 +344,11 @@ resource "%s" "%s" {}
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationModeAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoName),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoName),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json", disasterRecoveryConfigurationBackupStrategyGroupsJsonAfterUpdate),
@@ -351,7 +356,7 @@ resource "%s" "%s" {}
 			},
 			{
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {
@@ -375,17 +380,17 @@ resource "%s" "%s" {
 }
 `, tfDisasterRecoveryConfigurationResourceResource, disasterRecoveryConfigurationTfResourceName,
 					disasterRecoveryConfigurationScope, disasterRecoveryConfigurationIncludeManaged,
-					disasterRecoveryConfigurationMode, disasterRecoveryConfigurationProviderId,
-					disasterRecoveryConfigurationRepoNameAfterUpdate,
+					disasterRecoveryConfigurationMode, providerId,
+					repoNameAfterUpdate,
 					disasterRecoveryConfigurationRepoBranch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationMode),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoNameAfterUpdate),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoNameAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),
@@ -397,7 +402,7 @@ resource "%s" "%s" {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ConfigVariables: config.Variables{
-					"cloud_account_id": config.StringVariable(os.Getenv("CLOUD_ACCOUNT_ID")),
+					"cloud_account_id": config.StringVariable(cloudAccountId),
 				},
 				Config: providerConfig + fmt.Sprintf(`
 variable "cloud_account_id" {
@@ -409,11 +414,11 @@ resource "%s" "%s" {}
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "id"),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "scope", disasterRecoveryConfigurationScope),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", os.Getenv("CLOUD_ACCOUNT_ID")),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "cloud_account_id", cloudAccountId),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.mode", disasterRecoveryConfigurationMode),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.include_managed_resources", disasterRecoveryConfigurationIncludeManaged),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", disasterRecoveryConfigurationProviderId),
-					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", disasterRecoveryConfigurationRepoNameAfterUpdate),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.provider_id", providerId),
+					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.repo_name", repoNameAfterUpdate),
 					resource.TestCheckResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.vcs_info.branch", disasterRecoveryConfigurationRepoBranch),
 					resource.TestCheckNoResourceAttr(disasterRecoveryConfigurationResourceName(disasterRecoveryConfigurationTfResourceName), "backup_strategy.groups_json"),
 				),

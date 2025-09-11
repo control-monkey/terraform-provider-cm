@@ -3,6 +3,9 @@ package provider
 import (
 	"errors"
 	"fmt"
+	stdlog "log"
+	"strings"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/services/blueprint"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
@@ -13,8 +16,6 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/notification"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
-	stdlog "log"
-	"strings"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/services/template"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey/session"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/stack"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/stack_discovery_configuration"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/variable"
 	"github.com/control-monkey/terraform-provider-cm/version"
 	"github.com/hashicorp/go-cleanhttp"
@@ -44,20 +46,21 @@ type Config struct {
 }
 
 type Client struct {
-	blueprint               blueprint.Service
-	controlPolicy           control_policy.Service
-	controlPolicyGroup      control_policy_group.Service
-	customAbacConfiguration custom_abac_configuration.Service
-	customRole              custom_role.Service
-	disasterRecovery        disaster_recovery.Service
-	namespace               namespace.Service
-	namespacePermissions    namespace_permissions.Service
-	notification            notification.Service
-	organization            organization.Service
-	stack                   stack.Service
-	team                    team.Service
-	template                template.Service
-	variable                variable.Service
+	blueprint                   blueprint.Service
+	controlPolicy               control_policy.Service
+	controlPolicyGroup          control_policy_group.Service
+	customAbacConfiguration     custom_abac_configuration.Service
+	customRole                  custom_role.Service
+	disasterRecovery            disaster_recovery.Service
+	namespace                   namespace.Service
+	namespacePermissions        namespace_permissions.Service
+	notification                notification.Service
+	organization                organization.Service
+	stack                       stack.Service
+	stackDiscoveryConfiguration stack_discovery_configuration.Service
+	team                        team.Service
+	template                    template.Service
+	variable                    variable.Service
 }
 
 // Client configures and returns a fully initialized ControlMonkey client.
@@ -74,20 +77,21 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 
 	// Create a new client.
 	client := &Client{
-		blueprint:               blueprint.New(sess),
-		controlPolicy:           control_policy.New(sess),
-		controlPolicyGroup:      control_policy_group.New(sess),
-		customAbacConfiguration: custom_abac_configuration.New(sess),
-		customRole:              custom_role.New(sess),
-		disasterRecovery:        disaster_recovery.New(sess),
-		namespace:               namespace.New(sess),
-		namespacePermissions:    namespace_permissions.New(sess),
-		notification:            notification.New(sess),
-		organization:            organization.New(sess),
-		stack:                   stack.New(sess),
-		team:                    team.New(sess),
-		template:                template.New(sess),
-		variable:                variable.New(sess),
+		blueprint:                   blueprint.New(sess),
+		controlPolicy:               control_policy.New(sess),
+		controlPolicyGroup:          control_policy_group.New(sess),
+		customAbacConfiguration:     custom_abac_configuration.New(sess),
+		customRole:                  custom_role.New(sess),
+		disasterRecovery:            disaster_recovery.New(sess),
+		namespace:                   namespace.New(sess),
+		namespacePermissions:        namespace_permissions.New(sess),
+		notification:                notification.New(sess),
+		organization:                organization.New(sess),
+		stack:                       stack.New(sess),
+		stackDiscoveryConfiguration: stack_discovery_configuration.New(sess),
+		team:                        team.New(sess),
+		template:                    template.New(sess),
+		variable:                    variable.New(sess),
 	}
 
 	stdlog.Println("[INFO] ControlMonkey client configured")

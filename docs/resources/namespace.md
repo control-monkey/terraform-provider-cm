@@ -2,12 +2,18 @@
 page_title: "cm_namespace Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys namespaces.
+  Creates, updates and destroys namespaces. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/administration/namespaces
 ---
 
 # cm_namespace (Resource)
 
-Creates, updates and destroys namespaces.
+Creates, updates and destroys namespaces. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/namespaces)
+
+## Learn More
+
+- [Terraform CI/CD Showdown: DIY or Buy?](https://controlmonkey.io/blog/terraform-diy-vs-buy/)
+- [Running Terraform with Jenkins: Pros and Cons](https://controlmonkey.io/blog/running-terraform-with-jenkins/)
+- [Build a Terraform CI/CD Pipeline on AWS](https://controlmonkey.io/blog/terraform-ci-cd-pipeline-aws/)
 
 ## Example Usage
 
@@ -95,6 +101,7 @@ resource "cm_namespace" "prod_namespace" {
 
 ### Optional
 
+- `capabilities` (Attributes) List of capabilities enabled for the stack. (see [below for nested schema](#nestedatt--capabilities))
 - `deployment_approval_policy` (Attributes) Set up requirements to approve a deployment (see [below for nested schema](#nestedatt--deployment_approval_policy))
 - `description` (String) The description of the namespace.
 - `external_credentials` (Attributes List) List of cloud credentials attached to the namespace. (see [below for nested schema](#nestedatt--external_credentials))
@@ -104,6 +111,43 @@ resource "cm_namespace" "prod_namespace" {
 ### Read-Only
 
 - `id` (String) The unique ID of the namespace.
+
+<a id="nestedatt--capabilities"></a>
+### Nested Schema for `capabilities`
+
+Optional:
+
+- `deploy_on_push` (Attributes) When enabled, a deployment will be automatically triggered when changes are pushed to the repository that are relevant to the stack. (see [below for nested schema](#nestedatt--capabilities--deploy_on_push))
+- `drift_detection` (Attributes) When enabled, ControlMonkey will frequently check for drifts in your stack configuration. (see [below for nested schema](#nestedatt--capabilities--drift_detection))
+- `plan_on_pr` (Attributes) When enabled, a plan will be automatically triggered when a Pull Request is created or updated with changes relevant to the stack. (see [below for nested schema](#nestedatt--capabilities--plan_on_pr))
+
+<a id="nestedatt--capabilities--deploy_on_push"></a>
+### Nested Schema for `capabilities.deploy_on_push`
+
+Required:
+
+- `is_overridable` (Boolean) Determine if stacks within the namespace can override this capability.
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
+
+<a id="nestedatt--capabilities--drift_detection"></a>
+### Nested Schema for `capabilities.drift_detection`
+
+Required:
+
+- `is_overridable` (Boolean) Determine if stacks within the namespace can override this capability.
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
+
+<a id="nestedatt--capabilities--plan_on_pr"></a>
+### Nested Schema for `capabilities.plan_on_pr`
+
+Required:
+
+- `is_overridable` (Boolean) Determine if stacks within the namespace can override this capability.
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
+
 
 <a id="nestedatt--deployment_approval_policy"></a>
 ### Nested Schema for `deployment_approval_policy`
@@ -159,7 +203,7 @@ Required:
 
 Optional:
 
-- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configures.
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 
 ## Import
 

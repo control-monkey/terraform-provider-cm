@@ -1,8 +1,9 @@
 package commons
 
 import (
-	"github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"strings"
+
+	"github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 )
 
 type ConverterType string

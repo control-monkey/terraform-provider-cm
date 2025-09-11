@@ -17,7 +17,7 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	data := stack.Data
 
 	if data.DeploymentBehavior != nil {
-		dp := updateStateAfterReadDeploymentBehavior(data.DeploymentBehavior)
+		dp := cross_models.UpdateStateAfterReadDeploymentBehavior(data.DeploymentBehavior)
 		state.DeploymentBehavior = &dp
 	} else {
 		state.DeploymentBehavior = nil
@@ -38,14 +38,14 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.RunTrigger != nil {
-		rt := updateStateAfterReadRunTrigger(data.RunTrigger)
+		rt := cross_models.UpdateStateAfterReadRunTrigger(data.RunTrigger)
 		state.RunTrigger = &rt
 	} else {
 		state.RunTrigger = nil
 	}
 
 	if data.IacConfig != nil {
-		ic := updateStateAfterReadIacConfig(data.IacConfig)
+		ic := cross_models.UpdateStateAfterReadIacConfig(data.IacConfig)
 		state.IacConfig = &ic
 	} else {
 		state.IacConfig = nil
@@ -59,27 +59,26 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 	}
 
 	if data.RunnerConfig != nil {
-		rc := updateStateAfterReadRunnerConfig(data.RunnerConfig)
+		rc := cross_models.UpdateStateAfterReadRunnerConfig(data.RunnerConfig)
 		state.RunnerConfig = &rc
 	} else {
 		state.RunnerConfig = nil
 	}
 
 	if data.AutoSync != nil {
-		as := updateStateAfterReadAutoSync(data.AutoSync)
+		as := cross_models.UpdateStateAfterReadAutoSync(data.AutoSync)
 		state.AutoSync = &as
 	} else {
 		state.AutoSync = nil
 	}
-}
 
-func updateStateAfterReadDeploymentBehavior(deploymentBehavior *sdkStack.DeploymentBehavior) DeploymentBehaviorModel {
-	var retVal DeploymentBehaviorModel
+	if data.Capabilities != nil {
+		dap := updateStateAfterReadCapabilities(data.Capabilities)
+		state.Capabilities = &dap
+	} else {
+		state.Capabilities = nil
+	}
 
-	retVal.DeployOnPush = helpers.BoolValueOrNull(deploymentBehavior.DeployOnPush)
-	retVal.WaitForApproval = helpers.BoolValueOrNull(deploymentBehavior.WaitForApproval)
-
-	return retVal
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
@@ -89,27 +88,6 @@ func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
 	retVal.RepoName = helpers.StringValueOrNull(vcsInfo.RepoName)
 	retVal.Path = helpers.StringValueOrNull(vcsInfo.Path)
 	retVal.Branch = helpers.StringValueOrNull(vcsInfo.Branch)
-
-	return retVal
-}
-
-func updateStateAfterReadRunTrigger(runTrigger *sdkStack.RunTrigger) RunTriggerModel {
-	var retVal RunTriggerModel
-
-	retVal.Patterns = helpers.StringPointerSliceToTfList(runTrigger.Patterns)
-	retVal.ExcludePatterns = helpers.StringPointerSliceToTfList(runTrigger.ExcludePatterns)
-
-	return retVal
-}
-
-func updateStateAfterReadIacConfig(iacConfig *sdkStack.IacConfig) IacConfigModel {
-	var retVal IacConfigModel
-
-	retVal.TerraformVersion = helpers.StringValueOrNull(iacConfig.TerraformVersion)
-	retVal.TerragruntVersion = helpers.StringValueOrNull(iacConfig.TerragruntVersion)
-	retVal.OpentofuVersion = helpers.StringValueOrNull(iacConfig.OpentofuVersion)
-	retVal.IsTerragruntRunAll = helpers.BoolValueOrNull(iacConfig.IsTerragruntRunAll)
-	retVal.VarFiles = helpers.StringPointerSliceToTfList(iacConfig.VarFiles)
 
 	return retVal
 }
@@ -149,23 +127,37 @@ func updateStateAfterReadTtlDefinition(ttl *sdkStack.TtlDefinition) TtlDefinitio
 	return retVal
 }
 
-func updateStateAfterReadRunnerConfig(rc *sdkStack.RunnerConfig) RunnerConfigModel {
-	var retVal RunnerConfigModel
+func updateStateAfterReadCapabilities(capabilities *sdkStack.Capabilities) CapabilitiesModel {
+	var retVal CapabilitiesModel
 
-	if rc != nil {
-		retVal.Mode = helpers.StringValueOrNull(rc.Mode)
-		retVal.Groups = helpers.StringPointerSliceToTfList(rc.Groups)
+	if capabilities.DeployOnPush != nil {
+		dop := updateStateAfterReadCapabilityConfig(capabilities.DeployOnPush)
+		retVal.DeployOnPush = &dop
+	} else {
+		retVal.DeployOnPush = nil
+	}
+
+	if capabilities.PlanOnPr != nil {
+		pop := updateStateAfterReadCapabilityConfig(capabilities.PlanOnPr)
+		retVal.PlanOnPr = &pop
+	} else {
+		retVal.PlanOnPr = nil
+	}
+
+	if capabilities.DriftDetection != nil {
+		dd := updateStateAfterReadCapabilityConfig(capabilities.DriftDetection)
+		retVal.DriftDetection = &dd
+	} else {
+		retVal.DriftDetection = nil
 	}
 
 	return retVal
 }
 
-func updateStateAfterReadAutoSync(as *sdkStack.AutoSync) AutoSyncModel {
-	var retVal AutoSyncModel
+func updateStateAfterReadCapabilityConfig(c *sdkStack.CapabilityConfig) CapabilityConfigModel {
+	var retVal CapabilityConfigModel
 
-	if as != nil {
-		retVal.DeployWhenDriftDetected = helpers.BoolValueOrNull(as.DeployWhenDriftDetected)
-	}
+	retVal.Status = helpers.StringValueOrNull(c.Status)
 
 	return retVal
 }

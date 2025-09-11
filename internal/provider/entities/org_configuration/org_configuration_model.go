@@ -9,12 +9,14 @@ const (
 )
 
 type ResourceModel struct {
-	ID                    types.String                 `tfsdk:"id"`
-	IacConfig             *IacConfigModel              `tfsdk:"iac_config"`
-	S3StateFilesLocations []*S3StateFilesLocationModel `tfsdk:"s3_state_files_locations"`
-	RunnerConfig          *RunnerConfigModel           `tfsdk:"runner_config"`
-	SuppressedResources   *SuppressedResourcesModel    `tfsdk:"suppressed_resources"`
-	ReportConfigurations  []*ReportConfigurationModel  `tfsdk:"report_configurations"`
+	ID                       types.String                    `tfsdk:"id"`
+	IacConfig                *IacConfigModel                 `tfsdk:"iac_config"`
+	S3StateFilesLocations    []*S3StateFilesLocationModel    `tfsdk:"s3_state_files_locations"`
+	AzureStateFilesLocations []*AzureStateFilesLocationModel `tfsdk:"azure_storage_state_files_locations"`
+	GcsStateFilesLocations   []*GcsStateFilesLocationModel   `tfsdk:"gcs_state_files_locations"`
+	RunnerConfig             *RunnerConfigModel              `tfsdk:"runner_config"`
+	SuppressedResources      *SuppressedResourcesModel       `tfsdk:"suppressed_resources"`
+	ReportConfigurations     []*ReportConfigurationModel     `tfsdk:"report_configurations"`
 }
 
 type IacConfigModel struct {
@@ -27,6 +29,17 @@ type S3StateFilesLocationModel struct {
 	BucketName   types.String `tfsdk:"bucket_name"`
 	BucketRegion types.String `tfsdk:"bucket_region"`
 	AwsAccountId types.String `tfsdk:"aws_account_id"`
+}
+
+type AzureStateFilesLocationModel struct {
+	StorageAccountName  types.String `tfsdk:"storage_account_name"`
+	ContainerName       types.String `tfsdk:"container_name"`
+	AzureSubscriptionId types.String `tfsdk:"azure_subscription_id"`
+}
+
+type GcsStateFilesLocationModel struct {
+	BucketName   types.String `tfsdk:"bucket_name"`
+	GcpProjectId types.String `tfsdk:"gcp_project_id"`
 }
 
 type RunnerConfigModel struct {

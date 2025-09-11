@@ -1,9 +1,10 @@
 package controlPolicyGroup
 
 import (
+	"reflect"
+
 	apiControlPolicyGroup "github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
-	"reflect"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*apiControlPolicyGroup.ControlPolicyGroup, bool) {

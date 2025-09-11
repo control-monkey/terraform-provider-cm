@@ -1,9 +1,10 @@
 package interfaces
 
 import (
+	"reflect"
+
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/hashicorp/go-set/v2"
-	"reflect"
 )
 
 type OperationType string

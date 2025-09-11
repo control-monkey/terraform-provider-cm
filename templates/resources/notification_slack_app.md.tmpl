@@ -1,0 +1,34 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Learn more
+
+- [Slack App Integration: Cloud Infra Alert](https://controlmonkey.io/news/slack-app-integration/)
+- [Email Alerts for IaC Events in ControlMonkey](https://controlmonkey.io/news/controlmonkey-email-alerts/)
+- [Console Operations Notifications](https://controlmonkey.io/news/console-operations-notifications/)
+
+## Example Usage
+{{tffile "examples/resources/cm_notification_slack_app/resource.tf"}}
+
+### Manage existing slack app after import without replacing the value of `bot_auth_token`. Removing the `ignore_changes` would lead to changing the token.
+{{tffile "examples/resources/cm_notification_slack_app/resource2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_notification_slack_app` can be imported using the Slack App ID, e.g.
+
+```shell
+terraform import cm_notification_slack_app.example slack-app-id
+```
+{{- end }}

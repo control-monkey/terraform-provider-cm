@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
@@ -36,7 +37,7 @@ func (r *NotificationEndpointResource) Metadata(_ context.Context, req resource.
 
 func (r *NotificationEndpointResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates, updates and destroys teams.",
+		MarkdownDescription: "Creates, updates and destroys notification endpoints. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/administration/notifications)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique ID of the endpoint.",
@@ -53,20 +54,90 @@ func (r *NotificationEndpointResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"protocol": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("The notifications vendor. Allowed values: %s.", helpers.EnumForDocs(cmTypes.EventSubscriptionProtocolTypes)),
+				MarkdownDescription: fmt.Sprintf("The approach to publish notifications. Allowed values: %s.", helpers.EnumForDocs(cmTypes.EventSubscriptionProtocolTypes)),
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Validators: []validator.String{
 					stringvalidator.OneOf(cmTypes.EventSubscriptionProtocolTypes...),
 				},
 			},
 			"url": schema.StringAttribute{
-				MarkdownDescription: "The webhook url to which the notification will be sent.",
-				Required:            true,
+				MarkdownDescription: "The webhook url to which the notification will be sent. Required when `protocol` is one of [**slack**, **teams**]. Conflicts with `email_addresses` and `slack_app_config`.",
+				Optional:            true,
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("url"), path.MatchRoot("email_addresses"), path.MatchRoot("slack_app_config")),
+				},
+			},
+			"email_addresses": schema.ListAttribute{
+				MarkdownDescription: "List of email addresses to notify. Required when `protocol` is **email**. Conflicts with `url` and `slack_app_config`.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators:          commons.ValidateUniqueNotEmptyListWithNoBlankValues(),
+			},
+			"slack_app_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "Slack App configuration. Required when `protocol` is **slackApp**. Conflicts with `email_addresses` and `url`.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"notification_slack_app_id": schema.StringAttribute{
+						MarkdownDescription: "The Slack App ID.",
+						Required:            true,
+						Validators:          []validator.String{cmStringValidators.NotBlank()},
+					},
+					"channel_id": schema.StringAttribute{
+						MarkdownDescription: "The Slack channel ID.",
+						Required:            true,
+						Validators:          []validator.String{cmStringValidators.NotBlank()},
+					},
 				},
 			},
 		},
+	}
+}
+
+// ValidateConfig enforces conditional requirements based on selected protocol
+func (r *NotificationEndpointResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data tfNotificationEndpoint.ResourceModel
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
+
+	if helpers.IsKnown(data.Protocol) == false {
+		return
+	}
+
+	// Exactly one of url, email_addresses, slack_app_config must be configured
+	presentCount := 0
+	if helpers.IsKnown(data.Url) {
+		presentCount++
+	}
+	if data.SlackAppConfig != nil {
+		presentCount++
+	}
+	if helpers.IsKnown(data.EmailAddresses) {
+		presentCount++
+	}
+
+	if presentCount == 0 {
+		return
+	}
+
+	protocol := data.Protocol.ValueString()
+	switch protocol {
+	case cmTypes.SlackProtocol, cmTypes.TeamsProtocol:
+		if helpers.IsKnown(data.Url) == false {
+			resp.Diagnostics.AddError(validationError, fmt.Sprintf("'url' is required when protocol is '%s'", protocol))
+		}
+	case cmTypes.SlackAppProtocol:
+		if data.SlackAppConfig == nil {
+			resp.Diagnostics.AddError(validationError, "'slack_app_config' is required when protocol is 'slackApp'")
+		}
+	case cmTypes.EmailProtocol:
+		if helpers.IsKnown(data.EmailAddresses) == false {
+			resp.Diagnostics.AddError(validationError, "'email_addresses' is required when protocol is 'email'")
+		}
 	}
 }
 

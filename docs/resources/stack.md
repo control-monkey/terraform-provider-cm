@@ -2,12 +2,19 @@
 page_title: "cm_stack Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys stacks.
+  Creates, updates and destroys stacks. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/main-concepts/stack
 ---
 
 # cm_stack (Resource)
 
-Creates, updates and destroys stacks.
+Creates, updates and destroys stacks. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/stack)
+
+## Learn More
+
+- [Terraform CI/CD Showdown: DIY or Buy?](https://controlmonkey.io/blog/terraform-diy-vs-buy/)
+- [Running Terraform with Jenkins: Pros and Cons](https://controlmonkey.io/blog/running-terraform-with-jenkins/)
+- [Build a Terraform CI/CD Pipeline on AWS](https://controlmonkey.io/blog/terraform-ci-cd-pipeline-aws/)
+- [Detect When the Same Terraform Resource Is Managed in Multiple Files](https://controlmonkey.io/news/same-terraform-resource-multiple-files/)
 
 ## Example Usage
 
@@ -142,9 +149,10 @@ resource "cm_stack" "auto_scaling_group_dev" {
 ### Optional
 
 - `auto_sync` (Attributes) Set up auto sync configurations. (see [below for nested schema](#nestedatt--auto_sync))
+- `capabilities` (Attributes) List of capabilities enabled for the stack. (see [below for nested schema](#nestedatt--capabilities))
 - `deployment_approval_policy` (Attributes) Set up requirements to approve a deployment (see [below for nested schema](#nestedatt--deployment_approval_policy))
 - `description` (String) The description of the stack.
-- `iac_config` (Attributes) IaC configuration of the stack. (see [below for nested schema](#nestedatt--iac_config))
+- `iac_config` (Attributes) IaC configuration. (see [below for nested schema](#nestedatt--iac_config))
 - `policy` (Attributes) The policy of the stack. (see [below for nested schema](#nestedatt--policy))
 - `run_trigger` (Attributes) Glob patterns to specify additional paths that should trigger a stack run. (see [below for nested schema](#nestedatt--run_trigger))
 - `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
@@ -185,6 +193,40 @@ Optional:
 Optional:
 
 - `deploy_when_drift_detected` (Boolean) If set to `true`, a deployment will start automatically upon detecting a drift or multiple drifts
+
+
+<a id="nestedatt--capabilities"></a>
+### Nested Schema for `capabilities`
+
+Optional:
+
+- `deploy_on_push` (Attributes) When enabled, a deployment will be automatically triggered when changes are pushed to the repository that are relevant to the stack. (see [below for nested schema](#nestedatt--capabilities--deploy_on_push))
+- `drift_detection` (Attributes) When enabled, ControlMonkey will frequently check for drifts in your stack configuration. (see [below for nested schema](#nestedatt--capabilities--drift_detection))
+- `plan_on_pr` (Attributes) When enabled, a plan will be automatically triggered when a Pull Request is created or updated with changes relevant to the stack. (see [below for nested schema](#nestedatt--capabilities--plan_on_pr))
+
+<a id="nestedatt--capabilities--deploy_on_push"></a>
+### Nested Schema for `capabilities.deploy_on_push`
+
+Required:
+
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
+
+<a id="nestedatt--capabilities--drift_detection"></a>
+### Nested Schema for `capabilities.drift_detection`
+
+Required:
+
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
+
+<a id="nestedatt--capabilities--plan_on_pr"></a>
+### Nested Schema for `capabilities.plan_on_pr`
+
+Required:
+
+- `status` (String) Whether the capability is enabled or disabled. Allowed values: [enabled, disabled].
+
 
 
 <a id="nestedatt--deployment_approval_policy"></a>
@@ -262,7 +304,7 @@ Required:
 
 Optional:
 
-- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configures.
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 
 ## Import
 

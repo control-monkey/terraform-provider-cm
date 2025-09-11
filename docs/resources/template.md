@@ -2,12 +2,17 @@
 page_title: "cm_template Resource - terraform-provider-cm"
 subcategory: ""
 description: |-
-  Creates, updates and destroys templates for ephemeral stack.
+  Creates, updates and destroys templates for ephemeral stack. For more information: ControlMonkey Documentation https://docs.controlmonkey.io/main-concepts/self-service-templates/template-for-ephemeral-stack
 ---
 
 # cm_template (Resource)
 
-Creates, updates and destroys templates for ephemeral stack.
+Creates, updates and destroys templates for ephemeral stack. For more information: [ControlMonkey Documentation](https://docs.controlmonkey.io/main-concepts/self-service-templates/template-for-ephemeral-stack)
+
+## Learn More
+
+- [Self-service templates support for Terragrunt & OpenTofu](https://controlmonkey.io/news/self-service-templates-support-for-terragrunt-opentofu/)
+- [Variable Conditions for Self-service Infrastructure](https://controlmonkey.io/news/variable-conditions-for-self-service-infrastructure/)
 
 ## Example Usage
 
@@ -114,7 +119,9 @@ resource "cm_variable" "allowed_instances_variable" {
 ### Optional
 
 - `description` (String) The description of the template.
+- `iac_config` (Attributes) IaC configuration of the template. (see [below for nested schema](#nestedatt--iac_config))
 - `policy` (Attributes) The policy of the template. (see [below for nested schema](#nestedatt--policy))
+- `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
 - `skip_state_refresh_on_destroy` (Boolean) When enabled, the state will not get refreshed before planning the destroy operation.
 
 ### Read-Only
@@ -133,6 +140,16 @@ Optional:
 
 - `branch` (String) The branch that triggers the deployment of the ephemeral stack from the template. If no branch is specified, the default branch of the repository will be used.
 - `path` (String) The path to a chosen directory from the root. Default path is root directory
+
+
+<a id="nestedatt--iac_config"></a>
+### Nested Schema for `iac_config`
+
+Optional:
+
+- `opentofu_version` (String) the OpenTofu version that will be used for tofu operations.
+- `terraform_version` (String) the Terraform version that will be used for terraform operations.
+- `terragrunt_version` (String) the Terragrunt version that will be used for terragrunt operations.
 
 
 <a id="nestedatt--policy"></a>
@@ -166,6 +183,20 @@ Required:
 
 - `type` (String) The type of the ttl. Allowed values: [hours, days].
 - `value` (Number) The value that corresponds the type
+
+
+
+
+<a id="nestedatt--runner_config"></a>
+### Nested Schema for `runner_config`
+
+Required:
+
+- `mode` (String) The runner mode. Allowed values: [managed, selfHosted].
+
+Optional:
+
+- `groups` (List of String) In case that `mode` is `selfHosted`, groups must contain at least one runners group. If `mode` is `managed`, this field must not be configured.
 
 ## Import
 

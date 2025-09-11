@@ -4,6 +4,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/template"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
 )
 
 func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.ConverterType) (*template.Template, bool) {
@@ -50,6 +51,16 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if plan.SkipStateRefreshOnDestroy != state.SkipStateRefreshOnDestroy {
 		retVal.SetSkipStateRefreshOnDestroy(plan.SkipStateRefreshOnDestroy.ValueBoolPointer())
+		hasChanges = true
+	}
+
+	if iacConfig, hasChanged := iacConfigConverter(plan.IacConfig, state.IacConfig, converterType); hasChanged {
+		retVal.SetIacConfig(iacConfig)
+		hasChanges = true
+	}
+
+	if runnerConfig, hasChanged := cross_models.RunnerConfigConverter(plan.RunnerConfig, state.RunnerConfig, converterType); hasChanged {
+		retVal.SetRunnerConfig(runnerConfig)
 		hasChanges = true
 	}
 
@@ -177,6 +188,41 @@ func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionM
 	}
 	if plan.Value != state.Value {
 		retVal.SetValue(controlmonkey.Int(int(plan.Value.ValueInt64())))
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func iacConfigConverter(plan *IacConfigModel, state *IacConfigModel, converterType commons.ConverterType) (*template.IacConfig, bool) {
+	var retVal *template.IacConfig
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(template.IacConfig)
+	hasChanges := false
+
+	if state == nil {
+		state = new(IacConfigModel) // dummy initialization
+		hasChanges = true           // must have changes because before is null and after is not
+	}
+
+	if plan.TerraformVersion != state.TerraformVersion {
+		retVal.SetTerraformVersion(plan.TerraformVersion.ValueStringPointer())
+		hasChanges = true
+	}
+	if plan.TerragruntVersion != state.TerragruntVersion {
+		retVal.SetTerragruntVersion(plan.TerragruntVersion.ValueStringPointer())
+		hasChanges = true
+	}
+	if plan.OpentofuVersion != state.OpentofuVersion {
+		retVal.SetOpentofuVersion(plan.OpentofuVersion.ValueStringPointer())
 		hasChanges = true
 	}
 

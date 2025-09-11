@@ -2,8 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/config"
 	"testing"
+
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -19,28 +21,52 @@ const (
 	controlPolicyGroupNameAfterUpdate = "updated tf control policy group"
 )
 
+func testAccControlPolicyGroupResourceSetup() string {
+	return `
+resource "cm_control_policy" "control_policy_test" {
+  name        = "AWS Resources should have the Env tag with value Dev/Stage/Prod"
+  description = "All AWS infrastructure should have the Env tag with value Dev/Stage/Prod."
+  type        = "aws_required_tags"
+  parameters  = jsonencode({
+    tags = [
+      {
+        key           = "Env"
+        allowedValues = [
+          "Dev",
+          "Stage",
+          "Prod"
+        ]
+      }
+    ]
+  })
+}
+`
+}
+
 func TestAccControlPolicyGroupResource(t *testing.T) {
+	// Test environment variables used by this function
+	controlPolicyId := test_config.GetControlPolicyId()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: providerConfig + fmt.Sprintf(`
+				Config: testAccControlPolicyGroupResourceSetup() + providerConfig + fmt.Sprintf(`
 resource "%s" "%s" {
 	name = "%s"
 	description = "%s"
 	control_policies = [
 		{
-			control_policy_id = "%s"
+			control_policy_id = cm_control_policy.control_policy_test.id
 		}
 	]
 }
-`, tfControlPolicyGroupResource, controlPolicyGroupTfResourceName, controlPolicyGroupName, controlPolicyGroupDescription, controlPolicyId),
+`, tfControlPolicyGroupResource, controlPolicyGroupTfResourceName, controlPolicyGroupName, controlPolicyGroupDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "name", controlPolicyGroupName),
 					resource.TestCheckResourceAttr(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "description", controlPolicyGroupDescription),
 					resource.TestCheckResourceAttr(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "control_policies.#", "1"),
-					resource.TestCheckResourceAttr(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "control_policies.0.control_policy_id", controlPolicyId),
+					resource.TestCheckResourceAttrPair(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "control_policies.0.control_policy_id", "cm_control_policy.control_policy_test", "id"),
 					resource.TestCheckNoResourceAttr(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "control_policies.0.severity"),
 					// Verify dynamic values have any value set in the state.
 					resource.TestCheckResourceAttrSet(controlPolicyGroupResourceName(controlPolicyGroupTfResourceName), "id"),
@@ -55,7 +81,7 @@ resource "%s" "%s" {
 						"severity":          config.StringVariable(controlPolicySeverityAfterUpdate),
 					})),
 				},
-				Config: providerConfig + fmt.Sprintf(`
+				Config: testAccControlPolicyGroupResourceSetup() + providerConfig + fmt.Sprintf(`
 variable "control_policies" {
 	type = list(object({
 				control_policy_id = string
