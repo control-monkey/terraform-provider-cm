@@ -51,7 +51,7 @@ resource "cm_stack_dependency" "dependency" {
 ### Optional
 
 - `references` (Attributes List) List of references wiring outputs to inputs. When set, `trigger_option` is required (see [below for nested schema](#nestedatt--references))
-- `trigger_option` (String) Dependency trigger option. When set, `references` is required. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-dependency-trigger-option-types)
+- `trigger_option` (String) Dependency trigger option. When set, `references` is required. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-dependency-trigger-option-types). For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-dependencies#understanding-stack-dependencies)
 
 ### Read-Only
 
@@ -62,12 +62,12 @@ resource "cm_stack_dependency" "dependency" {
 
 Required:
 
-- `input_for_stack` (String)
-- `output_of_stack_to_depend_on` (String)
+- `input_for_stack` (String) The input variable name for the dependent stack.
+- `output_of_stack_to_depend_on` (String) The output variable name from the stack to depend on.
 
 Optional:
 
-- `include_sensitive_output` (Boolean)
+- `include_sensitive_output` (Boolean) If the output is marked as sensitive in the code, this property must be set to **true** in order to be available as an input.
 
 ## Import
 

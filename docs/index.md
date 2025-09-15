@@ -11,10 +11,10 @@ Manage [ControlMonkey](https://controlmonkey.io/) resources and workflows via Te
 
 ## Learn More
 
-- [Main site](https://controlmonkey.io/)
+- [Main Site](https://controlmonkey.io/)
 - [ControlMonkey IaC Automation Platform](https://controlmonkey.io/iac-automation-platform/)
 - [ControlMonkey Integrations](https://controlmonkey.io/integrations/)
-- [Product updates](https://controlmonkey.io/product-news/)
+- [Product Updates](https://controlmonkey.io/product-news/)
 - [Blogs](https://controlmonkey.io/blog/)
 
 ## Example Usage

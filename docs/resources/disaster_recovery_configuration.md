@@ -11,6 +11,7 @@ Creates, updates and destroys disaster recovery configurations. For more informa
 
 ## Learn More
 
+- [ControlMonkey Total Cloud Resilience](https://controlmonkey.io/solution/cloud-resilience/)
 - [Cloud Disaster Recovery with Terraform: Strategies That Work](https://controlmonkey.io/blog/cloud-disaster-recovery/)
 - [AWS Networking DR Plan with Terraform](https://controlmonkey.io/blog/aws_networking_architecture_dr_plan/)
 

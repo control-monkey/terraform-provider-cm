@@ -5,6 +5,7 @@ example*.tf
 import*.tf
 terraform.tfplan
 terraform.tfstate
+sandbox/v*/**
 bin/
 dist/
 modules-dev/

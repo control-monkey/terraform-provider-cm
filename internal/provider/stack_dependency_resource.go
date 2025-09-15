@@ -56,7 +56,7 @@ func (r *StackDependencyResource) Schema(_ context.Context, _ resource.SchemaReq
 				},
 			},
 			"trigger_option": schema.StringAttribute{
-				MarkdownDescription: "Dependency trigger option. When set, `references` is required. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-dependency-trigger-option-types)",
+				MarkdownDescription: "Dependency trigger option. When set, `references` is required. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-dependency-trigger-option-types). For more information: [ControlMonkey Docs](https://docs.controlmonkey.io/main-concepts/stack/stack-dependencies#understanding-stack-dependencies)",
 				Optional:            true,
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
@@ -77,19 +77,22 @@ func (r *StackDependencyResource) Schema(_ context.Context, _ resource.SchemaReq
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"output_of_stack_to_depend_on": schema.StringAttribute{
-							Required: true,
+							MarkdownDescription: "The output variable name from the stack to depend on.",
+							Required:            true,
 							Validators: []validator.String{
 								cmStringValidators.NotBlank(),
 							},
 						},
 						"input_for_stack": schema.StringAttribute{
-							Required: true,
+							MarkdownDescription: "The input variable name for the dependent stack.",
+							Required:            true,
 							Validators: []validator.String{
 								cmStringValidators.NotBlank(),
 							},
 						},
 						"include_sensitive_output": schema.BoolAttribute{
-							Optional: true,
+							MarkdownDescription: "If the output is marked as sensitive in the code, this property must be set to **true** in order to be available as an input.",
+							Optional:            true,
 						},
 					},
 				},
