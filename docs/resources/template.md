@@ -164,8 +164,8 @@ Optional:
 
 Required:
 
-- `default_ttl` (Attributes) (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
-- `max_ttl` (Attributes) (see [below for nested schema](#nestedatt--policy--ttl_config--max_ttl))
+- `default_ttl` (Attributes) The default time to live configuration for the template. (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
+- `max_ttl` (Attributes) The maximum time to live configuration for the template. (see [below for nested schema](#nestedatt--policy--ttl_config--max_ttl))
 
 <a id="nestedatt--policy--ttl_config--default_ttl"></a>
 ### Nested Schema for `policy.ttl_config.default_ttl`

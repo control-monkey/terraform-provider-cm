@@ -97,7 +97,8 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"max_ttl": schema.SingleNestedAttribute{
-								Required: true,
+								MarkdownDescription: "The maximum time to live configuration for the template.",
+								Required:            true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
 										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
@@ -113,7 +114,8 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 								},
 							},
 							"default_ttl": schema.SingleNestedAttribute{
-								Required: true,
+								MarkdownDescription: "The default time to live configuration for the template.",
+								Required:            true,
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
 										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
