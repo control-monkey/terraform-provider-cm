@@ -14,6 +14,7 @@ type ResourceModel struct {
 	SubstituteParameters             []*SubstituteParameterModel `tfsdk:"substitute_parameters"`
 	SkipPlanOnStackInitialization    types.Bool                  `tfsdk:"skip_plan_on_stack_initialization"`
 	AutoApproveApplyOnInitialization types.Bool                  `tfsdk:"auto_approve_apply_on_initialization"`
+	Policy                           *PolicyModel                `tfsdk:"policy"`
 }
 
 type VcsInfoModel struct {
@@ -44,4 +45,19 @@ type SubstituteParameterModel struct {
 	Key             types.String                   `tfsdk:"key"`
 	Description     types.String                   `tfsdk:"description"`
 	ValueConditions []*cross_models.ConditionModel `tfsdk:"value_conditions"`
+}
+
+type PolicyModel struct {
+	TtlConfig *TtlConfigModel `tfsdk:"ttl_config"`
+}
+
+type TtlConfigModel struct {
+	MaxTtl                        *TtlDefinitionModel `tfsdk:"max_ttl"`
+	DefaultTtl                    *TtlDefinitionModel `tfsdk:"default_ttl"`
+	OpenCleanupPrOnTtlTermination types.Bool          `tfsdk:"open_cleanup_pr_on_ttl_termination"`
+}
+
+type TtlDefinitionModel struct {
+	Type  types.String `tfsdk:"type"`
+	Value types.Int64  `tfsdk:"value"`
 }

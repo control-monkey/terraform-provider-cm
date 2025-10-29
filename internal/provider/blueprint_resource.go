@@ -154,6 +154,56 @@ func (r *BlueprintResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "If enabled (`true`), the stack’s initial deployment will automatically apply changes after the pull request is merged, bypassing manual approval.",
 				Optional:            true,
 			},
+			"policy": schema.SingleNestedAttribute{
+				MarkdownDescription: "The policy of the blueprint.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"ttl_config": schema.SingleNestedAttribute{
+						MarkdownDescription: "The time to live config of the blueprint policy.",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"max_ttl": schema.SingleNestedAttribute{
+								MarkdownDescription: "The maximum time to live configuration for the blueprint.",
+								Required:            true,
+								Attributes: map[string]schema.Attribute{
+									"type": schema.StringAttribute{
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
+										Required:            true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(cmTypes.TtlTypes...),
+										},
+									},
+									"value": schema.Int64Attribute{
+										MarkdownDescription: "The value that corresponds the type",
+										Required:            true,
+									},
+								},
+							},
+							"default_ttl": schema.SingleNestedAttribute{
+								MarkdownDescription: "The default time to live configuration for the blueprint.",
+								Required:            true,
+								Attributes: map[string]schema.Attribute{
+									"type": schema.StringAttribute{
+										MarkdownDescription: fmt.Sprintf("The type of the ttl. Allowed values: %s.", helpers.EnumForDocs(cmTypes.TtlTypes)),
+										Required:            true,
+										Validators: []validator.String{
+											stringvalidator.OneOf(cmTypes.TtlTypes...),
+										},
+									},
+									"value": schema.Int64Attribute{
+										MarkdownDescription: "The value that corresponds the type",
+										Required:            true,
+									},
+								},
+							},
+							"open_cleanup_pr_on_ttl_termination": schema.BoolAttribute{
+								MarkdownDescription: "If enabled (`true`), a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.",
+								Optional:            true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
