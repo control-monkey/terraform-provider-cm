@@ -82,5 +82,3 @@ require (
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
-
-replace github.com/control-monkey/controlmonkey-sdk-go v1.15.0 => /Users/omerlifshitz/IdeaProjects/controlmonkey-sdk-go
