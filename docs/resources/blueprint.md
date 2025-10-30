@@ -343,12 +343,12 @@ Optional:
 
 Required:
 
-- `default_ttl` (Attributes) The default time to live configuration for the template. (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
+- `default_ttl` (Attributes) The default time to live configuration for the blueprint. (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
 - `max_ttl` (Attributes) The maximum time to live configuration for the blueprint. (see [below for nested schema](#nestedatt--policy--ttl_config--max_ttl))
 
 Optional:
 
-- `open_cleanup_pr_on_ttl_termination` (Boolean) If enabled (`true`), a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.
+- `open_cleanup_pr_on_ttl_termination` (Boolean) When enabled, a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.
 
 <a id="nestedatt--policy--ttl_config--default_ttl"></a>
 ### Nested Schema for `policy.ttl_config.default_ttl`

@@ -258,6 +258,7 @@ func policyConverter(plan *PolicyModel, state *PolicyModel, converterType common
 		retVal.SetTtlConfig(innerProperty)
 		hasChanges = true
 	}
+
 	return retVal, hasChanges
 }
 

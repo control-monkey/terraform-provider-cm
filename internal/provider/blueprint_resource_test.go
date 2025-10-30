@@ -394,11 +394,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "substitute_parameters.1.description"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "skip_plan_on_stack_initialization"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "auto_approve_apply_on_initialization"),
-					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.type"),
-					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.value"),
-					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.type"),
-					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.value"),
-					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.open_cleanup_pr_on_ttl_termination"),
+					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy"),
 				),
 			},
 			// validate no drift step

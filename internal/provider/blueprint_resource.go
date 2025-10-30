@@ -197,7 +197,7 @@ func (r *BlueprintResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 								},
 							},
 							"open_cleanup_pr_on_ttl_termination": schema.BoolAttribute{
-								MarkdownDescription: "If enabled (`true`), a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.",
+								MarkdownDescription: "When enabled, a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.",
 								Optional:            true,
 							},
 						},
