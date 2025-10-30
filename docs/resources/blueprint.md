@@ -204,6 +204,7 @@ resource "cm_blueprint" "blueprint" {
 
 - `auto_approve_apply_on_initialization` (Boolean) If enabled (`true`), the stack’s initial deployment will automatically apply changes after the pull request is merged, bypassing manual approval.
 - `description` (String) The description of the blueprint.
+- `policy` (Attributes) The policy of the blueprint. (see [below for nested schema](#nestedatt--policy))
 - `skip_plan_on_stack_initialization` (Boolean) If enabled (`true`), an automatic plan will not be triggered on the initial pull request.
 
 ### Read-Only
@@ -327,6 +328,44 @@ Optional:
 
 - `value` (String) The value associated with the operator. Input a number or string depending on the chosen operator. Use `values` field for operator of type `in`
 - `values` (List of String) A list of strings when using operator type `in`. For other operators use `value`
+
+
+
+<a id="nestedatt--policy"></a>
+### Nested Schema for `policy`
+
+Optional:
+
+- `ttl_config` (Attributes) The time to live config of the blueprint policy. (see [below for nested schema](#nestedatt--policy--ttl_config))
+
+<a id="nestedatt--policy--ttl_config"></a>
+### Nested Schema for `policy.ttl_config`
+
+Required:
+
+- `default_ttl` (Attributes) The default time to live configuration for the blueprint. (see [below for nested schema](#nestedatt--policy--ttl_config--default_ttl))
+- `max_ttl` (Attributes) The maximum time to live configuration for the blueprint. (see [below for nested schema](#nestedatt--policy--ttl_config--max_ttl))
+
+Optional:
+
+- `open_cleanup_pr_on_ttl_termination` (Boolean) When enabled, a PR will automatically open to remove the stack directory from the repository after the stack is terminated due to TTL expiration.
+
+<a id="nestedatt--policy--ttl_config--default_ttl"></a>
+### Nested Schema for `policy.ttl_config.default_ttl`
+
+Required:
+
+- `type` (String) The type of the ttl. Allowed values: [hours, days].
+- `value` (Number) The value that corresponds the type
+
+
+<a id="nestedatt--policy--ttl_config--max_ttl"></a>
+### Nested Schema for `policy.ttl_config.max_ttl`
+
+Required:
+
+- `type` (String) The type of the ttl. Allowed values: [hours, days].
+- `value` (Number) The value that corresponds the type
 
 ## Import
 

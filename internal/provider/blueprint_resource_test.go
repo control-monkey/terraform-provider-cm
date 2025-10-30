@@ -16,12 +16,19 @@ const (
 	tfBlueprintResourceResource = "cm_blueprint"
 	blueprintTfResourceName     = "blueprint"
 
-	blueprintName                      = "Test Blueprint"
-	blueprintDescription               = "Description"
-	blueprintRepoPath                  = "cm/blueprint"
-	blueprintStackConfigurationIacType = "terraform"
+	blueprintName                          = "Test Blueprint"
+	blueprintDescription                   = "Description"
+	blueprintRepoPath                      = "cm/blueprint"
+	blueprintStackConfigurationIacType     = "terraform"
+	blueprintPolicyMaxTtlType              = "days"
+	blueprintPolicyMaxTtlValue             = "2"
+	blueprintPolicyDefaultTtlType          = "hours"
+	blueprintPolicyDefaultTtlValue         = "3"
+	blueprintOpenCleanupPrOnTtlTermination = "true"
 
-	blueprintNameAfterUpdate = "updated name"
+	blueprintOpenCleanupPrOnTtlTerminationAfterUpdate = "false"
+	blueprintPolicyMaxTtlValueAfterUpdate             = "4"
+	blueprintNameAfterUpdate                          = "updated name"
 )
 
 func TestAccBlueprintResource(t *testing.T) {
@@ -65,9 +72,24 @@ resource "%s" "%s" {
 			description = "path"
 		}
 	]
+    policy = {
+		ttl_config = {
+			max_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+		  	default_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+			open_cleanup_pr_on_ttl_termination = %s
+		}
+	 }
 }
 `, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, providerId,
-					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName,
+					blueprintPolicyMaxTtlType, blueprintPolicyMaxTtlValue, blueprintPolicyDefaultTtlType,
+					blueprintPolicyDefaultTtlValue, blueprintOpenCleanupPrOnTtlTermination),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "name", blueprintName),
@@ -90,6 +112,11 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "substitute_parameters.1.description"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "skip_plan_on_stack_initialization"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "auto_approve_apply_on_initialization"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.type", blueprintPolicyMaxTtlType),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.value", blueprintPolicyMaxTtlValue),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.type", blueprintPolicyDefaultTtlType),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.value", blueprintPolicyDefaultTtlValue),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.open_cleanup_pr_on_ttl_termination", blueprintOpenCleanupPrOnTtlTermination),
 				),
 			},
 			// validate no drift step
@@ -141,9 +168,24 @@ resource "%s" "%s" {
 			description = "path"
 		}
 	]
+    policy = {
+		ttl_config = {
+			max_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+		  	default_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+			open_cleanup_pr_on_ttl_termination = %s
+		}
+	 }
 }
 `, tfBlueprintResourceResource, blueprintTfResourceName, blueprintName, blueprintDescription, providerId,
-					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName,
+					blueprintPolicyMaxTtlType, blueprintPolicyMaxTtlValueAfterUpdate, blueprintPolicyDefaultTtlType,
+					blueprintPolicyDefaultTtlValue, blueprintOpenCleanupPrOnTtlTerminationAfterUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.run_trigger.patterns.#", "2"),
@@ -151,6 +193,8 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.terraform_version", "1.5.5"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.iac_config.var_files.#", "1"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "stack_configuration.auto_sync.deploy_when_drift_detected", "true"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.value", blueprintPolicyMaxTtlValueAfterUpdate),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.open_cleanup_pr_on_ttl_termination", blueprintOpenCleanupPrOnTtlTerminationAfterUpdate),
 				),
 			},
 			// validate no drift step
@@ -238,12 +282,26 @@ resource "%s" "%s" {
 			]
 		}
 	]
+    policy = {
+		ttl_config = {
+			max_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+		  	default_ttl = {
+				type = "%s"
+				value = %s
+		  	}
+		}
+	 }
 
     skip_plan_on_stack_initialization = true
     auto_approve_apply_on_initialization = true
 }
 `, tfBlueprintResourceResource, blueprintTfResourceName, blueprintNameAfterUpdate, blueprintDescription, providerId,
-					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName),
+					repoName, blueprintRepoPath, blueprintStackConfigurationIacType, providerId, repoName,
+					blueprintPolicyMaxTtlType, blueprintPolicyMaxTtlValue, blueprintPolicyDefaultTtlType,
+					blueprintPolicyDefaultTtlValue),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "id"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "name", blueprintNameAfterUpdate),
@@ -269,6 +327,11 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "substitute_parameters.2.value_conditions.#", "2"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "skip_plan_on_stack_initialization", "true"),
 					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "auto_approve_apply_on_initialization", "true"),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.type", blueprintPolicyMaxTtlType),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.max_ttl.value", blueprintPolicyMaxTtlValue),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.type", blueprintPolicyDefaultTtlType),
+					resource.TestCheckResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.default_ttl.value", blueprintPolicyDefaultTtlValue),
+					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy.ttl_config.open_cleanup_pr_on_ttl_termination"),
 				),
 			},
 			// validate no drift step
@@ -331,6 +394,7 @@ resource "%s" "%s" {
 					resource.TestCheckResourceAttrSet(blueprintResourceName(blueprintTfResourceName), "substitute_parameters.1.description"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "skip_plan_on_stack_initialization"),
 					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "auto_approve_apply_on_initialization"),
+					resource.TestCheckNoResourceAttr(blueprintResourceName(blueprintTfResourceName), "policy"),
 				),
 			},
 			// validate no drift step

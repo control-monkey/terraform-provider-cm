@@ -3,6 +3,7 @@ package blueprint
 import (
 	"reflect"
 
+	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	apiBlueprint "github.com/control-monkey/controlmonkey-sdk-go/services/blueprint"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/cross_models"
@@ -58,6 +59,11 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 	}
 	if plan.AutoApproveApplyOnInitialization != state.AutoApproveApplyOnInitialization {
 		retVal.SetAutoApproveApplyOnInitialization(plan.AutoApproveApplyOnInitialization.ValueBoolPointer())
+		hasChanges = true
+	}
+
+	if policy, hasChanged := policyConverter(plan.Policy, state.Policy, converterType); hasChanged {
+		retVal.SetPolicy(policy)
 		hasChanges = true
 	}
 
@@ -227,4 +233,97 @@ func substituteParameterConverter(plan *SubstituteParameterModel, converterType 
 	retVal.SetValueConditions(vc)
 
 	return retVal
+}
+
+func policyConverter(plan *PolicyModel, state *PolicyModel, converterType commons.ConverterType) (*apiBlueprint.Policy, bool) {
+	var retVal *apiBlueprint.Policy
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(apiBlueprint.Policy)
+	hasChanges := false
+
+	if state == nil {
+		state = new(PolicyModel) // dummy initialization
+		hasChanges = true        // must have changes because before is null and after is not
+	}
+
+	if innerProperty, hasInnerChanges := ttlConfigConverter(plan.TtlConfig, state.TtlConfig, converterType); hasInnerChanges {
+		retVal.SetTtlConfig(innerProperty)
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func ttlConfigConverter(plan *TtlConfigModel, state *TtlConfigModel, converterType commons.ConverterType) (*apiBlueprint.TtlConfig, bool) {
+	var retVal *apiBlueprint.TtlConfig
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(apiBlueprint.TtlConfig)
+	hasChanges := false
+
+	if state == nil {
+		state = new(TtlConfigModel) // dummy initialization
+		hasChanges = true           // must have changes because before is null and after is not
+	}
+
+	if innerProperty, hasInnerChanges := ttlDefinitionModelConverter(plan.MaxTtl, state.MaxTtl, converterType); hasInnerChanges {
+		retVal.SetMaxTtl(innerProperty)
+		hasChanges = true
+	}
+	if innerProperty, hasInnerChanges := ttlDefinitionModelConverter(plan.DefaultTtl, state.DefaultTtl, converterType); hasInnerChanges {
+		retVal.SetDefaultTtl(innerProperty)
+		hasChanges = true
+	}
+	if plan.OpenCleanupPrOnTtlTermination != state.OpenCleanupPrOnTtlTermination {
+		retVal.SetOpenCleanupPrOnTtlTermination(plan.OpenCleanupPrOnTtlTermination.ValueBoolPointer())
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func ttlDefinitionModelConverter(plan *TtlDefinitionModel, state *TtlDefinitionModel, converterType commons.ConverterType) (*apiBlueprint.TtlDefinition, bool) {
+	var retVal *apiBlueprint.TtlDefinition
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(apiBlueprint.TtlDefinition)
+	hasChanges := false
+
+	if state == nil {
+		state = new(TtlDefinitionModel) // dummy initialization
+		hasChanges = true               // must have changes because before is null and after is not
+	}
+
+	if plan.Type != state.Type {
+		retVal.SetType(plan.Type.ValueStringPointer())
+		hasChanges = true
+	}
+	if plan.Value != state.Value {
+		retVal.SetValue(controlmonkey.Int(int(plan.Value.ValueInt64())))
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
 }

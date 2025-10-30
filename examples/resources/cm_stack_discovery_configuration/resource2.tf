@@ -45,3 +45,4 @@ resource "cm_stack_discovery_configuration" "dev_discovery" {
     }
   }
 }
+

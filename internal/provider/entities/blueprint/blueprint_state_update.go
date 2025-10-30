@@ -35,6 +35,13 @@ func UpdateStateAfterRead(res *apiBlueprint.Blueprint, state *ResourceModel) {
 
 	state.SkipPlanOnStackInitialization = helpers.BoolValueOrNull(blueprint.SkipPlanOnStackInitialization)
 	state.AutoApproveApplyOnInitialization = helpers.BoolValueOrNull(blueprint.AutoApproveApplyOnInitialization)
+
+	if blueprint.Policy != nil {
+		policy := updateStateAfterReadPolicy(blueprint.Policy)
+		state.Policy = &policy
+	} else {
+		state.Policy = nil
+	}
 }
 
 func updateStateAfterReadBlueprintVcsInfo(vi *apiBlueprint.VcsInfo) VcsInfoModel {
@@ -124,6 +131,49 @@ func updateStateAfterReadParameter(credentials *apiBlueprint.SubstituteParameter
 	retVal.Key = helpers.StringValueOrNull(credentials.Key)
 	retVal.Description = helpers.StringValueOrNull(credentials.Description)
 	retVal.ValueConditions = cross_models.UpdateStateAfterReadValueConditions(credentials.ValueConditions)
+
+	return retVal
+}
+
+func updateStateAfterReadPolicy(policy *apiBlueprint.Policy) PolicyModel {
+	var retVal PolicyModel
+
+	if policy.TtlConfig != nil {
+		ttlConfig := updateStateAfterReadTtlConfig(policy.TtlConfig)
+		retVal.TtlConfig = &ttlConfig
+	} else {
+		retVal.TtlConfig = nil
+	}
+
+	return retVal
+}
+
+func updateStateAfterReadTtlConfig(ttlConfig *apiBlueprint.TtlConfig) TtlConfigModel {
+	var retVal TtlConfigModel
+
+	if ttlConfig.MaxTtl != nil {
+		ttl := updateStateAfterReadTtlDefinition(ttlConfig.MaxTtl)
+		retVal.MaxTtl = &ttl
+	} else {
+		retVal.MaxTtl = nil
+	}
+	if ttlConfig.DefaultTtl != nil {
+		ttl := updateStateAfterReadTtlDefinition(ttlConfig.DefaultTtl)
+		retVal.DefaultTtl = &ttl
+	} else {
+		retVal.DefaultTtl = nil
+	}
+
+	retVal.OpenCleanupPrOnTtlTermination = helpers.BoolValueOrNull(ttlConfig.OpenCleanupPrOnTtlTermination)
+
+	return retVal
+}
+
+func updateStateAfterReadTtlDefinition(ttl *apiBlueprint.TtlDefinition) TtlDefinitionModel {
+	var retVal TtlDefinitionModel
+
+	retVal.Type = helpers.StringValueOrNull(ttl.Type)
+	retVal.Value = helpers.Int64ValueOrNull(ttl.Value)
 
 	return retVal
 }

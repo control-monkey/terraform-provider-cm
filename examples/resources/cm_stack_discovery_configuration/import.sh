@@ -1,1 +1,2 @@
 terraform import cm_stack_discovery_configuration.example sdc-123456789
+
