@@ -3,6 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	tfExternalCredential "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/external_credential_data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -34,6 +37,10 @@ func (r *ExternalCredentialDataSource) Schema(_ context.Context, _ datasource.Sc
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The Unique Id of the external credential.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("id"), path.MatchRoot("name")),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The Name of the external credential.",
