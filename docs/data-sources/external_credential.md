@@ -35,9 +35,9 @@ resource "cm_namespace" "dev_namespace" {
 
 ### Required
 
-- `name` (String) The Name of the external credential.
 - `vendor` (String) The vendor of the external credential (aws/azure/gcp/datadog/etc).
 
-### Read-Only
+### Optional
 
 - `id` (String) The Unique Id of the external credential.
+- `name` (String) The Name of the external credential.

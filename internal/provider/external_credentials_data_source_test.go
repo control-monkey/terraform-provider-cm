@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccExternalCredentialDataSource(t *testing.T) {
+	id := test_config.GetExternalCredentialId()
 	name := test_config.GetExternalCredentialName()
 	vendor := test_config.GetExternalCredentialVendor()
 	resource.Test(t, resource.TestCase{
@@ -25,6 +26,19 @@ vendor = "%s"
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.cm_external_credential.test", "id"),
 					resource.TestCheckResourceAttr("data.cm_external_credential.test", "name", name),
+					resource.TestCheckResourceAttr("data.cm_external_credential.test", "vendor", vendor),
+				),
+			},
+			{
+				Config: providerConfig + fmt.Sprintf(`
+data "cm_external_credential" "test" {
+id = "%s"
+vendor = "%s"
+}`,
+					id, vendor),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.cm_external_credential.test", "name"),
+					resource.TestCheckResourceAttr("data.cm_external_credential.test", "id", id),
 					resource.TestCheckResourceAttr("data.cm_external_credential.test", "vendor", vendor),
 				),
 			},

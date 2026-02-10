@@ -27,17 +27,17 @@ func (r *ExternalCredentialDataSource) Metadata(_ context.Context, req datasourc
 func (r *ExternalCredentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The Unique Id of the external credential.",
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The Name of the external credential.",
-				Required:            true,
-			},
 			"vendor": schema.StringAttribute{
 				MarkdownDescription: "The vendor of the external credential (aws/azure/gcp/datadog/etc).",
 				Required:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "The Unique Id of the external credential.",
+				Optional:            true,
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The Name of the external credential.",
+				Optional:            true,
 			},
 		},
 	}
@@ -75,8 +75,9 @@ func (r *ExternalCredentialDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	vendor := state.Vendor.ValueString()
-	name := state.Name.ValueString()
-	res, err := r.client.Client.externalCredential.ListExternalCredentials(ctx, vendor, name)
+	id := state.ID.ValueStringPointer()
+	name := state.Name.ValueStringPointer()
+	res, err := r.client.Client.externalCredential.ListExternalCredentials(ctx, vendor, id, name)
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read external credential"), fmt.Sprintf("%s", err))
@@ -85,7 +86,7 @@ func (r *ExternalCredentialDataSource) Read(ctx context.Context, req datasource.
 		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(externalCredentialNotFoundError))
 		return
 	} else if len(res) > 1 {
-		resp.Diagnostics.AddError(fmt.Sprintf("Found multiple entities"), fmt.Sprintf("Found multiple external credentials with name '%s'; use additional constraints to reduce matches to a single match", name))
+		resp.Diagnostics.AddError(fmt.Sprintf("Found multiple entities"), fmt.Sprintf("Found multiple external credentials with name '%s', and id '%s' use additional constraints to reduce matches to a single match", *name, *id))
 		return
 	}
 

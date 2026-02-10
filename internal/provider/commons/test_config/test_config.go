@@ -23,6 +23,7 @@ type TestConfig struct {
 	NotificationEndpointEmail2 string
 
 	// External credential configuration
+	ExternalCredentialId     string
 	ExternalCredentialName   string
 	ExternalCredentialVendor string
 }
@@ -43,6 +44,7 @@ func init() {
 		SlackAppId:                 os.Getenv("CM_TEST_SLACK_APP_ID"),
 		NotificationEndpointEmail1: os.Getenv("CM_TEST_NOTIFICATION_ENDPOINT_EMAIL1"),
 		NotificationEndpointEmail2: os.Getenv("CM_TEST_NOTIFICATION_ENDPOINT_EMAIL2"),
+		ExternalCredentialId:       os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_ID"),
 		ExternalCredentialName:     os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_NAME"),
 		ExternalCredentialVendor:   os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_VENDOR"),
 	}
@@ -96,6 +98,11 @@ func GetNotificationEndpointEmail1() string {
 // GetNotificationEndpointEmail2 returns the second test notification endpoint email
 func GetNotificationEndpointEmail2() string {
 	return Config.NotificationEndpointEmail2
+}
+
+// GetExternalCredentialId returns the test external credential name
+func GetExternalCredentialId() string {
+	return Config.ExternalCredentialId
 }
 
 // GetExternalCredentialName returns the test external credential name
