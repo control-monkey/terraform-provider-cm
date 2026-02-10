@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	sdkNamespacePermissions "github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
@@ -53,13 +54,27 @@ func (r *NamespacePermissionsResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"namespace_id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the namespace.",
-				Required:            true,
+				MarkdownDescription: "The unique ID of the namespace. This is required if `stack_id` isn't set.",
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
+					stringvalidator.ExactlyOneOf(
+						path.MatchRoot("stack_id"), path.MatchRoot("namespace_id")),
+				},
+			},
+			"stack_id": schema.StringAttribute{
+				MarkdownDescription: "The unique ID of the stack. This is required if `namespace_id` isn't set",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					cmStringValidators.NotBlank(),
+					stringvalidator.ExactlyOneOf(
+						path.MatchRoot("stack_id"), path.MatchRoot("namespace_id")),
 				},
 			},
 			"permissions": schema.SetNestedAttribute{
@@ -191,11 +206,21 @@ func (r *NamespacePermissionsResource) Read(ctx context.Context, req resource.Re
 	}
 
 	id := state.ID.ValueString()
-	res, err := r.client.Client.namespacePermissions.ListNamespacePermissions(ctx, id)
+
+	var namespaceId *string
+	var stackId *string
+
+	if state.NamespaceId.IsNull() == false {
+		namespaceId = &id
+	} else if state.StackId.IsNull() == false {
+		stackId = &id
+	}
+
+	res, err := r.client.Client.namespacePermissions.ListNamespacePermissions(ctx, namespaceId, stackId)
 	if err != nil {
 		if commons.IsNotFoundResponseError(err) {
 			resp.State.RemoveResource(ctx)
-			resp.Diagnostics.AddWarning(namespaceNotFoundError, fmt.Sprintf("Namespace '%s' not found", id))
+			resp.Diagnostics.AddWarning(namespaceNotFoundError, fmt.Sprintf("Namespace or Stack '%s' not found", id))
 			return
 		}
 
@@ -224,15 +249,22 @@ func (r *NamespacePermissionsResource) Create(ctx context.Context, req resource.
 	}
 
 	mergeResult := tfNamespacePermissions.Merge(&plan, nil, commons.CreateMerger)
-	namespaceId := plan.NamespaceId
 
-	diags = r.createEntities(ctx, mergeResult.EntitiesToCreate, namespaceId.ValueString())
+	// ID can be either namespaceId or stackId
+	var id string
+	if plan.NamespaceId.IsNull() == false {
+		id = plan.NamespaceId.ValueString()
+	} else {
+		id = plan.StackId.ValueString()
+	}
+
+	diags = r.createEntities(ctx, mergeResult.EntitiesToCreate, id)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	plan.ID = namespaceId
+	plan.ID = types.StringValue(id)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -256,9 +288,17 @@ func (r *NamespacePermissionsResource) Update(ctx context.Context, req resource.
 		return
 	}
 
+	// ID can be either namespaceId or stackId
+	var id string
+	if plan.NamespaceId.IsNull() == false {
+		id = plan.NamespaceId.ValueString()
+	} else {
+		id = plan.StackId.ValueString()
+	}
+
 	mergeResult := tfNamespacePermissions.Merge(&plan, &state, commons.UpdateMerger)
 
-	diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, plan.NamespaceId.ValueString())
+	diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, id)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,7 +307,7 @@ func (r *NamespacePermissionsResource) Update(ctx context.Context, req resource.
 	//create endpoint is also used for update
 	entitiesToUpsert := append(mergeResult.EntitiesToCreate, mergeResult.EntitiesToUpdate...)
 
-	diags = r.createEntities(ctx, entitiesToUpsert, plan.NamespaceId.ValueString())
+	diags = r.createEntities(ctx, entitiesToUpsert, id)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -292,20 +332,44 @@ func (r *NamespacePermissionsResource) Delete(ctx context.Context, req resource.
 
 	mergeResult := tfNamespacePermissions.Merge(nil, &state, commons.DeleteMerger)
 
-	diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, state.NamespaceId.ValueString())
+	// ID can be either namespaceId or stackId
+	var id string
+	if state.NamespaceId.IsNull() == false {
+		id = state.NamespaceId.ValueString()
+	} else {
+		id = state.StackId.ValueString()
+	}
+
+	diags = r.deleteEntities(ctx, mergeResult.EntitiesToDelete, id)
 	resp.Diagnostics.Append(diags...)
 }
 
 func (r *NamespacePermissionsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	id := req.ID
+
+	// ID can be either namespaceId or stackId, Identify which one to use based on the prefix
+	if strings.HasPrefix(id, "ns-") {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("namespace_id"), id)...)
+	} else if strings.HasPrefix(id, "stk-") {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("stack_id"), id)...)
+	} else {
+		// Unknown format
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Import ID must be either a namespace ID (ns-xxx) or stack ID (stk-xxx), got: %s", id),
+		)
+		return
+	}
 }
 
 //region Private Methods
 
-func (r *NamespacePermissionsResource) createEntities(ctx context.Context, entitiesToCreate []*sdkNamespacePermissions.NamespacePermission, namespaceId string) diag.Diagnostics {
+func (r *NamespacePermissionsResource) createEntities(ctx context.Context, entitiesToCreate []*sdkNamespacePermissions.NamespacePermission, id string) diag.Diagnostics {
 	var retVal diag.Diagnostics
 
-	tflog.Info(ctx, fmt.Sprintf("Adding %d permissions to namespace '%s'.", len(entitiesToCreate), namespaceId))
+	tflog.Info(ctx, fmt.Sprintf("Adding %d permissions to namespace/stack '%s'.", len(entitiesToCreate), id))
 
 	for _, e := range entitiesToCreate {
 		_, err := r.client.Client.namespacePermissions.CreateNamespacePermission(ctx, e)
@@ -313,12 +377,12 @@ func (r *NamespacePermissionsResource) createEntities(ctx context.Context, entit
 		if err != nil {
 			if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to add permission '%s' to namespace '%s'. Error: %s",
-						beautyStringifyApi(e), namespaceId, err)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to add permission '%s' to namespace/stack '%s'. Error: %s",
+						beautyStringifyApi(e), id, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to add permission '%s' to namespace '%s'", beautyStringifyApi(e), namespaceId),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to add permission '%s' to namespace/stack '%s'", beautyStringifyApi(e), id),
 						err.Error()),
 				}
 			}
@@ -328,14 +392,15 @@ func (r *NamespacePermissionsResource) createEntities(ctx context.Context, entit
 	return retVal
 }
 
-func (r *NamespacePermissionsResource) deleteEntities(ctx context.Context, entitiesToDelete []*sdkNamespacePermissions.NamespacePermission, namespaceId string) diag.Diagnostics {
+func (r *NamespacePermissionsResource) deleteEntities(ctx context.Context, entitiesToDelete []*sdkNamespacePermissions.NamespacePermission, id string) diag.Diagnostics {
 	var retVal diag.Diagnostics
 
-	tflog.Info(ctx, fmt.Sprintf("Removing %d permissions from namespace '%s'.", len(entitiesToDelete), namespaceId))
+	tflog.Info(ctx, fmt.Sprintf("Removing %d permissions from namespace/stack '%s'.", len(entitiesToDelete), id))
 
 	for _, e := range entitiesToDelete {
 		partialEntity := &sdkNamespacePermissions.NamespacePermission{
 			NamespaceId:          e.NamespaceId,
+			StackId:              e.StackId,
 			UserEmail:            e.UserEmail,
 			ProgrammaticUserName: e.ProgrammaticUserName,
 			TeamId:               e.TeamId,
@@ -345,12 +410,12 @@ func (r *NamespacePermissionsResource) deleteEntities(ctx context.Context, entit
 		if err != nil {
 			if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to remove permission '%s' from namespace '%s'. Error: %s",
-						beautyStringifyApi(e), namespaceId, err)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to remove permission '%s' from namespace/stack '%s'. Error: %s",
+						beautyStringifyApi(e), id, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to remove permission '%s' from namespace '%s'", beautyStringifyApi(e), namespaceId),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to remove permission '%s' from namespace/stack '%s'", beautyStringifyApi(e), id),
 						err.Error()),
 				}
 			}

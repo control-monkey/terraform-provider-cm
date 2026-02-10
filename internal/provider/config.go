@@ -17,6 +17,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 
+	"github.com/control-monkey/controlmonkey-sdk-go/services/external_credential"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/template"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
@@ -61,6 +62,7 @@ type Client struct {
 	team                        team.Service
 	template                    template.Service
 	variable                    variable.Service
+	externalCredential          external_credential.Service
 }
 
 // Client configures and returns a fully initialized ControlMonkey client.
@@ -92,6 +94,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		team:                        team.New(sess),
 		template:                    template.New(sess),
 		variable:                    variable.New(sess),
+		externalCredential:          external_credential.New(sess),
 	}
 
 	stdlog.Println("[INFO] ControlMonkey client configured")

@@ -148,5 +148,6 @@ func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() dataso
 		NewCustomRoleDataSource,
 		NewCustomAbacConfigurationDataSource,
 		NewNotificationSlackAppDataSource,
+		NewExternalCredentialDataSource,
 	}
 }
