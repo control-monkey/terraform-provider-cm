@@ -1,13 +1,13 @@
-package external_credential_data
+package external_credentials_data
 
 import (
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
-	sdkExternalCredential "github.com/control-monkey/controlmonkey-sdk-go/services/external_credential"
+	sdkExternalCredentials "github.com/control-monkey/controlmonkey-sdk-go/services/external_credentials"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func UpdateStateAfterRead(apiEntity *sdkExternalCredential.ExternalCredential, state *ResourceModel, diagnostics *diag.Diagnostics) {
+func UpdateStateAfterRead(apiEntity *sdkExternalCredentials.ExternalCredentials, state *ResourceModel, diagnostics *diag.Diagnostics) {
 	state.ID = types.StringValue(controlmonkey.StringValue(apiEntity.ID))
 	state.Name = types.StringValue(controlmonkey.StringValue(apiEntity.Name))
 }

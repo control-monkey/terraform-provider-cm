@@ -1,4 +1,4 @@
-package external_credential_data
+package external_credentials_data
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"

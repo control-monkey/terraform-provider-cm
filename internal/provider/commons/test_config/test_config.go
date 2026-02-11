@@ -23,9 +23,9 @@ type TestConfig struct {
 	NotificationEndpointEmail2 string
 
 	// External credential configuration
-	ExternalCredentialId     string
-	ExternalCredentialName   string
-	ExternalCredentialVendor string
+	ExternalCredentialsId     string
+	ExternalCredentialsName   string
+	ExternalCredentialsVendor string
 }
 
 // Global test configuration instance
@@ -44,9 +44,9 @@ func init() {
 		SlackAppId:                 os.Getenv("CM_TEST_SLACK_APP_ID"),
 		NotificationEndpointEmail1: os.Getenv("CM_TEST_NOTIFICATION_ENDPOINT_EMAIL1"),
 		NotificationEndpointEmail2: os.Getenv("CM_TEST_NOTIFICATION_ENDPOINT_EMAIL2"),
-		ExternalCredentialId:       os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_ID"),
-		ExternalCredentialName:     os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_NAME"),
-		ExternalCredentialVendor:   os.Getenv("CM_TEST_EXTERNAL_CREDENTIAL_VENDOR"),
+		ExternalCredentialsId:      os.Getenv("CM_TEST_EXTERNAL_CREDENTIALS_ID"),
+		ExternalCredentialsName:    os.Getenv("CM_TEST_EXTERNAL_CREDENTIALS_NAME"),
+		ExternalCredentialsVendor:  os.Getenv("CM_TEST_EXTERNAL_CREDENTIALS_VENDOR"),
 	}
 }
 
@@ -100,17 +100,17 @@ func GetNotificationEndpointEmail2() string {
 	return Config.NotificationEndpointEmail2
 }
 
-// GetExternalCredentialId returns the test external credential name
-func GetExternalCredentialId() string {
-	return Config.ExternalCredentialId
+// GetExternalCredentialsId returns the test external credential name
+func GetExternalCredentialsId() string {
+	return Config.ExternalCredentialsId
 }
 
-// GetExternalCredentialName returns the test external credential name
-func GetExternalCredentialName() string {
-	return Config.ExternalCredentialName
+// GetExternalCredentialsName returns the test external credential name
+func GetExternalCredentialsName() string {
+	return Config.ExternalCredentialsName
 }
 
-// GetExternalCredentialVendor returns the test external credential vendor
-func GetExternalCredentialVendor() string {
-	return Config.ExternalCredentialVendor
+// GetExternalCredentialsVendor returns the test external credential vendor
+func GetExternalCredentialsVendor() string {
+	return Config.ExternalCredentialsVendor
 }

@@ -7,35 +7,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
-	tfExternalCredential "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/external_credential_data"
+	tfExternalCredentials "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/external_credentials_data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &ExternalCredentialDataSource{}
+var _ datasource.DataSource = &ExternalCredentialsDataSource{}
 
-func NewExternalCredentialDataSource() datasource.DataSource {
-	return &ExternalCredentialDataSource{}
+func NewExternalCredentialsDataSource() datasource.DataSource {
+	return &ExternalCredentialsDataSource{}
 }
 
-type ExternalCredentialDataSource struct {
+type ExternalCredentialsDataSource struct {
 	client *ControlMonkeyAPIClient
 }
 
-func (r *ExternalCredentialDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_external_credential"
+func (r *ExternalCredentialsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_external_credentials"
 }
 
-func (r *ExternalCredentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *ExternalCredentialsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"vendor": schema.StringAttribute{
-				MarkdownDescription: "The vendor of the external credential (aws/azure/gcp/datadog/etc).",
+				MarkdownDescription: "The external credentials vendor type (aws/azure/gcp/etc). Find supported vendors [here] (https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#external-credentials-vendor-types).",
 				Required:            true,
 			},
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The Unique Id of the external credential.",
+				MarkdownDescription: "The Unique Id of the external credentials.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.AtLeastOneOf(
@@ -43,7 +43,7 @@ func (r *ExternalCredentialDataSource) Schema(_ context.Context, _ datasource.Sc
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The Name of the external credential.",
+				MarkdownDescription: "The Name of the external credentials.",
 				Optional:            true,
 			},
 		},
@@ -51,7 +51,7 @@ func (r *ExternalCredentialDataSource) Schema(_ context.Context, _ datasource.Sc
 }
 
 // Configure adds the provider configured client to the data source.
-func (r *ExternalCredentialDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *ExternalCredentialsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -72,9 +72,9 @@ func (r *ExternalCredentialDataSource) Configure(_ context.Context, req datasour
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *ExternalCredentialDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (r *ExternalCredentialsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	//Get current state
-	var state tfExternalCredential.ResourceModel
+	var state tfExternalCredentials.ResourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -84,20 +84,20 @@ func (r *ExternalCredentialDataSource) Read(ctx context.Context, req datasource.
 	vendor := state.Vendor.ValueString()
 	id := state.ID.ValueStringPointer()
 	name := state.Name.ValueStringPointer()
-	res, err := r.client.Client.externalCredential.ListExternalCredentials(ctx, vendor, id, name)
+	res, err := r.client.Client.externalCredentials.ListExternalCredentials(ctx, vendor, id, name)
 
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read external credential"), fmt.Sprintf("%s", err))
+		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read external credentials"), fmt.Sprintf("%s", err))
 		return
 	} else if len(res) == 0 {
-		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(externalCredentialNotFoundError))
+		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(externalCredentialsNotFoundError))
 		return
 	} else if len(res) > 1 {
 		resp.Diagnostics.AddError(fmt.Sprintf("Found multiple entities"), fmt.Sprintf("Found multiple external credentials with name '%s', and id '%s' use additional constraints to reduce matches to a single match", *name, *id))
 		return
 	}
 
-	tfExternalCredential.UpdateStateAfterRead(res[0], &state, &resp.Diagnostics)
+	tfExternalCredentials.UpdateStateAfterRead(res[0], &state, &resp.Diagnostics)
 
 	// Set refreshed state
 	// Save data into Terraform state
