@@ -32,20 +32,28 @@ func Merge(plan *ResourceModel, state *ResourceModel, converterType commons.Conv
 		namespaceId = state.NamespaceId
 	}
 
+	var stackId types.String
+	if plan.StackId.IsNull() == false {
+		stackId = plan.StackId
+	} else {
+		stackId = state.StackId
+	}
+
 	mergeResult := interfaces.MergeEntities(plan.Permissions, state.Permissions)
-	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, namespaceId)
-	retVal.EntitiesToUpdate = convertEntities(mergeResult.EntitiesToUpdate, namespaceId)
-	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, namespaceId)
+	retVal.EntitiesToCreate = convertEntities(mergeResult.EntitiesToCreate, namespaceId, stackId)
+	retVal.EntitiesToUpdate = convertEntities(mergeResult.EntitiesToUpdate, namespaceId, stackId)
+	retVal.EntitiesToDelete = convertEntities(mergeResult.EntitiesToDelete, namespaceId, stackId)
 
 	return retVal
 }
 
-func convertEntities(entities set.Collection[*PermissionsModel], namespaceId types.String) []*namespace_permissions.NamespacePermission {
+func convertEntities(entities set.Collection[*PermissionsModel], namespaceId types.String, stackId types.String) []*namespace_permissions.NamespacePermission {
 	retVal := make([]*namespace_permissions.NamespacePermission, entities.Size())
 
 	for i, e := range entities.Slice() {
 		apiEntity := new(namespace_permissions.NamespacePermission)
 		apiEntity.SetNamespaceId(namespaceId.ValueStringPointer())
+		apiEntity.SetStackId(stackId.ValueStringPointer())
 		apiEntity.SetUserEmail(e.UserEmail.ValueStringPointer())
 		apiEntity.SetProgrammaticUserName(e.ProgrammaticUserName.ValueStringPointer())
 		apiEntity.SetTeamId(e.TeamId.ValueStringPointer())

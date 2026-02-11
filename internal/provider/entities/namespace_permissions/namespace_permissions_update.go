@@ -6,7 +6,12 @@ import (
 )
 
 func UpdateStateAfterRead(apiEntities []*namespacePermissions.NamespacePermission, state *ResourceModel) {
-	state.NamespaceId = state.ID
+	// ID can be either namespaceId or stackId
+	if state.NamespaceId.IsNull() == false {
+		state.NamespaceId = state.ID
+	} else if state.StackId.IsNull() == false {
+		state.StackId = state.ID
+	}
 
 	if apiEntities != nil {
 		permissions := updateStateAfterReadNamespacePermissions(apiEntities)

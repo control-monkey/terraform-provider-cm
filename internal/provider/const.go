@@ -17,4 +17,5 @@ const (
 	namespaceNotFoundError               = "Namespace not found"
 	stackNotFoundError                   = "Stack not found"
 	templateNotFoundError                = "Template not found"
+	externalCredentialsNotFoundError     = "External Credentials not found"
 )

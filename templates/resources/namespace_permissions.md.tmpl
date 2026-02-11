@@ -12,12 +12,15 @@ description: |-
 ## Example Usage
 {{tffile "examples/resources/cm_namespace_permissions/resource.tf"}}
 
+### Stack level permissions example
+{{tffile "examples/resources/cm_namespace_permissions/resource2.tf"}}
+
 {{ .SchemaMarkdown | trimspace }}
 
 {{ if .HasImport -}}
 ## Import
 
-`cm_namespace_permissions` can be imported using the ID of the Namespace, e.g.
+`cm_namespace_permissions` can be imported using either a namespace ID (format: `ns-*`) or a stack ID (format: `stk-*`), e.g.
 
 {{codefile "shell" .ImportFile}}
 {{- end }}

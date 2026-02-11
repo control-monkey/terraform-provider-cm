@@ -11,6 +11,7 @@ import (
 type ResourceModel struct {
 	ID          types.String        `tfsdk:"id"`
 	NamespaceId types.String        `tfsdk:"namespace_id"`
+	StackId     types.String        `tfsdk:"stack_id"`
 	Permissions []*PermissionsModel `tfsdk:"permissions"`
 }
 
