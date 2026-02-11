@@ -66,9 +66,9 @@ resource "cm_namespace_permissions" "staging_stack_permissions" {
 
 ### Optional
 
-- `namespace_id` (String) The unique ID of the namespace. This is required if `stack_id` isn't set.
+- `namespace_id` (String) The unique ID of the namespace. Exactly one of  [`namespace_id` , `stack_id`] is required.
 - `permissions` (Attributes Set) Specifies a list of permissions granted to this namespace. (see [below for nested schema](#nestedatt--permissions))
-- `stack_id` (String) The unique ID of the stack. This is required if `namespace_id` isn't set
+- `stack_id` (String) The unique ID of the stack. Exactly one of  [`namespace_id` , `stack_id`] is required.
 
 ### Read-Only
 

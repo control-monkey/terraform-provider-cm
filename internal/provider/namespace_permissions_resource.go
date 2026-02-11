@@ -54,7 +54,7 @@ func (r *NamespacePermissionsResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"namespace_id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the namespace. This is required if `stack_id` isn't set.",
+				MarkdownDescription: "The unique ID of the namespace. Exactly one of  [`namespace_id` , `stack_id`] is required.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -66,15 +66,13 @@ func (r *NamespacePermissionsResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"stack_id": schema.StringAttribute{
-				MarkdownDescription: "The unique ID of the stack. This is required if `namespace_id` isn't set",
+				MarkdownDescription: "The unique ID of the stack. Exactly one of  [`namespace_id` , `stack_id`] is required.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					cmStringValidators.NotBlank(),
-					stringvalidator.ExactlyOneOf(
-						path.MatchRoot("stack_id"), path.MatchRoot("namespace_id")),
 				},
 			},
 			"permissions": schema.SetNestedAttribute{
@@ -165,6 +163,13 @@ func (r *NamespacePermissionsResource) ValidateConfig(ctx context.Context, req r
 	var data tfNamespacePermissions.ResourceModel
 
 	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
+
+	namespaceIdStackIdXor := helpers.Xor(data.NamespaceId, data.StackId)
+
+	if namespaceIdStackIdXor == false {
+		resp.Diagnostics.AddError(validationError, "Exactly one of [namespace_id, stack_id] must be provided.")
 		return
 	}
 
