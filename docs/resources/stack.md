@@ -154,6 +154,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 - `description` (String) The description of the stack.
 - `iac_config` (Attributes) IaC configuration. (see [below for nested schema](#nestedatt--iac_config))
 - `policy` (Attributes) The policy of the stack. (see [below for nested schema](#nestedatt--policy))
+- `run_task_config` (Attributes) Configuration for run tasks attached to the stack. (see [below for nested schema](#nestedatt--run_task_config))
 - `run_trigger` (Attributes) Glob patterns to specify additional paths that should trigger a stack run. (see [below for nested schema](#nestedatt--run_trigger))
 - `runner_config` (Attributes) Configure the runner settings to specify whether ControlMonkey manages the runner or it is self-hosted. (see [below for nested schema](#nestedatt--runner_config))
 
@@ -283,6 +284,24 @@ Required:
 - `type` (String) The type of the ttl. Allowed values: [hours, days].
 - `value` (Number) The value that corresponds the type
 
+
+
+
+<a id="nestedatt--run_task_config"></a>
+### Nested Schema for `run_task_config`
+
+Required:
+
+- `run_tasks` (Attributes List) List of run tasks to execute during stack runs. (see [below for nested schema](#nestedatt--run_task_config--run_tasks))
+
+<a id="nestedatt--run_task_config--run_tasks"></a>
+### Nested Schema for `run_task_config.run_tasks`
+
+Required:
+
+- `enforcement_level` (String) The enforcement level of the run task. Allowed values: [warning, softMandatory, hardMandatory]. When set to `softMandatory`, a policy failure triggers an approval requirement before applying changes. When set to `hardMandatory`, changes cannot be applied until the policy check is successful.
+- `run_task_id` (String) The ControlMonkey unique ID of the run task.
+- `stage` (String) The stage in which the run task will execute. Find supported values [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations).
 
 
 

@@ -20,6 +20,7 @@ type ResourceModel struct {
 	RunnerConfig             *cross_models.RunnerConfigModel             `tfsdk:"runner_config"`
 	Capabilities             *CapabilitiesModel                          `tfsdk:"capabilities"`
 	AutoSync                 *cross_models.AutoSyncModel                 `tfsdk:"auto_sync"`
+	RunTaskConfig            *RunTaskConfigModel                         `tfsdk:"run_task_config"`
 }
 
 type VcsInfoModel struct {
@@ -50,4 +51,14 @@ type CapabilitiesModel struct {
 
 type CapabilityConfigModel struct {
 	Status types.String `tfsdk:"status"`
+}
+
+type RunTaskConfigModel struct {
+	RunTasks []*RunTaskPropertiesModel `tfsdk:"run_tasks"`
+}
+
+type RunTaskPropertiesModel struct {
+	RunTaskId        types.String `tfsdk:"run_task_id"`
+	EnforcementLevel types.String `tfsdk:"enforcement_level"`
+	Stage            types.String `tfsdk:"stage"`
 }

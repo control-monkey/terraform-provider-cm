@@ -11,6 +11,7 @@ import (
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/cross_schema"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/entities/stack"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -129,6 +130,46 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"runner_config": cross_schema.StackRunnerConfigSchema,
 			"auto_sync":     cross_schema.AutoSyncSchema,
+			"run_task_config": schema.SingleNestedAttribute{
+				MarkdownDescription: "Configuration for run tasks attached to the stack.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"run_tasks": schema.ListNestedAttribute{
+						MarkdownDescription: "List of run tasks to execute during stack runs.",
+						Required:            true,
+						Validators: []validator.List{
+							listvalidator.SizeAtLeast(1),
+						},
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"run_task_id": schema.StringAttribute{
+									MarkdownDescription: "The ControlMonkey unique ID of the run task.",
+									Required:            true,
+									Validators: []validator.String{
+										cm_stringvalidators.NotBlank(),
+									},
+								},
+								"enforcement_level": schema.StringAttribute{
+									MarkdownDescription: fmt.Sprintf("The enforcement level of the run task. Allowed values: %s."+
+										" When set to `softMandatory`, a policy failure triggers an approval requirement before applying changes."+
+										" When set to `hardMandatory`, changes cannot be applied until the policy check is successful.", helpers.EnumForDocs(cmTypes.EnforcementLevelTypes)),
+									Required: true,
+									Validators: []validator.String{
+										stringvalidator.OneOf(cmTypes.EnforcementLevelTypes...),
+									},
+								},
+								"stage": schema.StringAttribute{
+									MarkdownDescription: "The stage in which the run task will execute. Find supported values [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations).",
+									Required:            true,
+									Validators: []validator.String{
+										stringvalidator.OneOf("postPlan", "preApply"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"capabilities": schema.SingleNestedAttribute{
 				MarkdownDescription: "List of capabilities enabled for the stack.",
 				Optional:            true,

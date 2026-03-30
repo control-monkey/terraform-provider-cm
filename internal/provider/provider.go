@@ -125,6 +125,7 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewTemplateNamespaceMappingsResource,
 		NewBlueprintNamespaceMappingsResource,
 		NewNotificationEndpointResource,
+		NewRunTaskResource,
 		NewEventsSubscriptionsResource,
 		NewOrgConfigurationResource,
 		NewCustomRoleResource,
@@ -149,5 +150,6 @@ func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() dataso
 		NewCustomAbacConfigurationDataSource,
 		NewNotificationSlackAppDataSource,
 		NewExternalCredentialsDataSource,
+		NewRunTaskDataSource,
 	}
 }

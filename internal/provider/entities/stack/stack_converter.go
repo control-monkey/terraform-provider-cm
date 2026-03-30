@@ -1,6 +1,8 @@
 package stack
 
 import (
+	"reflect"
+
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
 	sdkStack "github.com/control-monkey/controlmonkey-sdk-go/services/stack"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
@@ -87,6 +89,11 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 
 	if capabilities, hasChanged := capabilitiesConverter(plan.Capabilities, state.Capabilities, converterType); hasChanged {
 		data.SetCapabilities(capabilities)
+		hasChanges = true
+	}
+
+	if runTaskConfig, hasChanged := runTaskConfigConverter(plan.RunTaskConfig, state.RunTaskConfig, converterType); hasChanged {
+		data.SetRunTaskConfig(runTaskConfig)
 		hasChanges = true
 	}
 
@@ -252,6 +259,63 @@ func capabilitiesConverter(plan *CapabilitiesModel, state *CapabilitiesModel, co
 	}
 
 	return retVal, hasChanges
+}
+
+func runTaskConfigConverter(plan *RunTaskConfigModel, state *RunTaskConfigModel, converterType commons.ConverterType) (*sdkStack.RunTaskConfig, bool) {
+	var retVal *sdkStack.RunTaskConfig
+
+	if plan == nil {
+		if state == nil {
+			return nil, false // both are the same, no changes
+		} else {
+			return nil, true // before had data, after update is null -> update to null
+		}
+	}
+
+	retVal = new(sdkStack.RunTaskConfig)
+	hasChanges := false
+
+	if state == nil {
+		state = new(RunTaskConfigModel) // dummy initialization
+		hasChanges = true               // must have changes because before is null and after is not
+	}
+
+	if runTasks, hasChanged := runTasksPropertiesConverter(plan.RunTasks, state.RunTasks, converterType); hasChanged {
+		retVal.SetRunTasks(runTasks)
+		hasChanges = true
+	}
+
+	return retVal, hasChanges
+}
+
+func runTasksPropertiesConverter(plan []*RunTaskPropertiesModel, state []*RunTaskPropertiesModel, converterType commons.ConverterType) ([]*sdkStack.RunTaskProperties, bool) {
+	var retVal []*sdkStack.RunTaskProperties
+	hasChanged := false
+
+	if reflect.DeepEqual(plan, state) == false {
+		hasChanged = true
+
+		if plan != nil {
+			retVal = make([]*sdkStack.RunTaskProperties, 0)
+
+			for _, r := range plan {
+				props := runTaskPropertiesConverter(r)
+				retVal = append(retVal, props)
+			}
+		}
+	}
+
+	return retVal, hasChanged
+}
+
+func runTaskPropertiesConverter(plan *RunTaskPropertiesModel) *sdkStack.RunTaskProperties {
+	retVal := new(sdkStack.RunTaskProperties)
+
+	retVal.SetRunTaskId(plan.RunTaskId.ValueStringPointer())
+	retVal.SetEnforcementLevel(plan.EnforcementLevel.ValueStringPointer())
+	retVal.SetStage(plan.Stage.ValueStringPointer())
+
+	return retVal
 }
 
 func capabilityConfigConverter(plan *CapabilityConfigModel, state *CapabilityConfigModel, converterType commons.ConverterType) (*sdkStack.CapabilityConfig, bool) {
