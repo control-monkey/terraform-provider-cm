@@ -159,7 +159,7 @@ func (r *StackResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 									},
 								},
 								"stage": schema.StringAttribute{
-									MarkdownDescription: "The stage in which the run task will execute. Find supported values [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations).",
+									MarkdownDescription: "The stage in which the run task will execute. Allowed values: [postPlan].",
 									Required:            true,
 									Validators: []validator.String{
 										stringvalidator.OneOf("postPlan", "preApply"),

@@ -301,7 +301,7 @@ Required:
 
 - `enforcement_level` (String) The enforcement level of the run task. Allowed values: [warning, softMandatory, hardMandatory]. When set to `softMandatory`, a policy failure triggers an approval requirement before applying changes. When set to `hardMandatory`, changes cannot be applied until the policy check is successful.
 - `run_task_id` (String) The ControlMonkey unique ID of the run task.
-- `stage` (String) The stage in which the run task will execute. Find supported values [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations).
+- `stage` (String) The stage in which the run task will execute. Allowed values: [postPlan].
 
 
 
