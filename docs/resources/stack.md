@@ -134,7 +134,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
 }
 ```
 
-### Stack with run task configured
+### Stack with a run task configured
 ```terraform
 resource "cm_stack" "auto_scaling_group_dev" {
   name         = "dev/auto-scaling-group"
@@ -155,7 +155,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   run_task_config = {
     run_tasks = [
       {
-        run_task_id = rtsk-123
+        run_task_id = "rtsk-123"
         stage = "postPlan"
         enforcement_level = "warning"
       }
@@ -330,7 +330,7 @@ Required:
 
 - `enforcement_level` (String) The enforcement level of the run task. Allowed values: [warning, softMandatory, hardMandatory]. When set to `softMandatory`, a policy failure triggers an approval requirement before applying changes. When set to `hardMandatory`, changes cannot be applied until the policy check is successful.
 - `run_task_id` (String) The ControlMonkey unique ID of the run task.
-- `stage` (String) The stage in which the run task will execute. Allowed values: [postPlan].
+- `stage` (String) The stage in which the run task will execute. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#run-task-stage)
 
 
 

@@ -17,7 +17,7 @@ resource "cm_stack" "auto_scaling_group_dev" {
   run_task_config = {
     run_tasks = [
       {
-        run_task_id = rtsk-123
+        run_task_id = "rtsk-123"
         stage = "postPlan"
         enforcement_level = "warning"
       }
