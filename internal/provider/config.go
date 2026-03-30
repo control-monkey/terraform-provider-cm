@@ -15,6 +15,7 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/notification"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/run_task"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/services/external_credentials"
@@ -57,6 +58,7 @@ type Client struct {
 	namespacePermissions        namespace_permissions.Service
 	notification                notification.Service
 	organization                organization.Service
+	runTask                     run_task.Service
 	stack                       stack.Service
 	stackDiscoveryConfiguration stack_discovery_configuration.Service
 	team                        team.Service
@@ -89,6 +91,7 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		namespacePermissions:        namespace_permissions.New(sess),
 		notification:                notification.New(sess),
 		organization:                organization.New(sess),
+		runTask:                     run_task.New(sess),
 		stack:                       stack.New(sess),
 		stackDiscoveryConfiguration: stack_discovery_configuration.New(sess),
 		team:                        team.New(sess),
