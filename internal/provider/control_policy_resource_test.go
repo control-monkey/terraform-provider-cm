@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -86,4 +87,70 @@ resource "%s" "%s" {
 
 func controlPolicyResourceName(s string) string {
 	return fmt.Sprintf("%s.%s", tfControlPolicyResource, s)
+}
+
+const (
+	nestedParamsResourceName = "control_policy_nested_params"
+	nestedParamsType         = "aws_required_tags"
+)
+
+// TestAccControlPolicyNestedParametersResource covers the nested `parameters` shape from the
+// cm_control_policy documentation example. The test above only covers the flat shape.
+func TestAccControlPolicyNestedParametersResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			// The documentation example, verbatim
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "%s" "%s" {
+	name = "AWS Resources should have the Env tag with value Dev/Stage/Prod"
+	description = "All AWS infrastructure should have the Env tag with value Dev/Stage/Prod."
+	type = "%s"
+	parameters = jsonencode({
+		tags = [
+			{
+				key           = "Env"
+				allowedValues = ["Dev", "Stage", "Prod"]
+			}
+		]
+	})
+}
+`, tfControlPolicyResource, nestedParamsResourceName, nestedParamsType),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(controlPolicyResourceName(nestedParamsResourceName), "id"),
+					resource.TestCheckResourceAttr(controlPolicyResourceName(nestedParamsResourceName), "type", nestedParamsType),
+					resource.TestCheckResourceAttrSet(controlPolicyResourceName(nestedParamsResourceName), "parameters"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			// Add a value and the optional resourceTypes field
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "%s" "%s" {
+	name = "AWS Resources should have the Env tag with value Dev/Stage/Prod"
+	description = "All AWS infrastructure should have the Env tag with value Dev/Stage/Prod."
+	type = "%s"
+	parameters = jsonencode({
+		tags = [
+			{
+				key           = "Env"
+				allowedValues = ["Dev", "Stage", "Prod", "QA"]
+			}
+		]
+		resourceTypes = ["AWS::S3::Bucket"]
+	})
+}
+`, tfControlPolicyResource, nestedParamsResourceName, nestedParamsType),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(controlPolicyResourceName(nestedParamsResourceName), "parameters"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+		},
+	})
 }

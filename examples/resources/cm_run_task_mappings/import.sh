@@ -1,0 +1,1 @@
+terraform import cm_run_task_mappings.security_scan_mappings rtsk-123

@@ -79,13 +79,6 @@ func UpdateStateAfterRead(res *sdkStack.Stack, state *ResourceModel) {
 		state.Capabilities = nil
 	}
 
-	if data.RunTaskConfig != nil {
-		rtc := updateStateAfterReadRunTaskConfig(data.RunTaskConfig)
-		state.RunTaskConfig = &rtc
-	} else {
-		state.RunTaskConfig = nil
-	}
-
 }
 
 func updateStateAfterReadVcsInfo(vcsInfo *sdkStack.VcsInfo) VcsInfoModel {
@@ -165,31 +158,6 @@ func updateStateAfterReadCapabilityConfig(c *sdkStack.CapabilityConfig) Capabili
 	var retVal CapabilityConfigModel
 
 	retVal.Status = helpers.StringValueOrNull(c.Status)
-
-	return retVal
-}
-
-func updateStateAfterReadRunTaskConfig(rtc *sdkStack.RunTaskConfig) RunTaskConfigModel {
-	var retVal RunTaskConfigModel
-
-	if rtc.RunTasks != nil {
-		retVal.RunTasks = make([]*RunTaskPropertiesModel, 0)
-
-		for _, rt := range rtc.RunTasks {
-			props := updateStateAfterReadRunTaskProperties(rt)
-			retVal.RunTasks = append(retVal.RunTasks, &props)
-		}
-	}
-
-	return retVal
-}
-
-func updateStateAfterReadRunTaskProperties(rt *sdkStack.RunTaskProperties) RunTaskPropertiesModel {
-	var retVal RunTaskPropertiesModel
-
-	retVal.RunTaskId = helpers.StringValueOrNull(rt.RunTaskId)
-	retVal.EnforcementLevel = helpers.StringValueOrNull(rt.EnforcementLevel)
-	retVal.Stage = helpers.StringValueOrNull(rt.Stage)
 
 	return retVal
 }

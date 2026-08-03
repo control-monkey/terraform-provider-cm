@@ -1,0 +1,1 @@
+terraform import cm_custom_flow_mappings.opa_validation_mappings cflw-123

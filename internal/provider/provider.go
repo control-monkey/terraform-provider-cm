@@ -133,6 +133,10 @@ func (p *ControlMonkeyProvider) Resources(ctx context.Context) []func() resource
 		NewBlueprintResource,
 		NewDisasterRecoveryConfigurationResource,
 		NewNotificationSlackAppResource,
+		NewRunTaskMappingResource,
+		NewCustomFlowResource,
+		NewCustomFlowMappingResource,
+		NewOrganizationPermissionsResource,
 	}
 }
 
@@ -151,5 +155,6 @@ func (p *ControlMonkeyProvider) DataSources(ctx context.Context) []func() dataso
 		NewNotificationSlackAppDataSource,
 		NewExternalCredentialsDataSource,
 		NewRunTaskDataSource,
+		NewCustomFlowDataSource,
 	}
 }

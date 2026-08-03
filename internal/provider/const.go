@@ -19,4 +19,5 @@ const (
 	templateNotFoundError                = "Template not found"
 	externalCredentialsNotFoundError     = "External Credentials not found"
 	runTaskNotFoundError                 = "Run Task not found"
+	customFlowNotFoundError              = "Custom Flow not found"
 )

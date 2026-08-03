@@ -15,16 +15,55 @@ Creates, updates and destroys custom roles.
 - [Attribute-Based Access Control with SSO](https://controlmonkey.io/news/attribute-based-access-control-with-controlmonkey-single-sign-on/)
 
 ## Example Usage
+
+### Namespace role
 ```terraform
+# A namespace role. `type` is optional and defaults to namespaceRole, but setting it explicitly
+# makes clear which attributes are legal: namespace roles use the singular `permissions.name` and
+# may set `stack_restriction`.
 resource "cm_custom_role" "custom_role" {
   name        = "Create Stack Role"
   description = "This role allows users to create stack and launch a stack from an ephemeral template"
+  type        = "namespaceRole"
   permissions = [
     {
       name = "stack:create"
     },
     {
       name = "stack:createFromTemplate"
+    }
+  ]
+}
+```
+
+### Organization role with restricted permissions
+```terraform
+resource "cm_custom_role" "platform_admin" {
+  name        = "Platform Admin"
+  description = "Organization level role that grants stack visibility and creation across the organization"
+  type        = "organizationRole"
+
+  permissions = [
+    {
+      # Organization roles use the plural `names`. The singular `name` is for namespace roles only.
+      # `org:stack:create` requires `org:stack:read` to be granted in the same block.
+      names = ["org:stack:read", "org:namespace:read", "org:stack:create"]
+    },
+    {
+      # Restrictions are only accepted on permissions that support them, such as `cloudAccount:*`.
+      # ControlMonkey rejects restrictions on `org:*` actions.
+      names = ["cloudAccount:insights"]
+      restrictions = [
+        {
+          # Fields within a single restriction are combined with AND.
+          cloud_provider   = "aws"
+          cloud_account_id = "123456789012"
+        },
+        {
+          # Multiple restrictions are combined with OR, so this one widens the permission.
+          cloud_provider = "azure"
+        }
+      ]
     }
   ]
 }
@@ -41,7 +80,8 @@ resource "cm_custom_role" "custom_role" {
 
 - `description` (String) The description of the role.
 - `permissions` (Attributes List) List of permissions allowed by the role. (see [below for nested schema](#nestedatt--permissions))
-- `stack_restriction` (String) Restrict stack operations with supported types. Learn more [here](https://docs.controlmonkey.io/administration/users-and-roles/custom-roles). Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-restriction-types).
+- `stack_restriction` (String) Restrict stack operations with supported types. Only allowed when `type` is `namespaceRole`. Learn more [here](https://docs.controlmonkey.io/administration/users-and-roles/custom-roles). Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-restriction-types).
+- `type` (String) The type of the role. Allowed values: [namespaceRole, organizationRole]. **Omitting this creates a `namespaceRole`.** This attribute cannot be modified after creation.
 
 ### Read-Only
 
@@ -50,9 +90,20 @@ resource "cm_custom_role" "custom_role" {
 <a id="nestedatt--permissions"></a>
 ### Nested Schema for `permissions`
 
-Required:
+Optional:
 
-- `name` (String) The type of the permission. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).
+- `name` (String) The type of the permission. Only allowed when `type` is `namespaceRole`. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).
+- `names` (List of String) The types of the permissions. Only allowed when `type` is `organizationRole`. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).
+- `restrictions` (Attributes List) Narrows the permissions to matching resources only. Only allowed when `type` is `organizationRole`, and only for permissions that support restrictions. Fields within one restriction are combined with AND; multiple restrictions are combined with OR. All fields accept regular expressions, matched case-sensitively. (see [below for nested schema](#nestedatt--permissions--restrictions))
+
+<a id="nestedatt--permissions--restrictions"></a>
+### Nested Schema for `permissions.restrictions`
+
+Optional:
+
+- `cloud_account_id` (String) Restrict to matching cloud account IDs.
+- `cloud_provider` (String) Restrict to matching cloud providers, for example `aws`. Must be lowercase.
+- `cm_resource_name` (String) Restrict to matching ControlMonkey resource names.
 
 ## Import
 

@@ -55,7 +55,7 @@ resource "%s" "%s" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "id"),
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "team_id"),
-					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users"),
+					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users.0.email"),
 				),
 			},
 			{
@@ -65,7 +65,7 @@ resource "%s" "%s" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "id"),
 					resource.TestCheckResourceAttrSet(teamUsersResource(teamUsersResourceName), "team_id"),
-					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users"),
+					resource.TestCheckNoResourceAttr(teamUsersResource(teamUsersResourceName), "users.0.email"),
 				),
 			},
 		},

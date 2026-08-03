@@ -30,9 +30,6 @@ description: |-
 ### Stack for which any plan/deployment would also trigger its all sub-directories. This stack's plan/deployment runs are configured to run in a self-hosted runner under the runner-group "dev-runner"
 {{tffile "examples/resources/cm_stack/resource4.tf"}}
 
-### Stack with a run task configured
-{{tffile "examples/resources/cm_stack/resource5.tf"}}
-
 {{ .SchemaMarkdown | trimspace }}
 
 {{ if .HasImport -}}

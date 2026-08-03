@@ -143,3 +143,88 @@ resource "%s" "%s" {
 func customRoleResourceName(s string) string {
 	return fmt.Sprintf("%s.%s", tfCustomRoleResource, s)
 }
+
+const (
+	orgRoleTfResourceName = "organization_custom_role"
+	orgRoleName           = "tf organization role"
+)
+
+// TestAccCustomRoleOrganizationRoleResource covers type, permissions.names and
+// permissions.restrictions. Restrictions use a cloudAccount action - the API rejects them on org:*
+// actions - and org:stack:create requires org:stack:read in the same block.
+func TestAccCustomRoleOrganizationRoleResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "%s" "%s" {
+	name = "%s"
+	type = "organizationRole"
+	permissions = [
+		{
+			names = ["org:stack:read", "org:namespace:read", "org:stack:create"]
+		},
+		{
+			names = ["cloudAccount:insights"]
+			restrictions = [
+				{
+					cloud_provider   = "aws"
+					cloud_account_id = "123456789012"
+				}
+			]
+		},
+	]
+}
+`, tfCustomRoleResource, orgRoleTfResourceName, orgRoleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(customRoleResourceName(orgRoleTfResourceName), "id"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "type", "organizationRole"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.#", "2"),
+					// Order must round-trip exactly, in the order written above
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.0.names.#", "3"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.0.names.0", "org:stack:read"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.0.names.1", "org:namespace:read"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.0.names.2", "org:stack:create"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.1.restrictions.#", "1"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.1.restrictions.0.cloud_provider", "aws"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.1.restrictions.0.cloud_account_id", "123456789012"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			// Drop the restrictions block
+			{
+				Config: providerConfig + fmt.Sprintf(`
+resource "%s" "%s" {
+	name = "%s"
+	type = "organizationRole"
+	permissions = [
+		{
+			names = ["org:stack:read", "org:namespace:read", "org:stack:create"]
+		},
+	]
+}
+`, tfCustomRoleResource, orgRoleTfResourceName, orgRoleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.#", "1"),
+					resource.TestCheckNoResourceAttr(customRoleResourceName(orgRoleTfResourceName), "permissions.0.restrictions"),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			{
+				ResourceName:      customRoleResourceName(orgRoleTfResourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(customRoleResourceName(orgRoleTfResourceName), "id"),
+					resource.TestCheckResourceAttr(customRoleResourceName(orgRoleTfResourceName), "type", "organizationRole"),
+				),
+			},
+		},
+	})
+}

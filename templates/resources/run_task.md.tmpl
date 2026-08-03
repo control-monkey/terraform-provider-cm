@@ -12,6 +12,17 @@ description: |-
 ## Example Usage
 {{tffile "examples/resources/cm_run_task/resource.tf"}}
 
+### Write-only HMAC key
+
+`hmac_key` is stored in the Terraform state in plain text, because the ControlMonkey API never
+returns it and `Sensitive` only masks CLI output. On Terraform / OpenTofu 1.11 and later, prefer
+`hmac_key_wo` - a write-only argument that is never persisted to state or plan files.
+
+Rotating the key requires incrementing `hmac_key_wo_version`. Changing `hmac_key_wo` on its own
+produces no plan, because a write-only value is not stored and therefore cannot be compared.
+
+{{tffile "examples/resources/cm_run_task/resource2.tf"}}
+
 {{ .SchemaMarkdown | trimspace }}
 
 {{ if .HasImport -}}

@@ -35,7 +35,7 @@ resource "cm_namespace" "dev_namespace" {
 
 ### Required
 
-- `vendor` (String) The external credentials vendor type (aws/azure/gcp/etc). Find supported vendors [here] (https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#external-credentials-vendor-types).
+- `vendor` (String) The external credentials vendor type (aws/azure/gcp/etc). Find supported vendors [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#external-credentials-vendor-types).
 
 ### Optional
 

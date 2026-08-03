@@ -309,82 +309,6 @@ resource "%s" "%s" {
 			// validate no drift step
 			test_helpers.GetValidateNoDriftStep(),
 
-			// Test run_task_config: add to stack
-			{
-				Config: testAccStackResourceSetup() + fmt.Sprintf(`
-resource "%s" "%s" {
-  iac_type = "%s"
-  namespace_id = cm_namespace.test_namespace.id
-  name = "%s"
-  deployment_behavior = {
-    deploy_on_push = %s
-  }
-  vcs_info = {
-    provider_id = "%s"
-    repo_name = "%s"
-  }
-  run_task_config = {
-    run_tasks = [
-      {
-        run_task_id        = cm_run_task.test_run_task.id
-        enforcement_level  = "warning"
-        stage              = "postPlan"
-      }
-    ]
-  }
-  policy = {
-    ttl_config = {
-      ttl = {
-        type = "%s"
-        value = %s
-      }
-    }
-  }
-}
-`, cmStack, s1ResourceName, s1IacType, s1Name, s1DeployOnPush, providerId, repoName, s1PolicyTtlType, s1PolicyTtlValue),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "run_task_config.run_tasks.#", "1"),
-					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "run_task_config.run_tasks.0.run_task_id"),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "run_task_config.run_tasks.0.enforcement_level", "warning"),
-					resource.TestCheckResourceAttr(stackResourceName(s1ResourceName), "run_task_config.run_tasks.0.stage", "postPlan"),
-				),
-			},
-			// validate no drift step
-			test_helpers.GetValidateNoDriftStep(),
-
-			// Test run_task_config: remove from stack
-			{
-				Config: testAccStackResourceSetup() + fmt.Sprintf(`
-resource "%s" "%s" {
-  iac_type = "%s"
-  namespace_id = cm_namespace.test_namespace.id
-  name = "%s"
-  deployment_behavior = {
-    deploy_on_push = %s
-  }
-  vcs_info = {
-    provider_id = "%s"
-    repo_name = "%s"
-  }
-  policy = {
-    ttl_config = {
-      ttl = {
-        type = "%s"
-        value = %s
-      }
-    }
-  }
-}
-`, cmStack, s1ResourceName, s1IacType, s1Name, s1DeployOnPush, providerId, repoName, s1PolicyTtlType, s1PolicyTtlValue),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(stackResourceName(s1ResourceName), "id"),
-					resource.TestCheckNoResourceAttr(stackResourceName(s1ResourceName), "run_task_config"),
-				),
-			},
-			// validate no drift step
-			test_helpers.GetValidateNoDriftStep(),
-
 			{
 				ResourceName:      fmt.Sprintf("%s.%s", cmStack, s1ResourceName),
 				ImportState:       true,
@@ -402,12 +326,6 @@ func testAccStackResourceSetup() string {
 	return providerConfig + fmt.Sprintf(`
 resource "cm_namespace" "test_namespace" {
   name = "Stack Namespace"
-}
-
-resource "cm_run_task" "test_run_task" {
-  name       = "Stack Test Run Task"
-  url        = "https://my-run-task-endpoint.example.com/callback"
-  is_enabled = true
 }
 `)
 }

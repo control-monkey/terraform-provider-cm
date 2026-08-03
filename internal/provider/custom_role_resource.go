@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
+	"github.com/control-monkey/terraform-provider-cm/internal/helpers"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons"
 	tfCustomRole "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/custom_role"
 	cm_stringvalidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
@@ -44,6 +46,20 @@ func (r *CustomRoleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"type": schema.StringAttribute{
+				// Not Computed: the API defaults to namespaceRole but never returns it, so a Computed
+				// value would stay unknown after apply.
+				MarkdownDescription: fmt.Sprintf("The type of the role. Allowed values: %s."+
+					" **Omitting this creates a `%s`.** This attribute cannot be modified after creation.",
+					helpers.EnumForDocs(cmTypes.CustomRoleTypeTypes), cmTypes.NamespaceRoleType),
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(cmTypes.CustomRoleTypeTypes...),
+				},
+			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the role.",
 				Required:            true,
@@ -65,15 +81,47 @@ func (r *CustomRoleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							MarkdownDescription: "The type of the permission. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).",
-							Required:            true,
+							MarkdownDescription: fmt.Sprintf("The type of the permission. Only allowed when `type` is `%s`."+
+								" Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).", cmTypes.NamespaceRoleType),
+							Optional: true,
+						},
+						"names": schema.ListAttribute{
+							MarkdownDescription: fmt.Sprintf("The types of the permissions. Only allowed when `type` is `%s`."+
+								" Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-role-permission-types).", cmTypes.OrganizationRoleType),
+							ElementType: types.StringType,
+							Optional:    true,
+						},
+						"restrictions": schema.ListNestedAttribute{
+							MarkdownDescription: fmt.Sprintf("Narrows the permissions to matching resources only. Only allowed when `type` is `%s`,"+
+								" and only for permissions that support restrictions."+
+								" Fields within one restriction are combined with AND; multiple restrictions are combined with OR."+
+								" All fields accept regular expressions, matched case-sensitively.", cmTypes.OrganizationRoleType),
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"cloud_provider": schema.StringAttribute{
+										MarkdownDescription: "Restrict to matching cloud providers, for example `aws`. Must be lowercase.",
+										Optional:            true,
+									},
+									"cloud_account_id": schema.StringAttribute{
+										MarkdownDescription: "Restrict to matching cloud account IDs.",
+										Optional:            true,
+									},
+									"cm_resource_name": schema.StringAttribute{
+										MarkdownDescription: "Restrict to matching ControlMonkey resource names.",
+										Optional:            true,
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 			"stack_restriction": schema.StringAttribute{
-				MarkdownDescription: "Restrict stack operations with supported types. Learn more [here](https://docs.controlmonkey.io/administration/users-and-roles/custom-roles). Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-restriction-types).",
-				Optional:            true,
+				MarkdownDescription: fmt.Sprintf("Restrict stack operations with supported types. Only allowed when `type` is `%s`."+
+					" Learn more [here](https://docs.controlmonkey.io/administration/users-and-roles/custom-roles)."+
+					" Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#stack-restriction-types).", cmTypes.NamespaceRoleType),
+				Optional: true,
 			},
 		},
 	}
@@ -98,6 +146,43 @@ func (r *CustomRoleResource) Configure(_ context.Context, req resource.Configure
 	}
 
 	r.client = client
+}
+
+// ValidateConfig enforces the attributes that are only valid for one role type. Action names are
+// left to the API.
+func (r *CustomRoleResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data tfCustomRole.ResourceModel
+
+	if diags := req.Config.Get(ctx, &data); diags.HasError() {
+		return
+	}
+
+	// An unset type defaults to namespaceRole on the API side. An unknown type matches neither.
+	isOrganizationRole := data.Type.ValueString() == cmTypes.OrganizationRoleType
+	isNamespaceRole := isOrganizationRole == false && data.Type.IsUnknown() == false
+
+	if isOrganizationRole && data.StackRestriction.IsNull() == false {
+		resp.Diagnostics.AddError(validationError, fmt.Sprintf("stack_restriction is allowed only when type is '%s'", cmTypes.NamespaceRoleType))
+	}
+
+	for _, p := range data.Permissions {
+		if isOrganizationRole {
+			if p.Name.IsNull() == false {
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("permissions.name is not allowed when type is '%s'. Use permissions.names instead", cmTypes.OrganizationRoleType))
+			}
+		} else if isNamespaceRole {
+			if p.Names != nil {
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("permissions.names is allowed only when type is '%s'. Use permissions.name instead", cmTypes.OrganizationRoleType))
+			}
+			if p.Restrictions != nil {
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("permissions.restrictions is allowed only when type is '%s'", cmTypes.OrganizationRoleType))
+			}
+		}
+
+		if p.Name.IsNull() && p.Names == nil {
+			resp.Diagnostics.AddError(validationError, "Exactly one of [permissions.name, permissions.names] must be set")
+		}
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.

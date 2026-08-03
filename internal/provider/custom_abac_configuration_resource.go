@@ -72,7 +72,7 @@ func (r *CustomAbacConfigurationResource) Schema(_ context.Context, _ resource.S
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"org_id": schema.StringAttribute{
-							MarkdownDescription: "The Organization ID in ControlMonkey. It can be found [here](https://console.controlmonkey.io/app/organization/setting?id=idp). Example, `o-123`",
+							MarkdownDescription: "The Organization ID in ControlMonkey. It can be found [here](https://console.controlmonkey.io/app/organization/setting?id=idp) (the last part of the ACS url). Example, `o-123`",
 							Required:            true,
 							Validators: []validator.String{
 								cm_stringvalidators.NotBlank(),

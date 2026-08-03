@@ -11,16 +11,13 @@ import (
 	blueprintNamespaces "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/blueprint_namespace_mappings"
 	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -60,21 +57,10 @@ func (r *BlueprintNamespaceMappingsResource) Schema(_ context.Context, _ resourc
 					cmStringValidators.NotBlank(),
 				},
 			},
-			"namespaces": schema.SetNestedAttribute{
+			"namespaces": commons.WithNullSetDefault(schema.SetNestedAttribute{
 				MarkdownDescription: "A list of namespaces to which the blueprint is mapped.",
 				Optional:            true,
 				Computed:            true,
-				Default: setdefault.StaticValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{}, map[string]attr.Value{}),
-						},
-					),
-				),
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 				},
@@ -89,7 +75,7 @@ func (r *BlueprintNamespaceMappingsResource) Schema(_ context.Context, _ resourc
 						},
 					},
 				},
-			},
+			}),
 		},
 	}
 }

@@ -1,0 +1,28 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Custom flow with an inline flow definition
+{{tffile "examples/resources/cm_custom_flow/resource.tf"}}
+
+### Custom flow whose definition is loaded from a file
+{{tffile "examples/resources/cm_custom_flow/resource2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_custom_flow` can be imported using the ID of the Custom Flow, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

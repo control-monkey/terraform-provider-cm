@@ -26,6 +26,10 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 		hasChanges = true          // must have changes because before is null and after is not
 	}
 
+	if plan.Type != state.Type {
+		retVal.SetType(plan.Type.ValueStringPointer())
+		hasChanges = true
+	}
 	if plan.Name != state.Name {
 		retVal.SetName(plan.Name.ValueStringPointer())
 		hasChanges = true
@@ -69,7 +73,34 @@ func PermissionsConverter(plan []*PermissionModel, state []*PermissionModel, con
 func permissionConverter(plan *PermissionModel) *apiCustomRole.Permission {
 	retVal := new(apiCustomRole.Permission)
 
-	retVal.SetName(plan.Name.ValueStringPointer())
+	// name and names are mutually exclusive, so only set what was configured.
+	if plan.Name.IsNull() == false {
+		retVal.SetName(plan.Name.ValueStringPointer())
+	}
+	if plan.Names != nil {
+		names := make([]*string, 0)
+		for _, n := range plan.Names {
+			names = append(names, n.ValueStringPointer())
+		}
+		retVal.SetNames(names)
+	}
+	if plan.Restrictions != nil {
+		restrictions := make([]*apiCustomRole.PermissionRestriction, 0)
+		for _, r := range plan.Restrictions {
+			restrictions = append(restrictions, restrictionConverter(r))
+		}
+		retVal.SetRestrictions(restrictions)
+	}
+
+	return retVal
+}
+
+func restrictionConverter(plan *RestrictionModel) *apiCustomRole.PermissionRestriction {
+	retVal := new(apiCustomRole.PermissionRestriction)
+
+	retVal.SetCloudProvider(plan.CloudProvider.ValueStringPointer())
+	retVal.SetCloudAccountId(plan.CloudAccountId.ValueStringPointer())
+	retVal.SetCmResourceName(plan.CmResourceName.ValueStringPointer())
 
 	return retVal
 }
