@@ -8,5 +8,7 @@ type ResourceModel struct {
 	Url                 types.String `tfsdk:"url"`
 	IsEnabled           types.Bool   `tfsdk:"is_enabled"`
 	HmacKey             types.String `tfsdk:"hmac_key"`
+	HmacKeyWo           types.String `tfsdk:"hmac_key_wo"`
+	HmacKeyWoVersion    types.Int64  `tfsdk:"hmac_key_wo_version"`
 	IsHmacKeyConfigured types.Bool   `tfsdk:"is_hmac_key_configured"`
 }

@@ -10,11 +10,13 @@ import (
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/control_policy_group"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/custom_abac_configuration"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/custom_flow"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/custom_role"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/disaster_recovery"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/namespace_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/notification"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/organization"
+	"github.com/control-monkey/controlmonkey-sdk-go/services/organization_permissions"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/run_task"
 	"github.com/control-monkey/controlmonkey-sdk-go/services/team"
 
@@ -52,12 +54,14 @@ type Client struct {
 	controlPolicy               control_policy.Service
 	controlPolicyGroup          control_policy_group.Service
 	customAbacConfiguration     custom_abac_configuration.Service
+	customFlow                  custom_flow.Service
 	customRole                  custom_role.Service
 	disasterRecovery            disaster_recovery.Service
 	namespace                   namespace.Service
 	namespacePermissions        namespace_permissions.Service
 	notification                notification.Service
 	organization                organization.Service
+	organizationPermissions     organization_permissions.Service
 	runTask                     run_task.Service
 	stack                       stack.Service
 	stackDiscoveryConfiguration stack_discovery_configuration.Service
@@ -85,12 +89,14 @@ func (c *Config) Client() (*Client, diag.Diagnostics) {
 		controlPolicy:               control_policy.New(sess),
 		controlPolicyGroup:          control_policy_group.New(sess),
 		customAbacConfiguration:     custom_abac_configuration.New(sess),
+		customFlow:                  custom_flow.New(sess),
 		customRole:                  custom_role.New(sess),
 		disasterRecovery:            disaster_recovery.New(sess),
 		namespace:                   namespace.New(sess),
 		namespacePermissions:        namespace_permissions.New(sess),
 		notification:                notification.New(sess),
 		organization:                organization.New(sess),
+		organizationPermissions:     organization_permissions.New(sess),
 		runTask:                     run_task.New(sess),
 		stack:                       stack.New(sess),
 		stackDiscoveryConfiguration: stack_discovery_configuration.New(sess),

@@ -13,13 +13,11 @@ import (
 	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,21 +60,10 @@ func (r *ControlPolicyGroupMappingResource) Schema(_ context.Context, _ resource
 					cmStringValidators.NotBlank(),
 				},
 			},
-			"targets": schema.SetNestedAttribute{
+			"targets": commons.WithNullSetDefault(schema.SetNestedAttribute{
 				MarkdownDescription: "List of targets",
 				Optional:            true,
 				Computed:            true,
-				Default: setdefault.StaticValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{}, map[string]attr.Value{}),
-						},
-					),
-				),
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 				},
@@ -138,7 +125,7 @@ func (r *ControlPolicyGroupMappingResource) Schema(_ context.Context, _ resource
 						},
 					},
 				},
-			},
+			}),
 		},
 	}
 }
@@ -341,11 +328,11 @@ func (r *ControlPolicyGroupMappingResource) createEntities(ctx context.Context, 
 				tflog.Info(ctx, fmt.Sprintf("Target '%s' of type '%s' is already mapped to control policy group '%s'. No operation was made.", targetId, targetType, controlPolicyGroupId))
 			} else if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to create map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetType, targetId, controlPolicyGroupId, err)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to create map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetId, targetType, controlPolicyGroupId, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to create map between target '%s' of type '%s' and control policy group '%s'", targetType, targetId, controlPolicyGroupId),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to create map between target '%s' of type '%s' and control policy group '%s'", targetId, targetType, controlPolicyGroupId),
 						err.Error()),
 				}
 			}
@@ -368,11 +355,11 @@ func (r *ControlPolicyGroupMappingResource) updateEntities(ctx context.Context, 
 			targetType := *e.TargetType
 			if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to update map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetType, targetId, controlPolicyGroupId, err)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to update map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetId, targetType, controlPolicyGroupId, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to update map between target '%s' of type '%s' and control policy group '%s'", targetType, targetId, controlPolicyGroupId),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to update map between target '%s' of type '%s' and control policy group '%s'", targetId, targetType, controlPolicyGroupId),
 						err.Error()),
 				}
 			}
@@ -395,11 +382,11 @@ func (r *ControlPolicyGroupMappingResource) deleteEntities(ctx context.Context, 
 			targetType := *e.TargetType
 			if commons.IsNotFoundResponseError(err) {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to delete map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetType, targetId, controlPolicyGroupId, err)),
+					diag.NewErrorDiagnostic(resourceNotFoundError, fmt.Sprintf("Failed to delete map between target '%s' of type '%s' and control policy group '%s'. Error: %s", targetId, targetType, controlPolicyGroupId, err)),
 				}
 			} else {
 				return diag.Diagnostics{
-					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to delete map between target '%s' of type '%s' and control policy group '%s'", targetType, targetId, controlPolicyGroupId),
+					diag.NewErrorDiagnostic(fmt.Sprintf("Failed to delete map between target '%s' of type '%s' and control policy group '%s'", targetId, targetType, controlPolicyGroupId),
 						err.Error()),
 				}
 			}

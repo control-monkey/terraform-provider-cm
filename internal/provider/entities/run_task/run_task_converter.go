@@ -39,7 +39,10 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 	if !plan.HmacKey.IsNull() && !plan.HmacKey.IsUnknown() {
 		retVal.SetHmacKey(plan.HmacKey.ValueStringPointer())
 		hasChanges = true
-	} else if plan.HmacKey.IsNull() && !state.HmacKey.IsNull() {
+	} else if plan.HmacKey.IsNull() && !state.HmacKey.IsNull() && plan.HmacKeyWoVersion.IsNull() {
+		// Only clear the key when it is being removed outright. When hmac_key_wo_version is set the
+		// caller is migrating to the write-only key, and the resource sends that value instead -
+		// clearing here would put HmacKey in nullFields and the marshaller rejects both at once.
 		retVal.SetHmacKey(nil)
 		hasChanges = true
 	}

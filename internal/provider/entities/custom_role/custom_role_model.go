@@ -6,6 +6,7 @@ import (
 
 type ResourceModel struct {
 	ID               types.String       `tfsdk:"id"`
+	Type             types.String       `tfsdk:"type"`
 	Name             types.String       `tfsdk:"name"`
 	Description      types.String       `tfsdk:"description"`
 	Permissions      []*PermissionModel `tfsdk:"permissions"`
@@ -13,5 +14,13 @@ type ResourceModel struct {
 }
 
 type PermissionModel struct {
-	Name types.String `tfsdk:"name"`
+	Name         types.String        `tfsdk:"name"`
+	Names        []types.String      `tfsdk:"names"`
+	Restrictions []*RestrictionModel `tfsdk:"restrictions"`
+}
+
+type RestrictionModel struct {
+	CloudProvider  types.String `tfsdk:"cloud_provider"`
+	CloudAccountId types.String `tfsdk:"cloud_account_id"`
+	CmResourceName types.String `tfsdk:"cm_resource_name"`
 }

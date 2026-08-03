@@ -1,0 +1,1 @@
+terraform import cm_organization_permissions.platform_team team-123

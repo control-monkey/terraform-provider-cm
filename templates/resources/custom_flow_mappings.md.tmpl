@@ -1,0 +1,28 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Map a custom flow to a namespace and a stack
+{{tffile "examples/resources/cm_custom_flow_mappings/resource.tf"}}
+
+### Map a custom flow to all namespaces in the organization
+{{tffile "examples/resources/cm_custom_flow_mappings/resource2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_custom_flow_mappings` can be imported using the ID of the Custom Flow, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

@@ -16,6 +16,7 @@ func UpdateStateAfterRead(res *apiControlPolicy.ControlPolicy, state *ResourceMo
 	jsonSettingsString, err := json.Marshal(res.Parameters)
 	if err != nil {
 		state.Parameters = jsontypes.NewNormalizedNull()
+		return
 	}
 
 	state.Parameters = jsontypes.NewNormalizedValue(string(jsonSettingsString))

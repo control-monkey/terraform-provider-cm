@@ -16,7 +16,31 @@ description: |-
 - [Terraform Microsoft Teams Support: Real-Time Infrastructure Notifications](https://controlmonkey.io/news/teams-notification-support/)
 
 ## Example Usage
+
+### Namespace scope
 {{tffile "examples/resources/cm_events_subscriptions/resource.tf"}}
+
+### Cloud account scopes and all namespaces
+{{tffile "examples/resources/cm_events_subscriptions/resource2.tf"}}
+
+### Organization, GCP project and stack scopes
+{{tffile "examples/resources/cm_events_subscriptions/resource3.tf"}}
+
+Each scope accepts only certain `event_type` values, and the API rejects the rest:
+
+| `scope` | `scope_id` | Allowed `event_type` |
+| --- | --- | --- |
+| `organization` | must not be set | `aws::consoleOperation`, `azure::consoleOperation`, `gcp::consoleOperation` |
+| `awsAccount` | the 12 digit AWS account ID | `aws::consoleOperation` |
+| `azureSubscription` | the Azure subscription ID | `azure::consoleOperation` |
+| `gcpProject` | the GCP project ID | `gcp::consoleOperation` |
+| `stack` | a ControlMonkey stack ID | the `stack::*`, `stack::plan::*` and `runner::*` types |
+| `namespace` | a namespace ID, or `ALL` | the stack types, plus `stack::created` and `stack::createdByAutoDiscovery` |
+
+Each resource owns only the subscriptions attached to its exact `scope` and `scope_id`. A
+`scope_id` of `ALL`, or an `organization` scoped subscription, is inherited by narrower scopes at
+runtime but is not managed by their resources - so a specific namespace resource and an `ALL`
+resource can coexist without fighting over the same rows.
 
 {{ .SchemaMarkdown | trimspace }}
 

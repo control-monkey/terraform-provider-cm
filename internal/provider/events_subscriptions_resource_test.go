@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	cmTypes "github.com/control-monkey/controlmonkey-sdk-go/services/commons"
 	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_config"
+	"github.com/control-monkey/terraform-provider-cm/internal/provider/commons/test_helpers"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -114,4 +116,71 @@ resource "%s" "%s" {
 
 func eventsSubscriptionsResource(s string) string {
 	return fmt.Sprintf("%s.%s", cmEventsSubscriptions, s)
+}
+
+// TestAccEventsSubscriptionsScopeIsolationResource covers the scopes added in api-service #829 and
+// the inheritance isolation that excludeInherited buys.
+//
+// The ALL subscription and the specific-namespace one existing side by side is the regression that
+// matters: before #829 the API answered "which subscriptions take effect for X", so the specific
+// resource absorbed the ALL row and the two deleted each other's rows on every apply.
+func TestAccEventsSubscriptionsScopeIsolationResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: providerConfig + testAccEventsSubscriptionsResourceSetup() + fmt.Sprintf(`
+resource "%s" "all_namespaces" {
+  scope    = "namespace"
+  scope_id = "%s"
+  subscriptions = [
+    {
+      event_type               = "stack::deployment::failed"
+      notification_endpoint_id = cm_notification_endpoint.notification_endpoint.id
+    },
+  ]
+}
+
+resource "%s" "one_namespace" {
+  scope    = "namespace"
+  scope_id = cm_namespace.namespace.id
+  subscriptions = [
+    {
+      event_type               = "stack::deployment::applyStarted"
+      notification_endpoint_id = cm_notification_endpoint.notification_endpoint.id
+    },
+  ]
+}
+
+resource "%s" "aws_account" {
+  scope    = "awsAccount"
+  scope_id = "123456789012"
+  subscriptions = [
+    {
+      event_type               = "aws::consoleOperation"
+      notification_endpoint_id = cm_notification_endpoint.notification_endpoint.id
+    },
+  ]
+}
+`, cmEventsSubscriptions, cmTypes.AllTargetsIdentifier, cmEventsSubscriptions, cmEventsSubscriptions),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// each resource owns exactly one subscription - no absorption across scopes
+					resource.TestCheckResourceAttr(eventsSubscriptionsResource("all_namespaces"), "subscriptions.#", "1"),
+					resource.TestCheckResourceAttr(eventsSubscriptionsResource("one_namespace"), "subscriptions.#", "1"),
+					resource.TestCheckResourceAttr(eventsSubscriptionsResource("aws_account"), "subscriptions.#", "1"),
+					resource.TestCheckResourceAttr(eventsSubscriptionsResource("all_namespaces"), "scope_id", cmTypes.AllTargetsIdentifier),
+					resource.TestCheckResourceAttr(eventsSubscriptionsResource("aws_account"), "scope", cmTypes.AwsAccountScope),
+				),
+			},
+			// validate no drift step
+			test_helpers.GetValidateNoDriftStep(),
+
+			{
+				ResourceName:      eventsSubscriptionsResource("aws_account"),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }

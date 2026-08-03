@@ -38,8 +38,10 @@ func Converter(plan *ResourceModel, state *ResourceModel, converterType commons.
 	}
 	if plan.Parameters != state.Parameters {
 		a := new(map[string]any)
-		plan.Parameters.Unmarshal(a)
-		retVal.SetParameters(a)
+		// Leave parameters unset on failure so the API reports the problem.
+		if plan.Parameters.Unmarshal(a).HasError() == false {
+			retVal.SetParameters(a)
+		}
 
 		if retVal.Type == nil { //if parameters was changed, type must be sent
 			retVal.SetType(plan.Type.ValueStringPointer())

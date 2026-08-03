@@ -1,0 +1,28 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Map a run task to a namespace and a stack
+{{tffile "examples/resources/cm_run_task_mappings/resource.tf"}}
+
+### Map a run task to all namespaces in the organization
+{{tffile "examples/resources/cm_run_task_mappings/resource2.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+`cm_run_task_mappings` can be imported using the ID of the Run Task, e.g.
+
+{{codefile "shell" .ImportFile}}
+{{- end }}

@@ -32,7 +32,7 @@ func (r *ExternalCredentialsDataSource) Schema(_ context.Context, _ datasource.S
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"vendor": schema.StringAttribute{
-				MarkdownDescription: "The external credentials vendor type (aws/azure/gcp/etc). Find supported vendors [here] (https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#external-credentials-vendor-types).",
+				MarkdownDescription: "The external credentials vendor type (aws/azure/gcp/etc). Find supported vendors [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#external-credentials-vendor-types).",
 				Required:            true,
 			},
 			"id": schema.StringAttribute{
@@ -88,13 +88,16 @@ func (r *ExternalCredentialsDataSource) Read(ctx context.Context, req datasource
 	res, err := r.client.Client.externalCredentials.ListExternalCredentials(ctx, vendor, id, name)
 
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Failed to read external credentials"), fmt.Sprintf("%s", err))
+		resp.Diagnostics.AddError("Failed to read external credentials", err.Error())
 		return
 	} else if len(res) == 0 {
-		resp.Diagnostics.AddError(fmt.Sprintf(resourceNotFoundError), fmt.Sprintf(externalCredentialsNotFoundError))
+		resp.Diagnostics.AddError(resourceNotFoundError, externalCredentialsNotFoundError)
 		return
 	} else if len(res) > 1 {
-		resp.Diagnostics.AddError(fmt.Sprintf("Found multiple entities"), fmt.Sprintf("Found multiple external credentials with name '%s', and id '%s' use additional constraints to reduce matches to a single match", *name, *id))
+		// Use the framework getters, not the pointers: whichever of id / name the user omitted is nil.
+		resp.Diagnostics.AddError(multipleEntitiesError,
+			fmt.Sprintf("Found %d external credentials matching vendor '%s', name '%s' and id '%s'. Use additional constraints to reduce matches to a single match.",
+				len(res), vendor, state.Name.ValueString(), state.ID.ValueString()))
 		return
 	}
 

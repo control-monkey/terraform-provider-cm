@@ -54,7 +54,7 @@ resource "cm_custom_abac_configuration" "abac_configuration" {
 
 Required:
 
-- `org_id` (String) The Organization ID in ControlMonkey. It can be found [here](https://console.controlmonkey.io/app/organization/setting?id=idp). Example, `o-123`
+- `org_id` (String) The Organization ID in ControlMonkey. It can be found [here](https://console.controlmonkey.io/app/organization/setting?id=idp) (the last part of the ACS url). Example, `o-123`
 - `org_role` (String) The type of the role. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#custom-abac-org-role-types)
 
 Optional:

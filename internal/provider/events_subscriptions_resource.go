@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/control-monkey/controlmonkey-sdk-go/controlmonkey"
@@ -14,14 +15,11 @@ import (
 	tfEventsSubscriptions "github.com/control-monkey/terraform-provider-cm/internal/provider/entities/events_subscriptions"
 	cmStringValidators "github.com/control-monkey/terraform-provider-cm/internal/provider/validators/string"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -55,18 +53,26 @@ func (r *EventsSubscriptionsResource) Schema(_ context.Context, _ resource.Schem
 				},
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Scope of the resource. Allowed values: %s.", helpers.EnumForDocs(cmTypes.EventSubscriptionScopeTypes)),
+				MarkdownDescription: fmt.Sprintf("Scope of the resource. Known values: %s.", helpers.EnumForDocs(cmTypes.EventSubscriptionScopeTypes)),
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(cmTypes.EventSubscriptionScopeTypes...),
+					cmStringValidators.NotBlank(),
 				},
 			},
 			"scope_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the resource to which the subscriptions are attached.",
-				Optional:            true,
+				MarkdownDescription: fmt.Sprintf("The ID of the resource to which the subscriptions are attached."+
+					" Must not be set when `scope` is `%s`, and is required for every other scope."+
+					" For `%s` use the namespace ID, or `%s` to target every namespace in the organization."+
+					" For `%s` use the stack ID."+
+					" For `%s`, `%s` and `%s` use the cloud provider's own identifier - the 12 digit AWS account ID,"+
+					" the Azure subscription ID or the GCP project ID - not a ControlMonkey ID."+
+					" ControlMonkey does not validate that a cloud identifier exists, so a typo creates a subscription that never fires.",
+					cmTypes.OrganizationScope, cmTypes.NamespaceScope, cmTypes.AllTargetsIdentifier, cmTypes.StackScope,
+					cmTypes.AwsAccountScope, cmTypes.AzureSubscriptionScope, cmTypes.GcpProjectScope),
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
@@ -74,21 +80,10 @@ func (r *EventsSubscriptionsResource) Schema(_ context.Context, _ resource.Schem
 					cmStringValidators.NotBlank(),
 				},
 			},
-			"subscriptions": schema.SetNestedAttribute{
+			"subscriptions": commons.WithNullSetDefault(schema.SetNestedAttribute{
 				MarkdownDescription: "Specifies a list of events subscriptions.",
 				Optional:            true,
 				Computed:            true,
-				Default: setdefault.StaticValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{}, map[string]attr.Value{}),
-						},
-					),
-				),
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 				},
@@ -99,8 +94,12 @@ func (r *EventsSubscriptionsResource) Schema(_ context.Context, _ resource.Schem
 							Computed:            true,
 						},
 						"event_type": schema.StringAttribute{
-							MarkdownDescription: "The type of the event. Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#event-types)",
-							Required:            true,
+							MarkdownDescription: "The type of the event. Not every event type is valid for every `scope` -" +
+								" cloud console operations belong to the cloud account and organization scopes, while stack and plan" +
+								" events belong to the stack and namespace scopes. ControlMonkey rejects an invalid combination and" +
+								" lists the allowed types for the scope in the error." +
+								" Find supported types [here](https://docs.controlmonkey.io/controlmonkey-api/api-enumerations#event-types)",
+							Required: true,
 						},
 						"notification_endpoint_id": schema.StringAttribute{
 							MarkdownDescription: "The unique ID of the endpoint to which the notification will be sent.",
@@ -111,7 +110,7 @@ func (r *EventsSubscriptionsResource) Schema(_ context.Context, _ resource.Schem
 						},
 					},
 				},
-			},
+			}),
 		},
 	}
 }
@@ -145,13 +144,17 @@ func (r *EventsSubscriptionsResource) ValidateConfig(ctx context.Context, req re
 	}
 
 	if helpers.IsKnown(data.Scope) {
-		if data.Scope.ValueString() != cmTypes.OrganizationScope {
-			if data.ScopeId.IsNull() {
-				resp.Diagnostics.AddError(validationError, fmt.Sprintf("scope_id is required for scope '%s'", data.Scope.ValueString()))
-			}
-		} else {
+		scope := data.Scope.ValueString()
+
+		// Say nothing about a scope this provider version does not know - the backend rejects the
+		// scope itself, and a scope_id complaint here would point at the wrong problem.
+		if scope == cmTypes.OrganizationScope {
 			if helpers.IsKnown(data.ScopeId) {
-				resp.Diagnostics.AddError(validationError, fmt.Sprintf("scope_id is cannot be set for scope '%s'", data.Scope.ValueString()))
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("scope_id cannot be set for scope '%s'", scope))
+			}
+		} else if slices.Contains(cmTypes.EventSubscriptionScopeTypes, scope) {
+			if data.ScopeId.IsNull() {
+				resp.Diagnostics.AddError(validationError, fmt.Sprintf("scope_id is required for scope '%s'", scope))
 			}
 		}
 	}
@@ -180,7 +183,16 @@ func (r *EventsSubscriptionsResource) Read(ctx context.Context, req resource.Rea
 
 	id := state.ID
 	scope, scopeId := r.breakdownId(id)
-	res, err := r.client.Client.notification.ListEventSubscriptions(ctx, scope, scopeId)
+
+	listInput, ok := listInputForScope(scope, scopeId)
+	if ok == false {
+		resp.Diagnostics.AddError(fmt.Sprintf("Cannot read subscriptions of '%s'", id.ValueString()),
+			fmt.Sprintf("The ID must be `<scope>/<scope_id>`, or `%s` on its own. Supported scopes: %s.",
+				cmTypes.OrganizationScope, helpers.EnumForDocs(cmTypes.EventSubscriptionScopeTypes)))
+		return
+	}
+
+	res, err := r.client.Client.notification.ListEventSubscriptions(ctx, listInput)
 
 	if err != nil {
 		resourceIdentifier := r.logIdentifier(scope, scopeId)
@@ -391,6 +403,38 @@ func (r *EventsSubscriptionsResource) buildId(plan tfEventsSubscriptions.Resourc
 	retVal = helpers.StringValueOrNull(&id)
 
 	return retVal
+}
+
+// listInputForScope maps the resource scope onto the single query parameter that selects it, and
+// always excludes inherited subscriptions so a resource only ever reads the rows it owns.
+// Returns false for a scope this provider version does not know.
+func listInputForScope(scope string, scopeId *string) (*sdkNotification.ListEventSubscriptionsInput, bool) {
+	input := &sdkNotification.ListEventSubscriptionsInput{ExcludeInherited: true}
+
+	// Without a scopeId the request carries no scope filter at all and the API answers with every
+	// subscription in the organization, which the caller would then treat as its own.
+	if scope != cmTypes.OrganizationScope && scopeId == nil {
+		return nil, false
+	}
+
+	switch scope {
+	case cmTypes.OrganizationScope:
+		input.OrgOnly = true
+	case cmTypes.NamespaceScope:
+		input.NamespaceId = scopeId
+	case cmTypes.StackScope:
+		input.StackId = scopeId
+	case cmTypes.AwsAccountScope:
+		input.AwsAccountId = scopeId
+	case cmTypes.AzureSubscriptionScope:
+		input.AzureSubscriptionId = scopeId
+	case cmTypes.GcpProjectScope:
+		input.GcpProjectId = scopeId
+	default:
+		return nil, false
+	}
+
+	return input, true
 }
 
 func (r *EventsSubscriptionsResource) breakdownId(id types.String) (string, *string) {
